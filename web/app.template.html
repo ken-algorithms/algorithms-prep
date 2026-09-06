@@ -1,0 +1,698 @@
+<title>Algorithms Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap">
+
+<style>
+:root{
+  --ground:#F7F8FA; --surface:#FFFFFF; --sunken:#EDEFF4;
+  --ink:#171A21; --ink-2:#545A68; --ink-3:#838A99;
+  --line:#DFE3EB; --line-2:#CBD2DE;
+  --accent:#2F4B9B; --accent-ink:#FFFFFF; --accent-soft:#E7ECF9;
+  --ok:#1D6B4F; --ok-soft:#DEEDE6; --warn:#8A5A0B; --warn-soft:#F7EBD6;
+  --risk:#A32F3A; --risk-soft:#F7E2E4;
+  --shadow:0 1px 2px rgba(23,26,33,.05), 0 10px 26px -16px rgba(23,26,33,.22);
+  --r:12px; --r-sm:8px;
+  --f-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-read:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1216; --surface:#171B21; --sunken:#12161B;
+    --ink:#E4E8EF; --ink-2:#A0A8B8; --ink-3:#79828F;
+    --line:#262C35; --line-2:#343C48;
+    --accent:#7FA0F0; --accent-ink:#0C1220; --accent-soft:#1A2337;
+    --ok:#4FBF8E; --ok-soft:#122A22; --warn:#D9A445; --warn-soft:#2A2214;
+    --risk:#E27F89; --risk-soft:#2E181C;
+    --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 30px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1216; --surface:#171B21; --sunken:#12161B;
+  --ink:#E4E8EF; --ink-2:#A0A8B8; --ink-3:#79828F;
+  --line:#262C35; --line-2:#343C48;
+  --accent:#7FA0F0; --accent-ink:#0C1220; --accent-soft:#1A2337;
+  --ok:#4FBF8E; --ok-soft:#122A22; --warn:#D9A445; --warn-soft:#2A2214;
+  --risk:#E27F89; --risk-soft:#2E181C;
+  --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 30px -18px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+/* KHÔNG đặt height:100% cho html/body: nó ép documentElement.scrollHeight bằng viewport,
+   nên host nào đo iframe theo nội dung sẽ đo ra số nhỏ rồi cắt mất nội dung. */
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--f-ui);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+
+/* Bất kỳ thứ gì bấm được đều mang data-act — nên affordance khai báo một chỗ duy nhất. */
+[data-act]{cursor:pointer}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100dvh}
+.rail{background:var(--surface);border-right:1px solid var(--line);padding:20px 12px;
+  position:sticky;top:0;align-self:start;max-height:100dvh;
+  display:flex;flex-direction:column;gap:3px;overflow-y:auto}
+.mark{padding:0 10px 16px;display:flex;flex-direction:column;gap:1px}
+.mark b{font-size:15px;letter-spacing:-.01em}
+.mark span{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.04em}
+.tab{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--r-sm);
+  background:none;border:0;text-align:left;font-size:14px;font-weight:500;
+  color:var(--ink-2);width:100%}
+.tab:hover{background:var(--sunken);color:var(--ink)}
+.tab[aria-current="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.tab .n{margin-left:auto;font-family:var(--f-mono);font-size:11px;opacity:.75;
+  font-variant-numeric:tabular-nums}
+.rail .foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);display:flex;
+  flex-direction:column;gap:6px}
+.mini{background:none;border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 9px;
+  font-size:12px;color:var(--ink-2);text-align:left}
+.mini:hover{border-color:var(--accent);color:var(--ink)}
+
+.view{min-width:0;padding:0 0 80px}
+.head{position:sticky;top:0;z-index:6;background:var(--ground);border-bottom:1px solid var(--line);
+  padding:14px 30px;display:flex;gap:14px;align-items:center;justify-content:space-between}
+.head h1{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+.head .sub{font-size:12.5px;color:var(--ink-3);margin-top:1px}
+.pane{padding:24px 30px;max-width:1180px}
+.pane[hidden]{display:none}
+
+/* ---------- primitives ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.card[data-act]:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.eyebrow{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 9px}
+h2.sec{font-size:15px;font-weight:600;margin:30px 0 12px;letter-spacing:-.01em}
+h2.sec:first-child{margin-top:0}
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:10.5px;
+  font-weight:500;padding:2px 7px;border-radius:999px;background:var(--sunken);color:var(--ink-2);
+  border:1px solid var(--line);white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.chip.risk{background:var(--risk-soft);color:var(--risk);border-color:transparent}
+.chip.acc{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.hint{color:var(--ink-3);font-size:12px;margin:8px 0 0}
+
+/* dải độ phủ — một vạch một bài, bấm được để nhảy sang tab thuật toán */
+.segs{display:flex;gap:2px;margin:10px 0 6px;flex-wrap:wrap}
+.seg{height:8px;flex:1 1 6px;min-width:5px;border-radius:2px;background:var(--sunken)}
+.seg.on{background:var(--ok)}
+.legend{font-size:12px;color:var(--ink-3);display:flex;gap:14px;flex-wrap:wrap}
+
+/* ---------- tổng quan ---------- */
+.big{font-family:var(--f-mono);font-size:27px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;line-height:1.1}
+.stat{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);
+  padding:16px 18px;text-align:left;width:100%;display:block}
+.stat:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.stat span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px}
+.track{text-align:left;width:100%;display:block;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.track:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.track h3{margin:0 0 2px;font-size:17px;letter-spacing:-.01em}
+.track .role{font-size:12.5px;color:var(--ink-3);margin:0 0 14px}
+.rounds{display:flex;flex-direction:column;gap:7px;margin:12px 0 0}
+.round{display:flex;gap:10px;align-items:flex-start;font-size:13.5px}
+.round i{flex:none;width:19px;height:19px;border-radius:50%;background:var(--sunken);
+  color:var(--ink-2);font-family:var(--f-mono);font-size:10.5px;font-style:normal;
+  display:grid;place-items:center;margin-top:2px;font-weight:600}
+.round.eng i{background:var(--risk-soft);color:var(--risk)}
+.round b{font-weight:600}
+.round p{margin:1px 0 0;color:var(--ink-2);font-size:12.5px}
+
+.gaps{display:flex;flex-direction:column;gap:8px}
+.gap{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+  padding:10px 12px;border-radius:var(--r-sm);background:var(--sunken);font-size:13.5px;
+  border:1px solid transparent;text-align:left;width:100%}
+.gap[data-act]:hover{border-color:var(--accent)}
+.gap em{font-style:normal;color:var(--ink-3);font-size:12px}
+
+/* ---------- thuật toán ---------- */
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.fbtn{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 13px;
+  font-size:12.5px;color:var(--ink-2)}
+.fbtn:hover{border-color:var(--line-2);color:var(--ink)}
+.fbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.fsep{width:1px;height:20px;background:var(--line);margin:0 4px}
+.alist{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden}
+.arow{display:grid;grid-template-columns:26px 30px 1fr auto auto;gap:11px;align-items:center;
+  padding:10px 13px;background:var(--surface);font-size:13.5px}
+.arow:hover{background:var(--sunken)}
+.arow.done .nm{color:var(--ink-3);text-decoration:line-through}
+.arow input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+.arow .id{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.arow .nm{min-width:0}
+.arow .nm b{font-weight:500}
+.arow .open{background:none;border:0;color:var(--accent);font-size:12px;padding:2px 6px;
+  border-radius:5px;text-align:left}
+.arow .open:hover{background:var(--accent-soft)}
+.arow .pt{font-size:12px;color:var(--ink-3);text-align:right}
+@media(max-width:860px){.arow{grid-template-columns:26px 30px 1fr auto}.arow .pt{display:none}}
+
+/* ---------- họ bài ---------- */
+.fam{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:15px 12px;border-top:1px solid var(--line);
+  text-align:left;width:100%;background:none;border-left:0;border-right:0;border-bottom:0;border-radius:0}
+.fam:first-of-type{border-top:0}
+.fam:hover{background:var(--sunken)}
+.fam .k{font-family:var(--f-mono);font-size:19px;font-weight:600;color:var(--accent);line-height:1.2}
+.fam h4{margin:0 0 4px;font-size:14.5px}
+.fam dl{margin:8px 0 0;display:grid;grid-template-columns:78px 1fr;gap:4px 12px;font-size:13px}
+.fam dt{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);padding-top:3px}
+.fam dd{margin:0;color:var(--ink-2)}
+
+/* ---------- tài liệu ---------- */
+.docwrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px}
+.doclist{border-right:1px solid var(--line);padding-right:16px;max-height:calc(100dvh - 170px);
+  overflow-y:auto;position:sticky;top:96px;align-self:start}
+.doclist input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--surface);color:var(--ink);font:inherit;font-size:13px;margin-bottom:10px}
+.dgroup{font-family:var(--f-mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);margin:12px 0 5px}
+.dlink{display:block;padding:6px 9px;border-radius:var(--r-sm);font-size:13px;color:var(--ink-2);
+  line-height:1.35;border:0;background:none;width:100%;text-align:left}
+.dlink:hover{background:var(--sunken);color:var(--ink)}
+.dlink[aria-current="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.docbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.docbar .path{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc{min-width:0;font-family:var(--f-read);font-size:17px;line-height:1.7}
+.doc h1{font-family:var(--f-ui);font-size:26px;line-height:1.25;margin:0 0 .55em;letter-spacing:-.02em;text-wrap:balance}
+.doc h2{font-family:var(--f-ui);font-size:19px;margin:1.8em 0 .5em;padding-top:.5em;
+  border-top:1px solid var(--line);letter-spacing:-.01em;text-wrap:balance}
+.doc h3{font-family:var(--f-ui);font-size:16px;margin:1.4em 0 .4em}
+.doc h4{font-family:var(--f-ui);font-size:14px;margin:1.2em 0 .35em;color:var(--ink-2)}
+.doc p{margin:.65em 0;max-width:68ch}
+.doc ul,.doc ol{padding-left:1.3em;max-width:68ch}
+.doc li{margin:.25em 0}
+.doc code{font-family:var(--f-mono);font-size:.8em;background:var(--sunken);padding:.12em .38em;
+  border-radius:5px}
+.doc pre{background:var(--sunken);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px 14px;overflow-x:auto;font-size:12.5px;line-height:1.5;font-family:var(--f-mono)}
+.doc pre code{background:none;padding:0;font-size:inherit}
+.doc blockquote{margin:1em 0;padding:.6em 1em;border-left:3px solid var(--accent);
+  background:var(--accent-soft);border-radius:0 var(--r-sm) var(--r-sm) 0;max-width:68ch}
+.doc blockquote p:first-child{margin-top:0}.doc blockquote p:last-child{margin-bottom:0}
+.doc .tw{overflow-x:auto;margin:1em 0;border:1px solid var(--line);border-radius:var(--r)}
+.doc table{border-collapse:collapse;width:100%;font-family:var(--f-ui);font-size:13px}
+.doc th,.doc td{border-bottom:1px solid var(--line);padding:7px 11px;text-align:left;vertical-align:top}
+.doc th{background:var(--sunken);font-weight:600;white-space:nowrap}
+.doc tr:last-child td{border-bottom:0}
+.doc hr{border:0;border-top:1px solid var(--line);margin:1.8em 0}
+.doc details{margin:.7em 0;border:1px solid var(--line);border-radius:var(--r);padding:9px 13px;
+  background:var(--surface);font-family:var(--f-ui);font-size:14.5px}
+.doc summary{cursor:pointer;font-weight:600}
+.doc .headerlink{opacity:0;margin-left:.3em;font-weight:400;text-decoration:none}
+.doc h2:hover .headerlink,.doc h3:hover .headerlink{opacity:.45}
+.doc a[data-act="ext"]::after{content:"↗";font-size:.7em;vertical-align:super;margin-left:2px;opacity:.6}
+.doc a[data-act="inert"]{color:var(--ink-2);cursor:help;text-decoration:underline dotted var(--line-2)}
+.doc a[data-act="inert"]:hover{text-decoration:underline dotted var(--ink-3)}
+.doc img{max-width:100%}
+.hit{padding:9px 10px;border-radius:var(--r-sm);font-size:13px;border:0;
+  background:none;text-align:left;width:100%;color:var(--ink)}
+.hit:hover{background:var(--sunken)}
+.hit small{display:block;color:var(--ink-3);font-size:11.5px;margin-top:2px}
+.empty{color:var(--ink-3);font-size:13px;padding:10px 4px}
+
+@media(max-width:1060px){.docwrap{grid-template-columns:1fr}
+  .doclist{border-right:0;border-bottom:1px solid var(--line);padding:0 0 14px;position:static;max-height:none}}
+@media(max-width:760px){
+  .shell{grid-template-columns:1fr}
+  .rail{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;width:100%;flex-direction:row;
+    border-right:0;border-top:1px solid var(--line);padding:6px 4px;z-index:30;gap:2px;
+    justify-content:space-around;overflow:visible;
+    padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));
+    box-shadow:0 -4px 18px -12px rgba(0,0,0,.35)}
+  .mark,.rail .foot{display:none}
+  .tab{flex-direction:column;gap:2px;font-size:10.5px;padding:7px 4px;text-align:center;
+    min-height:46px;justify-content:center}
+  .tab .n{display:none}
+  .view{padding-bottom:86px}
+  .pane{padding:18px 16px}
+  .head{padding:12px 16px}
+}
+</style>
+
+<div class="shell">
+  <nav class="rail" aria-label="Chuyển mục">
+    <div class="mark"><b>Algorithms Learning</b><span>KATALON · NAB</span></div>
+    <button class="tab" data-act="tab" data-t="over" aria-current="true">Tổng quan</button>
+    <button class="tab" data-act="tab" data-t="co">Công ty<span class="n">2</span></button>
+    <button class="tab" data-act="tab" data-t="algo">Thuật toán<span class="n" id="nAlgo">38</span></button>
+    <button class="tab" data-act="tab" data-t="sd">System design<span class="n">7</span></button>
+    <button class="tab" data-act="tab" data-t="docs">Tài liệu<span class="n" id="nDocs">0</span></button>
+    <div class="foot">
+      <button class="mini" data-act="theme" id="themeBtn">Giao diện: theo máy</button>
+      <button class="mini" data-act="reset">Xoá tiến độ</button>
+    </div>
+  </nav>
+
+  <main class="view">
+    <div class="head">
+      <div><h1 id="ttl">Tổng quan</h1><div class="sub" id="sub"></div></div>
+      <span class="chip acc num" id="pct" title="Phần trăm đã hoàn thành: bài thuật toán + yêu cầu JD">0%</span>
+    </div>
+
+    <!-- ============ TỔNG QUAN ============ -->
+    <section class="pane" id="p-over">
+      <div class="grid g3">
+        <button class="stat" data-act="tab" data-t="algo">
+          <div class="big" id="sAlgo">0/38</div><span>Bài thuật toán đã gõ tay →</span></button>
+        <button class="stat" data-act="tab" data-t="co">
+          <div class="big" id="sReq">0/25</div><span>Yêu cầu JD đã sẵn sàng →</span></button>
+        <button class="stat" data-act="tab" data-t="docs">
+          <div class="big" id="sDocs">0</div><span>Tài liệu trong kho →</span></button>
+      </div>
+
+      <h2 class="sec">Độ phủ 38 bài</h2>
+      <div class="card" data-act="tab" data-t="algo" role="button" tabindex="0"
+           aria-label="Mở tab Thuật toán">
+        <div class="segs" id="covSegs"></div>
+        <div class="legend">
+          <span><b class="num" id="covA">0</b>/18 nhóm A — nền tảng</span>
+          <span><b class="num" id="covB">0</b>/10 nhóm B — nâng cao</span>
+          <span><b class="num" id="covC">0</b>/10 nhóm C — HashMap chuyên sâu</span>
+        </div>
+        <p class="hint">Mỗi vạch là một bài. Bấm để mở danh sách.</p>
+      </div>
+
+      <h2 class="sec">Hai hướng ứng tuyển</h2>
+      <div class="grid g2" id="trackCards"></div>
+
+      <h2 class="sec">Việc cần làm trước tiên</h2>
+      <div class="card gaps" id="nextUp"></div>
+    </section>
+
+    <!-- ============ CÔNG TY ============ -->
+    <section class="pane" id="p-co" hidden>
+      <div class="filters" id="coTabs"></div>
+      <div id="coBody"></div>
+    </section>
+
+    <!-- ============ THUẬT TOÁN ============ -->
+    <section class="pane" id="p-algo" hidden>
+      <div class="filters">
+        <button class="fbtn" data-act="filter" data-f="g" data-v="all" aria-pressed="true">Tất cả nhóm</button>
+        <button class="fbtn" data-act="filter" data-f="g" data-v="A">A · nền tảng</button>
+        <button class="fbtn" data-act="filter" data-f="g" data-v="B">B · nâng cao</button>
+        <button class="fbtn" data-act="filter" data-f="g" data-v="C">C · HashMap</button>
+        <span class="fsep"></span>
+        <button class="fbtn" data-act="filter" data-f="d" data-v="all" aria-pressed="true">Mọi độ khó</button>
+        <button class="fbtn" data-act="filter" data-f="d" data-v="Easy">Easy</button>
+        <button class="fbtn" data-act="filter" data-f="d" data-v="Medium">Medium</button>
+        <button class="fbtn" data-act="filter" data-f="d" data-v="Hard">Hard</button>
+        <span class="fsep"></span>
+        <button class="fbtn" data-act="filter" data-f="s" data-v="all" aria-pressed="true">Tất cả</button>
+        <button class="fbtn" data-act="filter" data-f="s" data-v="todo">Chưa làm</button>
+        <button class="fbtn" data-act="filter" data-f="s" data-v="done">Đã xong</button>
+      </div>
+      <div class="alist" id="algoList"></div>
+      <p class="hint">Tick là đã <b>gõ tay xong, tắt Copilot</b> — không phải đã đọc lời giải.
+        Bấm <b>Phân tích</b> để mở phần giải thích trong tài liệu.</p>
+    </section>
+
+    <!-- ============ SYSTEM DESIGN ============ -->
+    <section class="pane" id="p-sd" hidden>
+      <div class="card">
+        <p class="eyebrow">Nhận họ bài trong 30 giây</p>
+        <p style="margin:0;color:var(--ink-2);font-size:13.5px">Hỏi 5 câu này về đề bài, câu trả lời
+        chỉ thẳng vào họ — dùng được cho cả đề chưa từng thấy.</p>
+        <div id="axes" style="margin-top:12px"></div>
+      </div>
+      <h2 class="sec">Bảy họ bài <span class="hint" style="font-weight:400">— bấm một họ để mở bài tương ứng</span></h2>
+      <div class="card" style="padding:6px 8px" id="fams"></div>
+      <h2 class="sec">Sáu bài đầy đủ</h2>
+      <div class="grid g2" id="sdDocs"></div>
+    </section>
+
+    <!-- ============ TÀI LIỆU ============ -->
+    <section class="pane" id="p-docs" hidden>
+      <div class="docwrap">
+        <div class="doclist">
+          <input id="q" type="search" placeholder="Tìm trong toàn bộ tài liệu…" autocomplete="off"
+                 aria-label="Tìm trong toàn bộ tài liệu">
+          <div id="dnav"></div>
+          <div id="dhits" hidden></div>
+        </div>
+        <div>
+          <div class="docbar">
+            <button class="fbtn" data-act="back" id="backBtn" hidden>← Quay lại</button>
+            <button class="fbtn" data-act="top">↑ Đầu trang</button>
+            <span class="path" id="docPath"></span>
+          </div>
+          <article class="doc" id="doc"></article>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const DOCS = /*__DOCS__*/{};
+const ALGOS = /*__ALGOS__*/[];
+const CO = /*__CO__*/{};
+const FAMS = /*__FAMS__*/[];
+const AXES = /*__AXES__*/[];
+const KEY = "algo-learning-v1";
+const DSA_DOC = "leetcode-38-bai-phong-van-vietnam.md";
+
+/* ---------- state ---------- */
+let S = {done:{}, req:{}};
+try{ const r = localStorage.getItem(KEY); if(r) S = Object.assign(S, JSON.parse(r)); }catch(e){}
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
+
+const el = id => document.getElementById(id);
+const VIEW = () => document.querySelector(".view");
+/* Trang này có thể được nhúng trong iframe mà TRANG CHA mới là thứ cuộn.
+   Khi đó window.scrollTo() bên trong iframe không làm gì, và người dùng đổi tab
+   sẽ vẫn đứng ở chỗ cũ — nhìn vào khoảng trống dưới pane mới. Nên nhắm mọi khả năng. */
+function toTop(){
+  const v = VIEW(); if(v) v.scrollTop = 0;
+  try{ window.scrollTo(0, 0); }catch(e){}
+  try{ if(document.scrollingElement) document.scrollingElement.scrollTop = 0; }catch(e){}
+  try{ document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }catch(e){}
+  // scrollIntoView cuộn được cả ancestor NGOÀI iframe — chốt chặn cuối cùng
+  try{ document.querySelector(".shell").scrollIntoView({block:"start", inline:"nearest"}); }catch(e){}
+}
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+const noAcc = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "")
+  .replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+
+/* ---------- theme ---------- */
+const root = document.documentElement;
+try{ const t = localStorage.getItem(KEY + ":theme"); if(t) root.setAttribute("data-theme", t); }catch(e){}
+function themeLabel(){
+  const t = root.getAttribute("data-theme");
+  el("themeBtn").textContent = "Giao diện: " + (t === "dark" ? "tối" : t === "light" ? "sáng" : "theo máy");
+}
+function cycleTheme(){
+  const order = [null, "light", "dark"];
+  const next = order[(order.indexOf(root.getAttribute("data-theme")) + 1) % 3];
+  if(next) root.setAttribute("data-theme", next); else root.removeAttribute("data-theme");
+  try{ next ? localStorage.setItem(KEY + ":theme", next) : localStorage.removeItem(KEY + ":theme"); }catch(e){}
+  themeLabel();
+}
+
+/* ---------- tabs ---------- */
+const TABS = ["over","co","algo","sd","docs"];
+const TITLES = {over:["Tổng quan","Bạn đang ở đâu"], co:["Công ty","JD, các vòng, và gap thật"],
+  algo:["Thuật toán","38 bài — gõ tay, tắt Copilot"], sd:["System design","7 họ bài · 6 bài đầy đủ"],
+  docs:["Tài liệu","Toàn bộ kho, đọc ngay trong trang"]};
+function go(t){
+  if(!TABS.includes(t)) return;
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-current", String(b.dataset.t === t)));
+  TABS.forEach(k => el("p-" + k).hidden = (k !== t));
+  el("ttl").textContent = TITLES[t][0];
+  el("sub").textContent = TITLES[t][1];
+  toTop();
+}
+
+/* ---------- tổng quan ---------- */
+const doneCount = g => ALGOS.filter(a => (!g || a.g === g) && S.done[a.i]).length;
+const reqTotal = () => Object.values(CO).reduce((n, c) => n + c.req.length, 0);
+const reqDone = () => Object.keys(S.req).filter(k => S.req[k]).length;
+
+function renderOver(){
+  const d = doneCount();
+  el("sAlgo").textContent = d + "/" + ALGOS.length;
+  el("sReq").textContent = reqDone() + "/" + reqTotal();
+  el("sDocs").textContent = Object.keys(DOCS).length;
+  el("covA").textContent = doneCount("A");
+  el("covB").textContent = doneCount("B");
+  el("covC").textContent = doneCount("C");
+  el("covSegs").innerHTML = ALGOS.map(a =>
+    `<span class="seg${S.done[a.i] ? " on" : ""}" title="${esc(a.i + ". " + a.n)}"></span>`).join("");
+  el("pct").textContent = Math.round(((d + reqDone()) / (ALGOS.length + reqTotal())) * 100) + "%";
+
+  el("trackCards").innerHTML = Object.entries(CO).map(([k, c]) => `
+    <button class="track" data-act="co" data-co="${esc(k)}">
+      <h3>${esc(c.name)} →</h3>
+      <p class="role">${esc(c.role)}</p>
+      <div class="rounds">${c.rounds.map((r, i) => `
+        <div class="round${r.eng ? " eng" : ""}"><i>${i + 1}</i>
+          <div><b>${esc(r.t)}</b><p>${esc(r.d)}</p></div></div>`).join("")}</div>
+    </button>`).join("");
+
+  const gaps = [];
+  Object.entries(CO).forEach(([k, c]) => c.req.forEach((r, i) => {
+    if(r.lvl === "risk" && !S.req[k + ":" + i]) gaps.push({co: c.name, key: k, ...r});
+  }));
+  // gap có tài liệu → <button> bấm được; gap chưa có tài liệu → <div>, không giả vờ bấm được
+  el("nextUp").innerHTML = gaps.length ? gaps.map(g => g.doc
+    ? `<button class="gap" data-act="doc" data-doc="${esc(g.doc)}">
+        <span class="chip risk">gap</span>
+        <div><b>${esc(g.t)}</b> <em>— ${esc(g.co)}</em><br><em>${esc(g.why)}</em></div>
+        <span class="chip">${esc(g.eta || "mở →")}</span></button>`
+    : `<div class="gap">
+        <span class="chip risk">gap</span>
+        <div><b>${esc(g.t)}</b> <em>— ${esc(g.co)}</em><br><em>${esc(g.why)}</em></div>
+        <span class="chip">${esc(g.eta || "chưa có tài liệu")}</span></div>`).join("")
+    : `<p class="empty">Không còn gap nào ở mức đỏ chưa tick. Xem tab Công ty để rà lại.</p>`;
+}
+
+/* ---------- công ty ---------- */
+let coCur = Object.keys(CO)[0];
+function renderCo(){
+  el("coTabs").innerHTML = Object.entries(CO).map(([k, c]) =>
+    `<button class="fbtn" data-act="co" data-co="${esc(k)}" aria-pressed="${k === coCur}">${esc(c.name)}</button>`).join("");
+  const c = CO[coCur];
+  const lvlChip = l => l === "ok" ? '<span class="chip ok">mạnh</span>'
+    : l === "warn" ? '<span class="chip warn">cần ôn</span>' : '<span class="chip risk">gap</span>';
+  el("coBody").innerHTML = `
+    <div class="card"><p class="eyebrow">${esc(c.role)}</p>
+      <p style="margin:0 0 10px;color:var(--ink-2);font-size:14px">${esc(c.blurb)}</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${c.stack.map(s => `<span class="chip">${esc(s)}</span>`).join("")}</div>
+    </div>
+    <h2 class="sec">Các vòng phỏng vấn</h2>
+    <div class="card"><div class="rounds">${c.rounds.map((r, i) => `
+      <div class="round${r.eng ? " eng" : ""}"><i>${i + 1}</i>
+        <div><b>${esc(r.t)}</b>${r.eng ? ' <span class="chip risk">tiếng Anh</span>' : ""}
+        <p>${esc(r.d)}</p></div></div>`).join("")}</div>
+      ${c.note ? `<p class="hint">${esc(c.note)}</p>` : ""}
+    </div>
+    <h2 class="sec">Yêu cầu JD — tick khi đã sẵn sàng trả lời
+      <span class="hint" style="font-weight:400">(${c.req.filter((r, i) => S.req[coCur + ":" + i]).length}/${c.req.length})</span></h2>
+    <div class="alist">${c.req.map((r, i) => {
+      const id = coCur + ":" + i;
+      return `<div class="arow" style="grid-template-columns:26px 1fr auto auto">
+        <input type="checkbox" data-act="req" data-req="${esc(id)}" ${S.req[id] ? "checked" : ""}
+               aria-label="${esc(r.t)}">
+        <span class="nm"><b>${esc(r.t)}</b><br><span style="color:var(--ink-3);font-size:12px">${esc(r.why)}</span></span>
+        ${lvlChip(r.lvl)}
+        ${r.doc ? `<button class="open" data-act="doc" data-doc="${esc(r.doc)}">Mở →</button>` : "<span></span>"}
+      </div>`; }).join("")}</div>`;
+}
+
+/* ---------- thuật toán ---------- */
+const F = {g:"all", d:"all", s:"all"};
+function algoRows(){
+  return ALGOS.filter(a =>
+    (F.g === "all" || a.g === F.g) &&
+    (F.d === "all" || a.d === F.d) &&
+    (F.s === "all" || (F.s === "todo" ? !S.done[a.i] : !!S.done[a.i])));
+}
+function renderAlgo(){
+  const rows = algoRows();
+  el("nAlgo").textContent = doneCount() + "/" + ALGOS.length;
+  el("algoList").innerHTML = rows.length ? rows.map(a => `
+    <div class="arow${S.done[a.i] ? " done" : ""}">
+      <input type="checkbox" data-act="algo" data-a="${a.i}" ${S.done[a.i] ? "checked" : ""}
+             aria-label="${esc(a.n)}">
+      <span class="id">${a.i}</span>
+      <span class="nm"><b>${esc(a.n)}</b>
+        <button class="open" data-act="doc" data-doc="${esc(DSA_DOC)}" data-anchor="bai-${a.i}"
+                style="display:block;padding:0">LeetCode #${a.lc} · Phân tích →</button></span>
+      <span class="chip${a.d === "Hard" ? " risk" : a.d === "Medium" ? " warn" : " ok"}">${a.d}</span>
+      <span class="pt">${esc(a.p)}</span>
+    </div>`).join("")
+    : `<div class="arow" style="grid-template-columns:1fr"><span class="empty">Không có bài nào khớp bộ lọc.</span></div>`;
+}
+
+/* ---------- system design ---------- */
+function renderSd(){
+  el("axes").innerHTML = AXES.map((a, i) => `
+    <div class="round"><i>${i + 1}</i><div><b>${esc(a.q)}</b><p>${esc(a.a)}</p></div></div>`).join("");
+  el("fams").innerHTML = FAMS.map(f => `
+    <button class="fam" ${f.doc ? `data-act="doc" data-doc="${esc(f.doc)}"` : ""}>
+      <div class="k">${esc(f.k)}</div>
+      <div><h4>${esc(f.n)}${f.doc ? " →" : ""}</h4>
+        <dl><dt>Chữ ký</dt><dd>${esc(f.sig)}</dd>
+            <dt>Lõi</dt><dd>${esc(f.core)}</dd>
+            <dt>Bẫy</dt><dd>${esc(f.trap)}</dd></dl></div></button>`).join("");
+  const sd = Object.keys(DOCS).filter(k => k.includes("katalon-system-design/") && !k.endsWith("README.md"));
+  el("sdDocs").innerHTML = sd.map(k => `
+    <button class="card" data-act="doc" data-doc="${esc(k)}" style="text-align:left">
+      <b style="font-size:14.5px">${esc(DOCS[k].t)} →</b>
+      <p class="hint" style="margin-top:5px">${esc(k.split("/").pop())}</p>
+    </button>`).join("");
+}
+
+/* ---------- tài liệu ---------- */
+const ORDER = Object.keys(DOCS);
+function groupOf(k){
+  if(k.startsWith("nab-prep/")) return "NAB";
+  if(k.includes("katalon-system-design")) return "System design";
+  if(k.includes("katalon-self-questions")) return "Câu hỏi tự ghi";
+  if(k.includes("katalon-prep-common")) return "Khái niệm chung";
+  if(k.includes("katalon-prep-java")) return "Java";
+  if(k.includes("katalon-prep-python")) return "Python";
+  if(k.startsWith("katalon-prep/")) return "Katalon";
+  return "Gốc";
+}
+let docCur = null;
+const docHistory = [];
+
+function renderNav(){
+  const groups = {};
+  ORDER.forEach(k => (groups[groupOf(k)] = groups[groupOf(k)] || []).push(k));
+  el("dnav").innerHTML = Object.entries(groups).map(([g, ks]) =>
+    `<div class="dgroup">${esc(g)}</div>` + ks.map(k =>
+      `<button class="dlink" data-act="doc" data-doc="${esc(k)}" data-nohist="1"
+               aria-current="${k === docCur}">${esc(DOCS[k].t)}</button>`).join("")).join("");
+}
+
+function resolveDoc(k){
+  if(DOCS[k]) return k;
+  return Object.keys(DOCS).find(x => x === k || x.endsWith("/" + k)) || null;
+}
+
+function openDoc(k, anchor, pushHist){
+  const key = resolveDoc(k);
+  if(!key) return false;
+  if(pushHist !== false && docCur && docCur !== key) docHistory.push(docCur);
+  docCur = key;
+  go("docs");
+  renderNav();
+  el("backBtn").hidden = docHistory.length === 0;
+  el("docPath").textContent = key;
+  const box = el("doc");
+  box.innerHTML = DOCS[key].h;
+
+  // bọc bảng rộng để cuộn ngang trong khung của nó, không làm trang cuộn ngang
+  box.querySelectorAll("table").forEach(t => {
+    if(t.parentElement.classList.contains("tw")) return;
+    const w = document.createElement("div");
+    w.className = "tw";
+    t.parentNode.insertBefore(w, t);
+    w.appendChild(t);
+  });
+  // mọi liên kết trong tài liệu đều phải bấm được
+  box.querySelectorAll("a[href]").forEach(a => {
+    const href = a.getAttribute("href") || "";
+    if(a.dataset.doc){ a.dataset.act = "doc"; return; }          // liên kết chéo tài liệu
+    if(href.startsWith("#")){ a.dataset.act = "anchor"; a.dataset.anchor = href.slice(1); return; }
+    if(/^https?:/i.test(href)){ a.dataset.act = "ext"; a.target = "_blank"; a.rel = "noopener noreferrer"; return; }
+    // còn lại là đường dẫn cục bộ không nhúng được (thư mục code, file .java/.py):
+    // biến thành text tường minh thay vì để href chết dẫn ra ngoài trang
+    a.dataset.act = "inert";
+    a.removeAttribute("href");
+    a.title = "Không mở được trong trang này — nằm ngoài kho tài liệu: " + href;
+  });
+  requestAnimationFrame(() => scrollToAnchor(anchor));
+  return true;
+}
+
+function scrollToAnchor(anchor){
+  if(!anchor){ toTop(); return; }
+  let t = null;
+  try{ t = el("doc").querySelector("#" + CSS.escape(anchor)); }catch(e){}
+  if(!t) t = el("doc").querySelector(`[id="${anchor}"], [name="${anchor}"]`);
+  if(!t){ toTop(); return; }
+  // tính thủ công thay vì scrollIntoView: chắc chắn cuộn ĐÚNG vùng view,
+  // không nhờ trình duyệt đoán ancestor nào là scroller
+  const headH = document.querySelector(".head").getBoundingClientRect().height;
+  t.scrollIntoView({block:"start"});
+  // bù lại phần bị thanh tiêu đề dính che
+  try{ window.scrollBy(0, -(headH + 8)); }catch(e){}
+}
+
+function runSearch(){
+  const raw = el("q").value.trim();
+  const q = noAcc(raw);
+  if(!q){ el("dnav").hidden = false; el("dhits").hidden = true; el("dhits").innerHTML = ""; return; }
+  el("dnav").hidden = true;
+  el("dhits").hidden = false;
+  const hits = [];
+  ORDER.forEach(k => {
+    const i = noAcc(DOCS[k].t + " " + DOCS[k].x).indexOf(q);
+    if(i >= 0) hits.push({k, i, ctx: DOCS[k].x.substr(Math.max(0, i - 50), 130)});
+  });
+  hits.sort((a, b) => a.i - b.i);
+  el("dhits").innerHTML = hits.length
+    ? `<div class="dgroup">${hits.length} tài liệu khớp</div>` + hits.slice(0, 40).map(h =>
+        `<button class="hit" data-act="doc" data-doc="${esc(h.k)}"><b>${esc(DOCS[h.k].t)}</b><small>${esc(h.ctx)}…</small></button>`).join("")
+    : `<p class="empty">Không có kết quả cho “${esc(raw)}”.</p>`;
+}
+
+/* ---------- MỘT handler duy nhất cho mọi thứ bấm được ----------
+   Dùng delegation ở tầng document: phần tử sinh động lúc nào cũng hoạt động,
+   không phụ thuộc việc có gắn lại handler sau mỗi lần render hay không. */
+function handleAct(e){
+  const t = e.target.closest("[data-act]");
+  if(!t) return;
+  const act = t.dataset.act;
+
+  if(act === "req" || act === "algo"){                 // checkbox: để trình duyệt tự toggle
+    if(act === "req"){ S.req[t.dataset.req] = t.checked; save(); renderOver(); renderCo(); }
+    else { S.done[t.dataset.a] = t.checked; save(); renderAlgo(); renderOver(); }
+    return;
+  }
+  if(act === "ext") return;                            // liên kết ngoài: để trình duyệt mở tab mới
+  if(act === "inert"){ e.preventDefault(); return; }   // đường dẫn ngoài kho: không điều hướng
+
+  e.preventDefault();
+  switch(act){
+    case "tab":    go(t.dataset.t); break;
+    case "co":     coCur = t.dataset.co; renderCo(); go("co"); break;
+    case "doc":    openDoc(t.dataset.doc, t.dataset.anchor || undefined, t.dataset.nohist !== "1"); break;
+    case "anchor": scrollToAnchor(t.dataset.anchor); break;
+    case "filter":
+      F[t.dataset.f] = t.dataset.v;
+      document.querySelectorAll(`[data-act="filter"][data-f="${t.dataset.f}"]`).forEach(o =>
+        o.setAttribute("aria-pressed", String(o.dataset.v === t.dataset.v)));
+      renderAlgo();
+      break;
+    case "back":
+      if(history.length){ openDoc(history.pop(), undefined, false); el("backBtn").hidden = docHistory.length === 0; }
+      break;
+    case "top":   toTop(); break;
+    case "theme": cycleTheme(); break;
+    case "reset":
+      if(confirm("Xoá toàn bộ tiến độ đã tick? Không khôi phục lại được.")){
+        S = {done:{}, req:{}}; save(); renderAll();
+      }
+      break;
+  }
+}
+document.addEventListener("click", handleAct);
+document.addEventListener("change", e => { if(e.target.matches('[data-act="req"],[data-act="algo"]')) handleAct(e); });
+// phần tử bấm được nhưng không phải <button> vẫn phải dùng được bằng bàn phím
+document.addEventListener("keydown", e => {
+  if((e.key === "Enter" || e.key === " ") && e.target.matches('[data-act][role="button"]')){
+    e.preventDefault(); handleAct(e);
+  }
+  if(e.key === "/" && e.target !== el("q")){ e.preventDefault(); go("docs"); el("q").focus(); }
+  if(e.key === "Escape" && e.target === el("q")){ el("q").value = ""; runSearch(); el("q").blur(); }
+});
+el("q").addEventListener("input", runSearch);
+
+/* ---------- boot ---------- */
+function renderAll(){ renderOver(); renderCo(); renderAlgo(); renderSd(); renderNav(); }
+themeLabel();
+el("nDocs").textContent = Object.keys(DOCS).length;
+renderAll();
+openDoc(resolveDoc("README.md") || ORDER[0], undefined, false);
+docHistory.length = 0;
+el("backBtn").hidden = true;
+go("over");
+</script>

@@ -1,0 +1,61 @@
+[project]
+name = "katalon-prep-python"
+version = "1.0.0"
+description = "Katalon interview prep - Python side (PySpark, async, clean code, DSA)"
+requires-python = ">=3.12"
+dependencies = []
+
+# ---------------------------------------------------------------------------
+# EXTRAS: cai rieng, khong bat buoc.
+#   uv sync --extra spark   -> pyspark (~320 MB, can Java 17/21 - may ban co 21.0.12)
+# Xoa het bang: rm -rf .venv   (khong dong gi vao he thong, khong Docker)
+# ---------------------------------------------------------------------------
+[project.optional-dependencies]
+# Goi Claude that. KHONG can cho bat ky test nao - toan bo 120+ test chay offline.
+# Chi can khi ban muon chay `python -m prep.agent.demo` voi model that.
+llm = ["anthropic>=0.40"]
+# PySpark: ~320 MB, can Java 17/21. Spark 3.5 VO tren JDK 25 ("getSubject is not
+# supported" - JEP 486 go Security Manager), nen phai ghim JAVA_HOME sang 21.
+spark = ["pyspark>=3.5,<4.0"]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.24", "ruff>=0.8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/prep"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+markers = [
+    "spark: can pyspark (uv sync --extra spark). Tu skip neu chua cai.",
+    "slow: do thoi gian that - chay lau hon cac test khac",
+]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# Chon rule tuong duong voi SonarQube ben Java: bug that, khong phai style vun vat.
+select = ["E", "F", "B", "SIM", "UP", "RUF", "C4", "PIE", "RET", "ARG"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# `before/` CO Y viet xau — den do o day la DUNG MUC DICH, y het viec SonarLint
+# bao do trong `01-clean-code-solid/before/` ben Java. Tat o day de `ruff check`
+# van sach, nhung tung van de deu duoc danh so [1]..[14] trong chinh file do.
+# E722 (bare except) KHONG tat o day: no la van de [9], phai co `noqa` ngay tai dong
+# do de nguoi doc thay day la co y - tat ca file thi mat luon dau vet.
+"src/prep/clean_code/before/*" = ["ARG001", "SIM105", "B006"]
+# Test day BAY co y: mutable default, late-binding closure, key dict trung,
+# try/except/pass. Chung la NOI DUNG BAI HOC, khong phai loi can sua.
+"tests/test_00_refresher.py" = ["ARG002", "B023", "F601", "B006"]
+"tests/test_01_clean_code.py" = ["SIM105"]
+"tests/test_09_agent.py" = ["ARG001"]

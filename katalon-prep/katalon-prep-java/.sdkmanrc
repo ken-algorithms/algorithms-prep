@@ -1,0 +1,5 @@
+# Ghim JDK cho workspace nay. Katalon dung Java 21; may ban mac dinh JDK 25.
+# Dung:  sdk env         -> ap dung cho shell HIEN TAI
+#        sdk env install -> cai neu chua co
+# Bat tu dong khi cd vao thu muc:  sdk config  -> sdkman_auto_env=true
+java=21.0.12-tem
