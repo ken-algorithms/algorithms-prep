@@ -462,8 +462,9 @@ def code_page(rel: str, pages: list[Page]) -> str:
         text = f"(không đọc được: {exc})"
     if len(text) > 400_000:
         text = text[:400_000] + "\n\n… (đã cắt bớt)"
-    depth = rel.count("/") + 1
-    base = "../" * depth
+    # "a/b/c.java" -> "a/b/c.java.html" nằm sâu 2 thư mục, nên KHÔNG cộng thêm 1.
+    # (dir_page thì có cộng, vì "a/b" -> "a/b/index.html" sâu hơn một cấp.)
+    base = "../" * rel.count("/")
     lines = text.count("\n") + 1
     body = (f'<div class="wrap"><article><h1>{html.escape(src.name)}</h1>'
             f'<p style="color:var(--muted);font-size:13px">'

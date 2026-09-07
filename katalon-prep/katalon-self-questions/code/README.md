@@ -9,6 +9,15 @@ python3 self_deadlock.py   #          → Lock treo, RLock không
 python3 detect.py          #          → faulthandler dump stack rồi thoát sau 2s
 ```
 
+## Bốn file
+
+| File | Chứng minh điều gì |
+|---|---|
+| [DeadlockDemo.java](DeadlockDemo.java) | Deadlock 100% tái hiện bằng `CountDownLatch`, và `ThreadMXBean` **phát hiện được nhưng không phá được** |
+| [deadlock_demo.py](deadlock_demo.py) | GIL **không** ngăn được deadlock; Python không có detector |
+| [self_deadlock.py](self_deadlock.py) | `threading.Lock` tự khoá chính mình, `RLock` thì không |
+| [detect.py](detect.py) | `faulthandler.dump_traceback_later` chỉ ra đúng dòng bị kẹt |
+
 Đã chạy thật: JDK 25.0.2 Temurin · Python 3.12.13 (macOS arm64). Output ghi trong
 [01-deadlock.md](../01-deadlock.md).
 

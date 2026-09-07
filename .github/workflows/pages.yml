@@ -1,0 +1,67 @@
+name: Deploy GitHub Pages
+
+# Dựng site tĩnh rồi deploy. KHÔNG dùng Jekyll — repo này chứa code Java có `{{ }}`
+# mà Liquid của Jekyll đọc thành thẻ template rồi vỡ build.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cài thư viện markdown
+        run: pip install --quiet markdown pymdown-extensions
+
+      - name: Dựng bản một trang (app)
+        run: python3 web/build.py
+
+      - name: Dựng bản nhiều trang (tra cứu)
+        run: python3 build_site.py
+
+      - name: Gom vào _deploy
+        run: |
+          mkdir -p _deploy/docs
+          cp web/index.html _deploy/index.html
+          cp -R site/. _deploy/docs/
+          touch _deploy/.nojekyll
+          echo "— nội dung sẽ deploy —"
+          du -sh _deploy
+          ls -la _deploy
+
+      - name: Kiểm tra đầu ra không rỗng
+        run: |
+          test -s _deploy/index.html || { echo "index.html rỗng"; exit 1; }
+          test -s _deploy/docs/index.html || { echo "docs/index.html rỗng"; exit 1; }
+          grep -q 'Algorithms Learning' _deploy/index.html || { echo "app không có nội dung"; exit 1; }
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _deploy
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
