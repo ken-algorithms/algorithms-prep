@@ -1,3 +1,15 @@
 site/
 __pycache__/
 .DS_Store
+
+# Java / Maven build output
+target/
+*.class
+
+# Python venv (leetcode-38-bai-video/setup-env.sh)
+.venv/
+
+# Video: cache manim + giọng đọc sinh lại được bằng ./build.sh (giữ lại .mp4 và .gif thành phẩm)
+leetcode-38-bai-video/**/build/
+leetcode-38-bai-video/**/audio/
+leetcode-38-bai-video/**/*-preview.mp4

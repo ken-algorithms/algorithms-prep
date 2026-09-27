@@ -662,7 +662,7 @@ public class NumberOfIslands {
 
     private static final char LAND = '1';
     private static final char WATER = '0';
-    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    private static final int[][] DIRECTIONS = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
 
     public int numIslands(char[][] grid) {
         int islandCount = 0;
@@ -2598,7 +2598,7 @@ package com.motives.leetcode.groupb;
 public class WordSearch {
 
     private static final char VISITED_MARKER = '#';
-    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    private static final int[][] DIRECTIONS = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
 
     public boolean exist(char[][] board, String word) {
         for (int row = 0; row < board.length; row++) {

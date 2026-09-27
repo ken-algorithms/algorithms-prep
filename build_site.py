@@ -24,6 +24,7 @@ SKIP_DIRS = {".git", "site", "__pycache__", "target", ".venv", "node_modules", "
 
 # Nav grouping: (directory prefix, section label, sort weight)
 SECTIONS = [
+    ("ai-learning", "AI Learning", 8),
     ("nab-prep", "NAB", 10),
     ("katalon-prep/katalon-system-design", "System Design", 20),
     ("katalon-prep/katalon-self-questions", "Self Questions", 30),

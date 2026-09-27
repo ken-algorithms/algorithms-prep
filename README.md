@@ -18,6 +18,7 @@ open site/index.html
 
 | Folder | Là gì |
 |---|---|
+| [**ai-learning/**](ai-learning/) ⭐ | **Học sâu AI** — 16 file từ toán nền → ML/DL → CV/NLP/VLM → fine-tuning → eval → tối ưu token. Mọi ví dụ lấy từ code thật `motivesidp-ai-service`. Kèm 12 project thực hành và [lộ trình AI Engineer](ai-learning/13-lo-trinh-ai-engineer-vsf-fpt.md) |
 | [**nab-prep/**](nab-prep/) ⭐ | **NAB Innovation Centre Vietnam** — Senior/Lead Java Engineer. Nghiên cứu công ty, JD, quy trình 5 vòng, gap analysis, kế hoạch 5 tuần |
 | [**katalon-prep/**](katalon-prep/) | **Katalon** — Senior/Lead. Câu trả lời theo CV, stack AI, 6 bài system design, workspace code 313 test. **Mới:** [self-host LLM](katalon-prep/katalon-selfhost-llm.md) — hướng tuyển đã dịch sang AI Engineer |
 | [katalon-prep/katalon-system-design/](katalon-prep/katalon-system-design/) | **Dùng chung cho cả hai hướng** — 7 họ bài, 5 trục nhận diện, 6 bài design đầy đủ |
