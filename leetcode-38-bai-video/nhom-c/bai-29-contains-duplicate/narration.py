@@ -1,7 +1,9 @@
-"""Kịch bản bài 29 — mỗi đoạn: (phụ đề hiển thị, câu cho giọng đọc TTS).
+"""Kịch bản bài 29 — mỗi đoạn: (phụ đề hiển thị, câu đọc phiên âm).
 
-Câu TTS phiên âm thuật ngữ tiếng Anh ("hát sét", "tru", "phon") vì giọng Linh của macOS
-đọc tiếng Anh theo kiểu đánh vần. Đổi sang ElevenLabs/giọng người thật thì dùng lại phụ đề.
+Hai kiểu lời đọc, chọn bằng TEXT=phienam|tienganh khi chạy make_voice.py:
+- SEGMENTS[key][1]: phiên âm thuật ngữ ("hát sét", "tru") — an toàn với mọi giọng.
+- TTS_EN[key]: giữ nguyên từ tiếng Anh ("HashSet", "true") — hợp với giọng neural.
+  Đoạn không có trong TTS_EN thì dùng lại bản phiên âm (không chứa từ tiếng Anh).
 """
 
 SEGMENTS = {
@@ -93,4 +95,25 @@ SEGMENTS = {
         "Tiếp theo: Bài 30 · Valid Anagram (#242)",
         "Bài tiếp theo: va lít a na gram.",
     ),
+}
+
+TTS_EN = {
+    "intro": "Bài hai mươi chín. Contains Duplicate, LeetCode số 217.",
+    "example": "Ví dụ, mảng một, hai, ba, một. Kết quả là true, vì số một xuất hiện hai lần.",
+    "brute": "Cách ngây thơ là so sánh từng cặp phần tử. Với n phần tử, ta cần n nhân n trừ một chia hai phép so sánh, tức là O n bình phương.",
+    "idea": "Ý tưởng: dùng một HashSet tên là seen, để lưu các số đã gặp. Kiểm tra một số có trong set hay không chỉ tốn O một.",
+    "step0": "Số một, chưa có trong set. Thêm vào.",
+    "step3": "Số một. Lần này, số một đã có trong set. Trả về true ngay lập tức, không cần duyệt tiếp.",
+    "ex2": "Nếu mảng là một, hai, ba, bốn, ta duyệt hết mà không gặp số nào trùng, nên trả về false.",
+    "py_intro": "Giờ xem code Python.",
+    "py_seen": "Dòng này tạo một set rỗng, để lưu các số đã gặp.",
+    "py_loop": "Duyệt từng số. Nếu số đó đã có trong set, trả về true.",
+    "py_add": "Nếu chưa có, thêm nó vào set.",
+    "py_false": "Duyệt hết mà không trùng, trả về false.",
+    "java_intro": "Còn đây là bản Java.",
+    "java_seen": "Set rỗng bên Python, tương ứng với new HashSet bên Java.",
+    "java_add": "Điểm khác: hàm add của Java trả về false nếu phần tử đã có. Nên ta gộp bước kiểm tra và bước thêm vào, làm một dòng.",
+    "complexity": "Độ phức tạp: thời gian O n, bộ nhớ O n, ở cả hai ngôn ngữ.",
+    "tradeoff": "Đánh đổi là: tốn thêm bộ nhớ O n, để giảm thời gian từ O n bình phương xuống O n. Nếu bị giới hạn bộ nhớ, có thể sắp xếp mảng rồi so hai phần tử kề nhau, mất O n log n.",
+    "outro": "Bài tiếp theo: Valid Anagram.",
 }

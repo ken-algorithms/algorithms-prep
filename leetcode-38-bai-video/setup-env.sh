@@ -20,6 +20,6 @@ for spec in "zlib:z:1.2.12" "bzip2:bz2:1.0.8" "expat:expat:2.5.0"; do
 done
 export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig:$PC_DIR"
 
-uv pip install -q manim imageio-ffmpeg
+uv pip install -q manim imageio-ffmpeg edge-tts
 ln -sf "$("$VENV/bin/python" -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" "$VENV/bin/ffmpeg"
 "$VENV/bin/manim" --version

@@ -336,9 +336,17 @@ algorithms-prep/
   `pkg-config` và file `.pc` của zlib/bzip2/expat — `setup-env.sh` đã xử lý. API `Code` của manim 0.21
   khác các ví dụ cũ ở mục 5.2: tham số là `code_string`/`code_file`, `paragraph_config={"font": ...}`
   (không còn `font=` trực tiếp) — code thật xem `scene.py`.
-- **Chưa kiểm chứng:** chất lượng giọng Linh (macOS `say`) khi đọc phiên âm thuật ngữ Anh ("hát sét",
-  "tru") — **cần nghe lại**; nếu nghe gượng, thay giọng ở `make_voice.py` (ElevenLabs/giọng thật),
-  timing tự khớp theo `durations.json`.
+- **Bẫy đã gặp — manim làm rơi tiếng khi dùng cache:** animation lấy từ cache bật `skip_animations`, và
+  `add_sound()` gọi ngay sau đó bị bỏ qua **không báo lỗi**. Bài 29 từng mất 9/22 đoạn (các đoạn mở đầu
+  ngay sau một hiệu ứng chuyển cảnh, như đề bài). `build.sh` giờ luôn render với `--disable_caching`.
+  Kiểm tra: dò từng `audio/<đoạn>.wav` trong audio của mp4 bằng tương quan — cả 22 đoạn khớp 0,98–0,99.
+- **Giọng đọc:** mặc định là `vi-VN-NamMinhNeural` (nam, neural, qua `edge-tts`, không cần key);
+  đổi bằng `VOICE=linh|hoaimy|file TEXT=phienam|tienganh ./build.sh`, nghe thử mẫu ở
+  `bai-29-contains-duplicate/audio/samples/`. `edge-tts` dùng endpoint "Read aloud" của Edge — **không phải
+  API chính thức**, hay bị chặn tạm khi gọi dồn dập (đã có retry + nghỉ giữa các đoạn; bài 29 mất ~4 phút cho
+  22 đoạn). Nếu đăng kênh công khai/thương mại, chuyển sang Azure Speech chính thức (cùng giọng HoaiMy/NamMinh,
+  có free tier) hoặc ElevenLabs — chỉ cần thêm 1 hàm `synth_*` trong `make_voice.py`, timing tự khớp theo
+  `durations.json`. **Chưa kiểm chứng:** tôi không nghe được audio — chất lượng giọng do bạn đánh giá.
 
 - **Đã kiểm chứng:** cấu trúc nội dung/timing dựa trực tiếp trên các mục có sẵn và đã chạy được
   trong [leetcode-38-bai-phong-van-vietnam.md](leetcode-38-bai-phong-van-vietnam.md); bảng đường
