@@ -18,7 +18,7 @@ Chạy lại build sau **mỗi lần sửa `app.template.html` hoặc bất kỳ
 |---|---|
 | **Tổng quan** | Số bài đã gõ tay, số yêu cầu JD đã sẵn sàng, dải độ phủ 38 bài (một vạch = một bài), hai thẻ hướng ứng tuyển với đủ các vòng, và danh sách gap đỏ cần làm trước |
 | **Công ty** | NAB và Katalon tách riêng: stack, các vòng phỏng vấn đánh số, và **checklist yêu cầu JD tick được** — mỗi dòng ghi rõ mạnh / cần ôn / gap kèm lý do. Bấm **Mở** để nhảy thẳng tới tài liệu chứng minh |
-| **Thuật toán** | 38 bài, lọc theo nhóm A/B/C, độ khó, hoặc chỉ hiện bài chưa làm. Tick là **đã gõ tay xong, tắt Copilot** — không phải đã đọc lời giải. Bấm tên bài mở thẳng phần phân tích |
+| **Thuật toán** | 38 bài, lọc theo nhóm A/B/C, độ khó, hoặc chỉ hiện bài chưa làm. Tick là **đã gõ tay xong, tắt Copilot** — không phải đã đọc lời giải. Bấm tên bài mở thẳng phần phân tích. Bài có video (nút **▶ Video**) hiện video mp4 + GIF ngay dưới tiêu đề bài trong phần phân tích |
 | **System design** | 5 trục nhận diện họ bài, bảng 7 họ (chữ ký · lõi · bẫy), và 6 bài design đầy đủ |
 | **Tài liệu** | Toàn bộ 45 file, nhóm theo folder, tìm kiếm **không dấu** trên toàn văn, link giữa các tài liệu bấm được |
 
@@ -61,3 +61,14 @@ Chủ đề sáng/tối lưu riêng ở `algo-learning-v1:theme`, ba trạng th�
 | Tổng quan công ty, checklist JD | **Có** | Không |
 | Xem được file code `.java`/`.py` | Không | **Có** |
 | Dùng khi | Học hằng ngày, trên điện thoại | Tra cứu sâu, cần đọc source |
+
+## Video minh hoạ trong tab Thuật toán
+
+`build.py` tự tìm `leetcode-38-bai-video/nhom-*/bai-<N>-*/bai-<N>-full.mp4` và `bai-<N>.gif`.
+Bài nào có file thì hiện nút **▶ Video** trong danh sách, và khung video + GIF chèn ngay dưới
+tiêu đề bài khi mở phần phân tích. Làm xong video bài mới → chạy lại build là web có.
+
+| Bản | File media lấy từ đâu |
+|---|---|
+| `index.html` (mở trên máy) | Trỏ thẳng `../leetcode-38-bai-video/...` — chạy được ngay |
+| `algorithms-learning.html` (Artifact) | Trỏ `media/...` — **phải publish kèm file**; build in ra danh sách cần gửi. Thiếu file thì khung hiện ô báo "Không tải được", không vỡ trang |

@@ -19,6 +19,11 @@ import markdown
 
 ROOT = Path(__file__).resolve().parent.parent
 WEB = ROOT / "web"
+VIDEO_ROOT = ROOT / "leetcode-38-bai-video"
+# Bản mở trực tiếp (web/index.html) trỏ thẳng vào thư mục video; bản Artifact cần publish kèm
+# các file media dưới đường dẫn "media/<đường dẫn tương đối trong leetcode-38-bai-video>".
+MEDIA_BASE_STANDALONE = "../leetcode-38-bai-video/"
+MEDIA_BASE_ARTIFACT = "media/"
 SKIP = {".git", "site", "web", "__pycache__", "target", ".venv", "node_modules"}
 
 
@@ -115,7 +120,30 @@ def collect_algos() -> list[dict]:
     for m in pat.finditer(src):
         rows.append({"g": m.group(1), "i": int(m.group(2)), "n": m.group(3),
                      "lc": int(m.group(4)), "d": m.group(5), "p": m.group(6).strip()})
+    media = collect_media()
+    for row in rows:
+        if row["i"] in media:
+            row["v"] = media[row["i"]]
     return rows
+
+
+def collect_media() -> dict[int, dict]:
+    """leetcode-38-bai-video/nhom-*/bai-<N>-*/bai-<N>-full.mp4 và bai-<N>.gif → {N: {mp4, gif, mb}}."""
+    media = {}
+    for folder in sorted(VIDEO_ROOT.glob("nhom-*/bai-*")):
+        m = re.match(r"bai-(\d+)-", folder.name)
+        if not m:
+            continue
+        i = int(m.group(1))
+        entry = {}
+        for kind, name in (("mp4", f"bai-{i}-full.mp4"), ("gif", f"bai-{i}.gif")):
+            f = folder / name
+            if f.exists():
+                entry[kind] = f.relative_to(VIDEO_ROOT).as_posix()
+                entry[kind + "_mb"] = round(f.stat().st_size / 1_048_576, 1)
+        if entry:
+            media[i] = entry
+    return media
 
 
 # ---- hand-authored, derived from nab-prep/ and katalon-prep/ --------------------------------
@@ -253,14 +281,19 @@ def main() -> None:
 
     tpl = (WEB / "app.template.html").read_text(encoding="utf-8")
     dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":"))
-    out = (tpl
-           .replace("/*__DOCS__*/{}", dump(docs))
-           .replace("/*__ALGOS__*/[]", dump(algos))
-           .replace("/*__CO__*/{}", dump(COMPANIES))
-           .replace("/*__FAMS__*/[]", dump(FAMS))
-           .replace("/*__AXES__*/[]", dump(AXES)))
 
+    def render(media_base: str) -> str:
+        return (tpl
+                .replace("/*__DOCS__*/{}", dump(docs))
+                .replace("/*__ALGOS__*/[]", dump(algos))
+                .replace("/*__CO__*/{}", dump(COMPANIES))
+                .replace("/*__FAMS__*/[]", dump(FAMS))
+                .replace("/*__AXES__*/[]", dump(AXES))
+                .replace('/*__MEDIA_BASE__*/""', dump(media_base)))
+
+    out = render(MEDIA_BASE_ARTIFACT)
     (WEB / "algorithms-learning.html").write_text(out, encoding="utf-8")
+    out = render(MEDIA_BASE_STANDALONE)
 
     standalone = ('<!doctype html>\n<html lang="vi">\n<head>\n<meta charset="utf-8">\n'
                   '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
@@ -276,6 +309,14 @@ def main() -> None:
           f"{sum(len(c['req']) for c in COMPANIES.values())} yêu cầu JD")
     print(f"  web/algorithms-learning.html  {kb:.0f} KB  → publish làm Artifact")
     print(f"  web/index.html                          → mở trực tiếp bằng trình duyệt")
+    videos = [a for a in algos if "v" in a]
+    if videos:
+        print(f"  {len(videos)} bài có video: {', '.join(str(a['i']) for a in videos)}"
+              " — khi publish Artifact, gửi kèm các file:")
+        for a in videos:
+            for kind in ("mp4", "gif"):
+                if kind in a["v"]:
+                    print(f"    {MEDIA_BASE_ARTIFACT}{a['v'][kind]}  ←  leetcode-38-bai-video/{a['v'][kind]}")
 
 
 if __name__ == "__main__":
