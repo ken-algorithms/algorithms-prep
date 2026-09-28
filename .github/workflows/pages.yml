@@ -30,17 +30,22 @@ jobs:
       - name: Cài thư viện markdown
         run: pip install --quiet markdown pymdown-extensions
 
+      # index.html được đặt ở gốc site nên media phải nằm cạnh nó: _deploy/media/<đường dẫn trong leetcode-38-bai-video>
       - name: Dựng bản một trang (app)
-        run: python3 web/build.py
+        run: MEDIA_BASE=media/ python3 web/build.py
 
       - name: Dựng bản nhiều trang (tra cứu)
         run: python3 build_site.py
 
       - name: Gom vào _deploy
         run: |
-          mkdir -p _deploy/docs
+          mkdir -p _deploy/docs _deploy/media
           cp web/index.html _deploy/index.html
           cp -R site/. _deploy/docs/
+          (cd leetcode-38-bai-video && find . -path '*/nhom-*/bai-*/*' \( -name 'bai-*-full.mp4' -o -name 'bai-*.gif' \) \
+            -exec cp --parents {} ../_deploy/media/ \;)
+          echo "— media —"
+          find _deploy/media -type f | sort
           touch _deploy/.nojekyll
           echo "— nội dung sẽ deploy —"
           du -sh _deploy
@@ -51,6 +56,8 @@ jobs:
           test -s _deploy/index.html || { echo "index.html rỗng"; exit 1; }
           test -s _deploy/docs/index.html || { echo "docs/index.html rỗng"; exit 1; }
           grep -q 'Algorithms Learning' _deploy/index.html || { echo "app không có nội dung"; exit 1; }
+          grep -q 'MEDIA_BASE = "media/"' _deploy/index.html || { echo "index.html chưa trỏ media/"; exit 1; }
+          test -n "$(find _deploy/media -name '*.mp4')" || { echo "không có video trong _deploy/media"; exit 1; }
 
       - uses: actions/upload-pages-artifact@v3
         with:

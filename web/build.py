@@ -12,6 +12,7 @@ Everything is embedded; the page runs fully offline. Re-run after editing any .m
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 
@@ -22,7 +23,9 @@ WEB = ROOT / "web"
 VIDEO_ROOT = ROOT / "leetcode-38-bai-video"
 # Bản mở trực tiếp (web/index.html) trỏ thẳng vào thư mục video; bản Artifact cần publish kèm
 # các file media dưới đường dẫn "media/<đường dẫn tương đối trong leetcode-38-bai-video>".
-MEDIA_BASE_STANDALONE = "../leetcode-38-bai-video/"
+# GitHub Pages deploy web/index.html lên gốc site nên đặt MEDIA_BASE=media/ và copy media vào _deploy/media/
+# (xem .github/workflows/pages.yml).
+MEDIA_BASE_STANDALONE = os.environ.get("MEDIA_BASE", "../leetcode-38-bai-video/")
 MEDIA_BASE_ARTIFACT = "media/"
 SKIP = {".git", "site", "web", "__pycache__", "target", ".venv", "node_modules"}
 

@@ -71,4 +71,5 @@ tiêu đề bài khi mở phần phân tích. Làm xong video bài mới → ch�
 | Bản | File media lấy từ đâu |
 |---|---|
 | `index.html` (mở trên máy) | Trỏ thẳng `../leetcode-38-bai-video/...` — chạy được ngay |
+| GitHub Pages (`.github/workflows/pages.yml`) | Build với `MEDIA_BASE=media/`, workflow copy mọi `bai-*-full.mp4` / `bai-*.gif` vào `_deploy/media/` — push lên `main` là có |
 | `algorithms-learning.html` (Artifact) | Trỏ `media/...` — **phải publish kèm file**; build in ra danh sách cần gửi. Thiếu file thì khung hiện ô báo "Không tải được", không vỡ trang |
