@@ -13,7 +13,20 @@ là đường dẫn thật của từng file, dùng để nhúng trực tiếp (
 > **Bài 29 đã làm xong, chạy được thật:** [leetcode-38-bai-video/nhom-c/bai-29-contains-duplicate/](leetcode-38-bai-video/nhom-c/bai-29-contains-duplicate/)
 > — `bai-29-full.mp4` (1080p30, 2:12, có giọng đọc + phụ đề), `bai-29.gif` (10s, 930 KB).
 > Build lại: `./build.sh` (lần đầu tự chạy `../../setup-env.sh`). Sửa lời đọc ở `narration.py`, sửa hình ở `scene.py`.
-> Làm bài 30–38: copy thư mục này, đổi `narration.py` + phần `walkthrough`/đường dẫn file trong `scene.py`.
+> **Bài 30 cũng đã xong:** [bai-30-valid-anagram/](leetcode-38-bai-video/nhom-c/bai-30-valid-anagram/) — 2:37, GIF 12s.
+> **Bài 31:** [bai-31-isomorphic-strings/](leetcode-38-bai-video/nhom-c/bai-31-isomorphic-strings/) — 3:12, GIF 8s.
+> **Bài 32:** [bai-32-longest-consecutive-sequence/](leetcode-38-bai-video/nhom-c/bai-32-longest-consecutive-sequence/) — 3:11, GIF 18s.
+> **Bài 33:** [bai-33-subarray-sum-equals-k/](leetcode-38-bai-video/nhom-c/bai-33-subarray-sum-equals-k/) — 3:27.
+> **Bài 34:** [bai-34-intersection-of-two-arrays-ii/](leetcode-38-bai-video/nhom-c/bai-34-intersection-of-two-arrays-ii/) — 2:42.
+> **Bài 35:** [bai-35-happy-number/](leetcode-38-bai-video/nhom-c/bai-35-happy-number/) — 2:48.
+> **Bài 36:** [bai-36-4sum-ii/](leetcode-38-bai-video/nhom-c/bai-36-4sum-ii/) — 2:50.
+> **Bài 37:** [bai-37-continuous-subarray-sum/](leetcode-38-bai-video/nhom-c/bai-37-continuous-subarray-sum/) — 3:07.
+> **Bài 38:** [bai-38-design-hashmap/](leetcode-38-bai-video/nhom-c/bai-38-design-hashmap/) — 3:32, GIF 15s. **Nhóm C hoàn tất (29–38).**
+>
+> Làm bài 31–38: phần dùng chung nằm ở `leetcode-38-bai-video/common/` (`kit.py` — màu, ô, khung code,
+> giọng + phụ đề; `make_voice.py`; `build.sh`). Mỗi bài chỉ cần 3 file trong `nhom-c/bai-<N>-<tên>/`:
+> `narration.py` (`LESSON`, `SEGMENTS`, `TTS_EN`), `scene.py` (lớp `LessonVideo` + `LessonGif`, kế thừa
+> `kit.Lesson`), và `build.sh` 1 dòng gọi `../../common/build.sh`.
 
 ## 0. Bảng đường dẫn code nguồn (Python + Java) — Nhóm C
 

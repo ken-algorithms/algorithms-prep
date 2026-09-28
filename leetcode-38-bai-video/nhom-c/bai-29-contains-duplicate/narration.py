@@ -6,6 +6,8 @@ Hai kiểu lời đọc, chọn bằng TEXT=phienam|tienganh khi chạy make_voi
   Đoạn không có trong TTS_EN thì dùng lại bản phiên âm (không chứa từ tiếng Anh).
 """
 
+LESSON = "Bài 29 — Contains Duplicate"
+
 SEGMENTS = {
     "intro": (
         "Bài 29 · Contains Duplicate (LeetCode #217)",

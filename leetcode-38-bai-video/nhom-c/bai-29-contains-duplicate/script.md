@@ -1,4 +1,4 @@
-# Bài 29 — kịch bản lời đọc (sinh tự động từ narration.py)
+# Bài 29 — Contains Duplicate — kịch bản lời đọc (sinh tự động từ narration.py)
 
 Giọng: `vi-VN-NamMinhNeural` · kiểu lời đọc: `phienam`
 

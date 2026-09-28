@@ -1,4 +1,6 @@
-"""Sinh giọng đọc từng đoạn → audio/<key>.wav + durations.json + script.md.
+"""Sinh giọng đọc từng đoạn của MỘT bài → audio/<key>.wav + durations.json + script.md.
+
+Chạy trong thư mục bài (build.sh tự làm): python ../../common/make_voice.py
 
     VOICE=namminh|linh|file|hoaimy   (mặc định namminh)   TEXT=phienam|tienganh   (mặc định phienam)
 
@@ -8,7 +10,7 @@ file: dùng bản ghi của bạn trong recordings/<đoạn>.(m4a|mp3|wav|...) �
 hoaimy/namminh: giọng neural tiếng Việt của Microsoft qua edge-tts (cần mạng, không cần key).
 Đoạn nào không đổi giọng/lời/bản ghi thì giữ nguyên file cũ, không tạo lại.
 
-    python make_voice.py --recording-list   # tạo recordings/README.md: danh sách câu cần đọc
+    python ../../common/make_voice.py --recording-list   # tạo recordings/README.md: danh sách câu cần đọc
 """
 
 import hashlib
@@ -21,9 +23,10 @@ import time
 import wave
 from pathlib import Path
 
-from narration import SEGMENTS, TTS_EN
+HERE = Path.cwd()
+sys.path.insert(0, str(HERE))
+from narration import LESSON, SEGMENTS, TTS_EN  # noqa: E402
 
-HERE = Path(__file__).resolve().parent
 AUDIO = HERE / "audio"
 MANIFEST = AUDIO / "manifest.json"
 RECORDINGS = HERE / "recordings"
@@ -89,7 +92,7 @@ def import_recording(src: Path, wav: Path) -> None:
 def write_recording_list() -> None:
     RECORDINGS.mkdir(exist_ok=True)
     lines = [
-        "# Bài 29 — danh sách câu cần ghi âm",
+        f"# {LESSON} — danh sách câu cần ghi âm",
         "",
         "Mỗi đoạn một file, **tên file = cột Đoạn** (ví dụ `intro.m4a`, `step0.mp3`), bỏ vào thư mục này.",
         "Định dạng nào cũng được: m4a (Voice Memos iPhone/Mac), mp3, wav, aiff, flac, ogg, webm.",
@@ -151,7 +154,7 @@ def main() -> None:
     (AUDIO / "durations.json").write_text(json.dumps(durations, indent=2))
 
     lines = [
-        "# Bài 29 — kịch bản lời đọc (sinh tự động từ narration.py)",
+        f"# {LESSON} — kịch bản lời đọc (sinh tự động từ narration.py)",
         "",
         f"Giọng: bản ghi `recordings/` ({len(SEGMENTS) - len(fallback)}/{len(SEGMENTS)} đoạn, còn lại Linh)"
         if engine == "file" else f"Giọng: `{voice}` · kiểu lời đọc: `{mode}`",

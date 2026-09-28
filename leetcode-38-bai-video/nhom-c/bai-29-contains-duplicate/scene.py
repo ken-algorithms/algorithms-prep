@@ -1,148 +1,38 @@
 """Bài 29 — Contains Duplicate (#217). Code hiển thị được đọc trực tiếp từ file nguồn Python/Java.
 
-    manim render -r 1920,1080 --fps 30 scene.py ContainsDuplicateVideo   # video đầy đủ có tiếng
-    manim render -r 960,540  --fps 24 scene.py ContainsDuplicateGif      # đoạn walkthrough để làm GIF
+    ./build.sh            # video đầy đủ (LessonVideo) + GIF (LessonGif)
 """
 
-import json
 import sys
-import textwrap
-from contextlib import contextmanager, nullcontext
+from contextlib import nullcontext
 from pathlib import Path
 
 from manim import (
     BOLD, DOWN, LEFT, ORIGIN, PI, RIGHT, UL, UP,
-    Arrow, ArcBetweenPoints, Code, Create, FadeIn, FadeOut, Indicate, Rectangle,
-    RoundedRectangle, Scene, Square, Text, TransformFromCopy, VGroup, Write, config,
+    Arrow, ArcBetweenPoints, Create, FadeIn, FadeOut, Indicate, Rectangle,
+    RoundedRectangle, Square, Text, TransformFromCopy, VGroup, Write,
 )
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
-from narration import SEGMENTS  # noqa: E402
-
-ALGO_ROOT = HERE.parents[2]
-PY_FILE = ALGO_ROOT / "leetcode-38-bai" / "lc217-contains-duplicate.py"
-JAVA_FILE = (
-    ALGO_ROOT / "leetcode-38-bai-java" / "src" / "main" / "java"
-    / "com" / "motives" / "leetcode" / "groupc" / "ContainsDuplicate.java"
+sys.path.insert(0, str(HERE.parents[1] / "common"))
+from kit import (  # noqa: E402
+    ACCENT, BAD, CURRENT, FG, JAVA_DIR, MONO, MUTED, OK, PY_DIR, Lesson,
+    highlight, java_solution, line_of, make_array, make_code, python_body, python_solution,
 )
-AUDIO = HERE / "audio"
-DURATIONS_FILE = AUDIO / "durations.json"
-DURATIONS = json.loads(DURATIONS_FILE.read_text()) if DURATIONS_FILE.exists() else {}
 
-BG, FG, MUTED = "#0f172a", "#e2e8f0", "#94a3b8"
-ACCENT, CURRENT, OK, BAD = "#38bdf8", "#facc15", "#22c55e", "#ef4444"
-FONT, MONO = "Arial", "Menlo"
-
-config.background_color = BG
-Text.set_default(font=FONT, color=FG)
+PY_FILE = PY_DIR / "lc217-contains-duplicate.py"
+JAVA_FILE = JAVA_DIR / "groupc" / "ContainsDuplicate.java"
 
 
-def python_solution() -> str:
-    lines = PY_FILE.read_text(encoding="utf-8").splitlines()
-    start = next(i for i, l in enumerate(lines) if l.startswith("class Solution"))
-    end = next(i for i, l in enumerate(lines) if l.startswith("if __name__"))
-    return "\n".join(lines[start:end]).rstrip()
-
-
-def python_body() -> str:
-    lines = python_solution().splitlines()
-    start = next(i for i, l in enumerate(lines) if "def contains_duplicate" in l) + 1
-    return textwrap.dedent("\n".join(lines[start:]))
-
-
-def java_solution() -> str:
-    lines = JAVA_FILE.read_text(encoding="utf-8").splitlines()
-    start = next(i for i, l in enumerate(lines) if l.startswith("public class"))
-    return "\n".join(lines[start:]).rstrip()
-
-
-def line_of(code_string: str, needle: str) -> int:
-    return next(i for i, l in enumerate(code_string.splitlines()) if needle in l)
-
-
-def make_code(code_string: str, language: str, font_size: int = 24) -> Code:
-    return Code(
-        code_string=code_string,
-        language=language,
-        formatter_style="monokai",
-        background="window",
-        paragraph_config={"font": MONO, "font_size": font_size},
-    )
-
-
-def highlight(code: Code, first: int, last: int | None = None, color: str = CURRENT) -> Rectangle:
-    lines = code.code_lines
-    top = lines[first].get_top()[1]
-    bottom = lines[last if last is not None else first].get_bottom()[1]
-    rect = Rectangle(
-        width=code.background.width - 0.2,
-        height=top - bottom + 0.14,
-        fill_color=color, fill_opacity=0.22, stroke_width=0,
-    )
-    return rect.move_to([code.background.get_center()[0], (top + bottom) / 2, 0])
-
-
-def wrap(caption: str, width: int = 62) -> str:
-    return "\n".join(textwrap.wrap(caption, width))
-
-
-class Cell(VGroup):
-    def __init__(self, value: int, index: int | None = None, side: float = 1.1):
-        super().__init__()
-        self.value = value
-        self.box = Square(side_length=side, stroke_color=ACCENT, stroke_width=3)
-        self.box.set_fill(BG, opacity=1)
-        self.label = Text(str(value), font_size=int(side * 36)).move_to(self.box)
-        self.add(self.box, self.label)
-        if index is not None:
-            self.index = Text(str(index), font_size=20, color=MUTED).next_to(self.box, DOWN, buff=0.15)
-            self.add(self.index)
-
-
-def make_array(nums: list[int]) -> VGroup:
-    return VGroup(*[Cell(n, i) for i, n in enumerate(nums)]).arrange(RIGHT, buff=0.25)
-
-
-class Base(Scene):
-    VOICE = True
-    CAPTIONS = True
-    HOLD_WITHOUT_VOICE = 0.7
-
-    def setup(self):
-        self.caption = None
-
-    @contextmanager
-    def voice(self, key: str, pad: float = 0.35):
-        start = self.renderer.time
-        caption_text, _ = SEGMENTS[key]
-        if self.VOICE and (AUDIO / f"{key}.wav").exists():
-            self.add_sound(str(AUDIO / f"{key}.wav"))
-        if self.CAPTIONS:
-            self.set_caption(caption_text)
-        yield
-        target = DURATIONS.get(key, 0) + pad if self.VOICE else self.HOLD_WITHOUT_VOICE
-        rest = target - (self.renderer.time - start)
-        if rest > 0.05:
-            self.wait(rest)
-
-    def set_caption(self, text: str):
-        if self.caption is not None:
-            self.remove(self.caption)
-        label = Text(wrap(text), font_size=26, line_spacing=0.8)
-        plate = RoundedRectangle(
-            width=label.width + 0.6, height=label.height + 0.35, corner_radius=0.12,
-            fill_color="#020617", fill_opacity=0.85, stroke_width=0,
-        )
-        self.caption = VGroup(plate, label.move_to(plate)).to_edge(DOWN, buff=0.25)
-        self.add(self.caption)
+class Base(Lesson):
+    LESSON_DIR = HERE
 
     def walkthrough(self, nums: list[int], step_keys: list[str] | None, fast: bool = False):
         """Chạy đúng vòng lặp của Solution.contains_duplicate, vẽ từng bước."""
         speed = 0.45 if fast else 1.0
         array = make_array(nums).scale(0.9).move_to(LEFT * 3.4 + UP * 1.35)
 
-        body = python_body()
+        body = python_body(PY_FILE, "contains_duplicate")
         code = make_code(body, "python", font_size=26)
         code.scale_to_fit_width(min(code.width, 5.8)).move_to(RIGHT * 3.55 + UP * 0.45)
         code_title = Text("Python", font_size=20, color=MUTED).next_to(code, UP, buff=0.15).align_to(code, LEFT)
@@ -229,7 +119,7 @@ class Base(Scene):
         return VGroup(*leftovers)
 
 
-class ContainsDuplicateVideo(Base):
+class LessonVideo(Base):
     def construct(self):
         self.intro()
         header = Text("#217 · Contains Duplicate", font_size=22, color=MUTED).to_corner(UL, buff=0.35)
@@ -311,8 +201,8 @@ class ContainsDuplicateVideo(Base):
         self.play(FadeOut(VGroup(statement, array, arcs, counter_label, formula)), run_time=0.5)
 
     def code_python_and_java(self):
-        py_src = python_solution()
-        java_src = java_solution()
+        py_src = python_solution(PY_FILE)
+        java_src = java_solution(JAVA_FILE)
 
         py = make_code(py_src, "python", font_size=26)
         py.scale_to_fit_width(min(py.width, 11)).move_to(UP * 0.35)
@@ -408,7 +298,7 @@ class ContainsDuplicateVideo(Base):
             self.play(FadeIn(nxt, shift=UP * 0.2))
 
 
-class ContainsDuplicateGif(Base):
+class LessonGif(Base):
     VOICE = False
     HOLD_WITHOUT_VOICE = 0.9
 
