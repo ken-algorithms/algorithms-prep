@@ -2,6 +2,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 
 <style>
 :root{
@@ -561,6 +562,8 @@ function renderSd(){
 /* ---------- tài liệu ---------- */
 const ORDER = Object.keys(DOCS);
 function groupOf(k){
+  if(k.startsWith("ai-agent-learning/")) return "AI Agent";
+  if(k.startsWith("ai-learning/")) return "AI Learning";
   if(k.startsWith("nab-prep/")) return "NAB";
   if(k.includes("katalon-system-design")) return "System design";
   if(k.includes("katalon-self-questions")) return "Câu hỏi tự ghi";
@@ -646,8 +649,35 @@ function openDoc(k, anchor, pushHist){
     a.title = "Không mở được trong trang này — nằm ngoài kho tài liệu: " + href;
   });
   if(key === DSA_DOC) injectMedia(box);   // sau vòng xử lý link: link "Mở file" giữ nguyên data-act="ext"
+  renderMermaid(box);
   requestAnimationFrame(() => scrollToAnchor(anchor));
   return true;
+}
+
+function renderMermaid(container){
+  if(!window.mermaid) return;
+  const blocks = container.querySelectorAll("pre.highlight > code.language-mermaid, pre > code.language-mermaid, code.language-mermaid");
+  if(!blocks.length) return;
+  blocks.forEach(code => {
+    const pre = code.closest("pre");
+    if(!pre) return;
+    const div = document.createElement("div");
+    div.className = "mermaid";
+    div.style.textAlign = "center";
+    div.style.margin = "1.5rem 0";
+    div.style.overflowX = "auto";
+    div.textContent = code.textContent;
+    pre.parentNode.insertBefore(div, pre);
+    pre.remove();
+  });
+  try {
+    const isDark = document.documentElement.dataset.theme === "dark" || 
+      (!document.documentElement.dataset.theme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    mermaid.initialize({ startOnLoad: false, theme: isDark ? "dark" : "default" });
+    mermaid.run({ nodes: container.querySelectorAll(".mermaid") });
+  } catch(e) {
+    console.warn("Mermaid error:", e);
+  }
 }
 
 function scrollToAnchor(anchor){

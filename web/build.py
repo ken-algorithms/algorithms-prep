@@ -93,7 +93,12 @@ def collect_docs() -> dict[str, dict]:
     # Put the two entry points first so the sidebar reads in a sensible order.
     def sort_key(p: Path) -> tuple:
         rel = p.relative_to(ROOT).as_posix()
-        head = 0 if rel == "README.md" else 1 if rel.startswith("nab-prep/") else 2
+        head = (
+            0 if rel == "README.md" else
+            1 if rel.startswith("ai-agent-learning/") else
+            2 if rel.startswith("ai-learning/") else
+            3 if rel.startswith("nab-prep/") else 4
+        )
         return (head, rel)
 
     docs: dict[str, dict] = {}
