@@ -188,6 +188,38 @@ h2.sec:first-child{margin-top:0}
   color:var(--ink-3);padding-top:3px}
 .fam dd{margin:0;color:var(--ink-2)}
 
+/* ---------- lộ trình java system design ---------- */
+.g4{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.rm-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.rm-head h3{margin:0 0 4px;font-size:17px;letter-spacing:-.01em}
+.rm-head p{margin:0;color:var(--ink-2);font-size:13.5px;max-width:62ch}
+.rm-actions{display:flex;gap:7px;flex-wrap:wrap}
+.phase{display:flex;flex-direction:column;gap:8px;padding:16px 16px 14px}
+.phase .top{display:flex;align-items:center;gap:9px}
+.phase .top i{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  font-family:var(--f-mono);font-size:12px;font-style:normal;font-weight:600;display:grid;place-items:center}
+.phase .ttl{background:none;border:0;padding:0;text-align:left;font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.3}
+.phase .ttl:hover{color:var(--accent)}
+.phase .wk{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.phase dl{margin:0;display:grid;grid-template-columns:44px 1fr;gap:5px 10px;font-size:12.5px}
+.phase dt{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding-top:2px}
+.phase dd{margin:0;color:var(--ink-2)}
+.phase .foot{margin-top:auto;padding-top:8px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.trk{text-align:left;width:100%;display:block}
+.trk h4{margin:0 0 4px;font-size:15px;display:flex;gap:8px;align-items:center}
+.trk .k{font-family:var(--f-mono);font-size:12px;font-weight:600;background:var(--accent);color:var(--accent-ink);
+  border-radius:6px;padding:1px 7px}
+.trk p{margin:0 0 10px;color:var(--ink-2);font-size:13px}
+.facts{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:12.5px;margin:0}
+.facts dt{color:var(--ink-2)}
+.facts dd{margin:0;font-family:var(--f-mono);font-size:12px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.ladder .arow{grid-template-columns:64px 92px 92px 40px 1fr auto}
+.ladder .arow.hd{background:var(--sunken);font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);padding-top:7px;padding-bottom:7px}
+.ladder .arow.hd:hover{background:var(--sunken)}
+.ladder .u{font-family:var(--f-mono);font-weight:600}
+@media(max-width:760px){.ladder .arow{grid-template-columns:52px 1fr 1fr 34px}.ladder .arch,.ladder .go{display:none}}
+
 /* ---------- tài liệu ---------- */
 .docwrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px}
 .doclist{border-right:1px solid var(--line);padding-right:16px;max-height:calc(100dvh - 170px);
@@ -266,7 +298,7 @@ h2.sec:first-child{margin-top:0}
     <button class="tab" data-act="tab" data-t="over" aria-current="true">Tổng quan</button>
     <button class="tab" data-act="tab" data-t="co">Công ty<span class="n">2</span></button>
     <button class="tab" data-act="tab" data-t="algo">Thuật toán<span class="n" id="nAlgo">38</span></button>
-    <button class="tab" data-act="tab" data-t="sd">System design<span class="n">7</span></button>
+    <button class="tab" data-act="tab" data-t="sd">System design<span class="n" id="nSd">0/6</span></button>
     <button class="tab" data-act="tab" data-t="docs">Tài liệu<span class="n" id="nDocs">0</span></button>
     <div class="foot">
       <button class="mini" data-act="theme" id="themeBtn">Giao diện: theo máy</button>
@@ -277,7 +309,7 @@ h2.sec:first-child{margin-top:0}
   <main class="view">
     <div class="head">
       <div><h1 id="ttl">Tổng quan</h1><div class="sub" id="sub"></div></div>
-      <span class="chip acc num" id="pct" title="Phần trăm đã hoàn thành: bài thuật toán + yêu cầu JD">0%</span>
+      <span class="chip acc num" id="pct" title="Phần trăm đã hoàn thành: bài thuật toán + yêu cầu JD + mốc lộ trình System Design">0%</span>
     </div>
 
     <!-- ============ TỔNG QUAN ============ -->
@@ -287,6 +319,8 @@ h2.sec:first-child{margin-top:0}
           <div class="big" id="sAlgo">0/38</div><span>Bài thuật toán đã gõ tay →</span></button>
         <button class="stat" data-act="tab" data-t="co">
           <div class="big" id="sReq">0/25</div><span>Yêu cầu JD đã sẵn sàng →</span></button>
+        <button class="stat" data-act="tab" data-t="sd">
+          <div class="big" id="sMs">0/6</div><span>Mốc lộ trình System Design →</span></button>
         <button class="stat" data-act="tab" data-t="docs">
           <div class="big" id="sDocs">0</div><span>Tài liệu trong kho →</span></button>
       </div>
@@ -340,6 +374,28 @@ h2.sec:first-child{margin-top:0}
 
     <!-- ============ SYSTEM DESIGN ============ -->
     <section class="pane" id="p-sd" hidden>
+      <div class="card rm-head">
+        <div>
+          <p class="eyebrow">Lộ trình Java System Design · 24 tuần · v2</p>
+          <h3>Từ Senior Java tới dẫn dắt thiết kế hệ thống</h3>
+          <p>Bốn giai đoạn, mỗi giai đoạn chốt bằng một mốc. Hai track mới chạy dọc 24 tuần:
+            <b>P</b> — code Java làm hệ thống chậm dù kiến trúc đúng, <b>S</b> — vẽ hệ thống từ 100k tới 10M users.</p>
+        </div>
+        <div class="rm-actions" id="rmActions"></div>
+      </div>
+      <div class="grid g4" id="phases" style="margin-top:14px"></div>
+
+      <h2 class="sec">Hai track chạy dọc 24 tuần</h2>
+      <div class="grid g2" id="tracks"></div>
+
+      <h2 class="sec">100k → 1M → 10M users <span class="hint" style="font-weight:400">— app ngân hàng, đỉnh ngày lương; bấm để mở sơ đồ</span></h2>
+      <div class="alist ladder" id="ladder"></div>
+
+      <h2 class="sec">Mốc kiểm tra <span class="hint" style="font-weight:400" id="msCount"></span></h2>
+      <div class="alist" id="msList"></div>
+      <p class="hint">Trễ quá 2 tuần ở mốc nào thì cắt bớt phạm vi thay vì kéo dài cả lộ trình.</p>
+
+      <h2 class="sec">Đề có lời giải sẵn</h2>
       <div class="card">
         <p class="eyebrow">Nhận họ bài trong 30 giây</p>
         <p style="margin:0;color:var(--ink-2);font-size:13.5px">Hỏi 5 câu này về đề bài, câu trả lời
@@ -380,13 +436,15 @@ const ALGOS = /*__ALGOS__*/[];
 const CO = /*__CO__*/{};
 const FAMS = /*__FAMS__*/[];
 const AXES = /*__AXES__*/[];
+const SDR = /*__SDR__*/{};
 const KEY = "algo-learning-v1";
 const DSA_DOC = "leetcode-38-bai-phong-van-vietnam.md";
 const MEDIA_BASE = /*__MEDIA_BASE__*/"";
 
 /* ---------- state ---------- */
-let S = {done:{}, req:{}};
+let S = {done:{}, req:{}, ms:{}};
 try{ const r = localStorage.getItem(KEY); if(r) S = Object.assign(S, JSON.parse(r)); }catch(e){}
+S.ms = S.ms || {};
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 
 const el = id => document.getElementById(id);
@@ -425,7 +483,7 @@ function cycleTheme(){
 /* ---------- tabs ---------- */
 const TABS = ["over","co","algo","sd","docs"];
 const TITLES = {over:["Tổng quan","Bạn đang ở đâu"], co:["Công ty","JD, các vòng, và gap thật"],
-  algo:["Thuật toán","38 bài — gõ tay, tắt Copilot"], sd:["System design","7 họ bài · 6 bài đầy đủ"],
+  algo:["Thuật toán","38 bài — gõ tay, tắt Copilot"], sd:["System design","Lộ trình 24 tuần · 2 track · 7 họ bài · 6 bài đầy đủ"],
   docs:["Tài liệu","Toàn bộ kho, đọc ngay trong trang"]};
 function go(t){
   if(!TABS.includes(t)) return;
@@ -440,18 +498,21 @@ function go(t){
 const doneCount = g => ALGOS.filter(a => (!g || a.g === g) && S.done[a.i]).length;
 const reqTotal = () => Object.values(CO).reduce((n, c) => n + c.req.length, 0);
 const reqDone = () => Object.keys(S.req).filter(k => S.req[k]).length;
+const msTotal = () => (SDR.ms || []).length;
+const msDone = () => (SDR.ms || []).filter((m, i) => S.ms[i]).length;
 
 function renderOver(){
   const d = doneCount();
   el("sAlgo").textContent = d + "/" + ALGOS.length;
   el("sReq").textContent = reqDone() + "/" + reqTotal();
   el("sDocs").textContent = Object.keys(DOCS).length;
+  el("sMs").textContent = msDone() + "/" + msTotal();
   el("covA").textContent = doneCount("A");
   el("covB").textContent = doneCount("B");
   el("covC").textContent = doneCount("C");
   el("covSegs").innerHTML = ALGOS.map(a =>
     `<span class="seg${S.done[a.i] ? " on" : ""}" title="${esc(a.i + ". " + a.n)}"></span>`).join("");
-  el("pct").textContent = Math.round(((d + reqDone()) / (ALGOS.length + reqTotal())) * 100) + "%";
+  el("pct").textContent = Math.round(((d + reqDone() + msDone()) / (ALGOS.length + reqTotal() + msTotal())) * 100) + "%";
 
   el("trackCards").innerHTML = Object.entries(CO).map(([k, c]) => `
     <button class="track" data-act="co" data-co="${esc(k)}">
@@ -542,6 +603,7 @@ function renderAlgo(){
 
 /* ---------- system design ---------- */
 function renderSd(){
+  renderRoadmap();
   el("axes").innerHTML = AXES.map((a, i) => `
     <div class="round"><i>${i + 1}</i><div><b>${esc(a.q)}</b><p>${esc(a.a)}</p></div></div>`).join("");
   el("fams").innerHTML = FAMS.map(f => `
@@ -559,9 +621,55 @@ function renderSd(){
     </button>`).join("");
 }
 
+/* Lộ trình 6 tháng: giai đoạn, hai track, thang 100k → 10M, mốc tick được. Dữ liệu ở SDR (build.py). */
+function renderRoadmap(){
+  if(!SDR.phases) return;
+  const phase1Impl = SDR.phases.find(p => p.impl);
+  el("rmActions").innerHTML = `
+    <button class="fbtn" data-act="doc" data-doc="${esc(SDR.doc)}" aria-pressed="true">Mở lộ trình đầy đủ →</button>
+    ${phase1Impl ? `<button class="fbtn" data-act="doc" data-doc="${esc(phase1Impl.impl)}">Bài tập giai đoạn 1 →</button>` : ""}`;
+  el("phases").innerHTML = SDR.phases.map(p => `
+    <div class="card phase">
+      <div class="top"><i>${p.n}</i>
+        <div><button class="ttl" data-act="doc" data-doc="${esc(p.doc)}" data-anchor="${esc(p.a)}">${esc(p.t)} →</button>
+          <div class="wk">${esc(p.w)}</div></div></div>
+      <dl><dt>Học</dt><dd>${esc(p.learn)}</dd>
+          <dt>Lab</dt><dd>${esc(p.lab)}</dd>
+          <dt>P</dt><dd>${esc(p.p)}</dd>
+          <dt>S</dt><dd>${esc(p.s)}</dd></dl>
+      <div class="foot">${p.impl
+        ? `<button class="open" data-act="doc" data-doc="${esc(p.impl)}" style="background:none;border:0;color:var(--accent);font-size:12.5px;padding:0">Hướng dẫn + bài tập →</button>`
+        : `<span class="chip">bài tập chi tiết: chưa viết</span>`}</div>
+    </div>`).join("");
+  el("tracks").innerHTML = SDR.tracks.map(t => `
+    <button class="card trk" data-act="doc" data-doc="${esc(t.doc)}">
+      <h4><span class="k">${esc(t.k)}</span>${esc(t.t)} →</h4>
+      <p>${esc(t.d)}</p>
+      <dl class="facts">${t.facts.map(f => `<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join("")}</dl>
+    </button>`).join("");
+  el("ladder").innerHTML = `
+    <div class="arow hd"><span>Users</span><span>CCU đỉnh</span><span>RPS đỉnh</span><span>Bậc</span><span class="arch">Kiến trúc</span><span class="go"></span></div>` +
+    SDR.ladder.map(l => `
+    <div class="arow" data-act="doc" data-doc="${esc(l.doc)}" data-anchor="${esc(l.a)}" role="button" tabindex="0"
+         aria-label="${esc("Mở sơ đồ " + l.lv + " cho " + l.u + " users")}">
+      <span class="u">${esc(l.u)}</span><span class="num">${esc(l.ccu)}</span><span class="num">${esc(l.rps)}</span>
+      <span class="chip acc">${esc(l.lv)}</span><span class="arch" style="color:var(--ink-2);font-size:13px">${esc(l.arch)}</span>
+      <span class="go" style="color:var(--accent);font-size:12px">Sơ đồ →</span>
+    </div>`).join("");
+  el("msCount").textContent = `(${msDone()}/${msTotal()})`;
+  el("nSd").textContent = msDone() + "/" + msTotal();
+  el("msList").innerHTML = SDR.ms.map((m, i) => `
+    <div class="arow${S.ms[i] ? " done" : ""}" style="grid-template-columns:26px 74px 1fr">
+      <input type="checkbox" data-act="ms" data-ms="${i}" ${S.ms[i] ? "checked" : ""} aria-label="${esc("Mốc tuần " + m.w)}">
+      <span class="chip num">tuần ${m.w}</span>
+      <span class="nm">${esc(m.t)}</span>
+    </div>`).join("");
+}
+
 /* ---------- tài liệu ---------- */
 const ORDER = Object.keys(DOCS);
 function groupOf(k){
+  if(k.startsWith("java-system-design/")) return "Java System Design";
   if(k.startsWith("ai-agent-learning/")) return "AI Agent";
   if(k.startsWith("ai-learning/")) return "AI Learning";
   if(k.startsWith("nab-prep/")) return "NAB";
@@ -720,8 +828,9 @@ function handleAct(e){
   if(!t) return;
   const act = t.dataset.act;
 
-  if(act === "req" || act === "algo"){                 // checkbox: để trình duyệt tự toggle
-    if(act === "req"){ S.req[t.dataset.req] = t.checked; save(); renderOver(); renderCo(); }
+  if(act === "req" || act === "algo" || act === "ms"){  // checkbox: để trình duyệt tự toggle
+    if(act === "ms"){ S.ms[t.dataset.ms] = t.checked; save(); renderRoadmap(); renderOver(); }
+    else if(act === "req"){ S.req[t.dataset.req] = t.checked; save(); renderOver(); renderCo(); }
     else { S.done[t.dataset.a] = t.checked; save(); renderAlgo(); renderOver(); }
     return;
   }
@@ -747,13 +856,13 @@ function handleAct(e){
     case "theme": cycleTheme(); break;
     case "reset":
       if(confirm("Xoá toàn bộ tiến độ đã tick? Không khôi phục lại được.")){
-        S = {done:{}, req:{}}; save(); renderAll();
+        S = {done:{}, req:{}, ms:{}}; save(); renderAll();
       }
       break;
   }
 }
 document.addEventListener("click", handleAct);
-document.addEventListener("change", e => { if(e.target.matches('[data-act="req"],[data-act="algo"]')) handleAct(e); });
+document.addEventListener("change", e => { if(e.target.matches('[data-act="req"],[data-act="algo"],[data-act="ms"]')) handleAct(e); });
 // phần tử bấm được nhưng không phải <button> vẫn phải dùng được bằng bàn phím
 document.addEventListener("keydown", e => {
   if((e.key === "Enter" || e.key === " ") && e.target.matches('[data-act][role="button"]')){

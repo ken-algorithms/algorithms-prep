@@ -1,0 +1,106 @@
+# Demo nhom 2-4 - java -cp target/benchmarks.jar com.prep.perf.demo.RunAll
+# May: container Linux 4 vCPU, JDK 21.0.11. Chay 2 lan, ngay 04/10/2026.
+
+############ LAN 1 ############
+
+=== P09 remote call inside @Transactional -> connection pool exhaustion ===
+pool=10, clients=200, db step=5ms x2, remote=50ms
+Result[mode=remote call INSIDE tx, requests=1000, wallMs=6146, rps=162.70745200130165, latency=p50=1222ms p95=1230ms p99=1231ms max=1232ms, p99ConnWaitMs=1170, maxInUse=10]
+Result[mode=remote call OUTSIDE tx, requests=1000, wallMs=1078, rps=927.643784786642, latency=p50=212ms p95=223ms p99=258ms max=271ms, p99ConnWaitMs=101, maxInUse=10]
+
+=== P10 no timeout on downstream -> thread starvation spreads to other endpoints ===
+workers=20, 200 req/s x 3 s, 10% /transfer -> partner latency 2000ms
+Result[mode=no timeout, balanceRequests=540, balanceLatency=p50=1051ms p95=2099ms p99=3147ms max=3148ms, balanceOver1s=369, transferRequests=60, transferFallbacks=0]
+Result[mode=timeout 200ms + fallback, balanceRequests=540, balanceLatency=p50=5ms p95=5ms p99=5ms max=6ms, balanceOver1s=0, transferRequests=60, transferFallbacks=60]
+
+=== P12 virtual thread pinning (synchronized + blocking IO) ===
+JDK 21.0.11+10-1-24.04.2-Ubuntu, cores=4, 1000 virtual threads x 20ms IO, khoa rieng tung task
+Result[mode=synchronized around IO, tasks=1000, wallMs=5044]
+Result[mode=ReentrantLock around IO, tasks=1000, wallMs=23]
+
+=== P13 unbounded queue under overload ===
+capacity 4 workers x 20ms = 200 req/s; offered 300 req/s x 4 s; client timeout 1 s
+Result[mode=unbounded queue, offered=1200, accepted=1200, rejected=0, acceptedLatency=p50=1040ms p95=1965ms p99=2047ms max=2070ms, maxQueueDepth=408, goodputWithin1s=576]
+Result[mode=bounded queue 40 + reject, offered=1200, accepted=833, rejected=367, acceptedLatency=p50=219ms p95=221ms p99=223ms max=224ms, maxQueueDepth=40, goodputWithin1s=833]
+
+=== P15 N+1 queries ===
+trang 'don hang gan day': 100 order, RTT moi query 1 ms
+N+1     : queries=101  time=116ms
+batched : queries=2  time=9ms
+same result: true
+o 200 req/s: N+1 = 20,200 query/s vao DB, batched = 400 query/s
+
+=== P18 unbounded cache (child JVM, -Xmx128m) ===
+UNBOUNDED cache, -Xmx=128MB
+  requests=   50,000  entries=   50,000  heapUsed=  60MB  gcTimeTotal=32ms
+  requests=  100,000  entries=  100,000  heapUsed= 120MB  gcTimeTotal=66ms
+  OutOfMemoryError after 114,392 requests: Java heap space
+LRU(10k) cache, -Xmx=128MB
+  requests=   50,000  entries=   10,000  heapUsed=  39MB  gcTimeTotal=27ms
+  requests=  100,000  entries=   10,000  heapUsed=  94MB  gcTimeTotal=27ms
+  requests=  150,000  entries=   10,000  heapUsed=  96MB  gcTimeTotal=34ms
+  requests=  200,000  entries=   10,000  heapUsed= 100MB  gcTimeTotal=38ms
+  requests=  250,000  entries=   10,000  heapUsed=  62MB  gcTimeTotal=47ms
+  requests=  300,000  entries=   10,000  heapUsed=  75MB  gcTimeTotal=51ms
+  requests=  350,000  entries=   10,000  heapUsed=  94MB  gcTimeTotal=55ms
+  requests=  400,000  entries=   10,000  heapUsed=  43MB  gcTimeTotal=64ms
+  requests=  450,000  entries=   10,000  heapUsed=  49MB  gcTimeTotal=81ms
+  requests=  500,000  entries=   10,000  heapUsed=  52MB  gcTimeTotal=100ms
+  requests=  550,000  entries=   10,000  heapUsed=  47MB  gcTimeTotal=115ms
+  requests=  600,000  entries=   10,000  heapUsed=  39MB  gcTimeTotal=129ms
+  requests=  650,000  entries=   10,000  heapUsed=  31MB  gcTimeTotal=151ms
+  requests=  700,000  entries=   10,000  heapUsed=  61MB  gcTimeTotal=155ms
+  requests=  750,000  entries=   10,000  heapUsed=  38MB  gcTimeTotal=166ms
+  requests=  800,000  entries=   10,000  heapUsed=  45MB  gcTimeTotal=188ms
+  requests=  850,000  entries=   10,000  heapUsed=  33MB  gcTimeTotal=212ms
+  requests=  900,000  entries=   10,000  heapUsed=  44MB  gcTimeTotal=239ms
+  requests=  950,000  entries=   10,000  heapUsed=  43MB  gcTimeTotal=259ms
+  requests=1,000,000  entries=   10,000  heapUsed=  42MB  gcTimeTotal=278ms
+  done: 1,000,000 requests served
+
+=== P19 materialize everything vs stream (child JVM, -Xmx512m) ===
+export 1,000,000 transactions to CSV, -Xmx=512MB
+Result[mode=materialize all, rows=1000000, wallMs=2367, peakHeapMb=414, bytesWritten=48664256]
+Result[mode=stream row by row, rows=1000000, wallMs=195, peakHeapMb=69, bytesWritten=48664256]
+
+############ LAN 2 (D18 da rut gon dong in) ############
+
+=== P09 remote call inside @Transactional -> connection pool exhaustion ===
+pool=10, clients=200, db step=5ms x2, remote=50ms
+Result[mode=remote call INSIDE tx, requests=1000, wallMs=6143, rps=162.78691193228065, latency=p50=1222ms p95=1231ms p99=1233ms max=1233ms, p99ConnWaitMs=1171, maxInUse=10]
+Result[mode=remote call OUTSIDE tx, requests=1000, wallMs=1070, rps=934.5794392523364, latency=p50=211ms p95=223ms p99=253ms max=266ms, p99ConnWaitMs=101, maxInUse=10]
+
+=== P10 no timeout on downstream -> thread starvation spreads to other endpoints ===
+workers=20, 200 req/s x 3 s, 10% /transfer -> partner latency 2000ms
+Result[mode=no timeout, balanceRequests=540, balanceLatency=p50=1051ms p95=2100ms p99=3148ms max=3149ms, balanceOver1s=369, transferRequests=60, transferFallbacks=0]
+Result[mode=timeout 200ms + fallback, balanceRequests=540, balanceLatency=p50=5ms p95=5ms p99=5ms max=7ms, balanceOver1s=0, transferRequests=60, transferFallbacks=60]
+
+=== P12 virtual thread pinning (synchronized + blocking IO) ===
+JDK 21.0.11+10-1-24.04.2-Ubuntu, cores=4, 1000 virtual threads x 20ms IO, khoa rieng tung task
+Result[mode=synchronized around IO, tasks=1000, wallMs=5078]
+Result[mode=ReentrantLock around IO, tasks=1000, wallMs=23]
+
+=== P13 unbounded queue under overload ===
+capacity 4 workers x 20ms = 200 req/s; offered 300 req/s x 4 s; client timeout 1 s
+Result[mode=unbounded queue, offered=1200, accepted=1200, rejected=0, acceptedLatency=p50=1042ms p95=1972ms p99=2054ms max=2075ms, maxQueueDepth=408, goodputWithin1s=575]
+Result[mode=bounded queue 40 + reject, offered=1200, accepted=833, rejected=367, acceptedLatency=p50=218ms p95=221ms p99=226ms max=236ms, maxQueueDepth=40, goodputWithin1s=833]
+
+=== P15 N+1 queries ===
+trang 'don hang gan day': 100 order, RTT moi query 1 ms
+N+1     : queries=101  time=115ms
+batched : queries=2  time=9ms
+same result: true
+o 200 req/s: N+1 = 20,200 query/s vao DB, batched = 400 query/s
+
+=== P18 unbounded cache (child JVM, -Xmx128m) ===
+UNBOUNDED cache, -Xmx=128MB
+  requests=   50,000  entries=   50,000  heapUsed=  60MB  gcTimeTotal=36ms
+  OutOfMemoryError after 114,349 requests: Java heap space
+LRU(10k) cache, -Xmx=128MB
+  requests=   50,000  entries=   10,000  heapUsed=  38MB  gcTimeTotal=26ms
+  done: 1,000,000 requests served
+
+=== P19 materialize everything vs stream (child JVM, -Xmx512m) ===
+export 1,000,000 transactions to CSV, -Xmx=512MB
+Result[mode=materialize all, rows=1000000, wallMs=1280, peakHeapMb=392, bytesWritten=48664256]
+Result[mode=stream row by row, rows=1000000, wallMs=258, peakHeapMb=69, bytesWritten=48664256]

@@ -1,0 +1,87 @@
+# JMH - perf-lab, chay ngay 04/10/2026
+# May: container Linux 4 vCPU, 15 GB RAM, JDK 21.0.11 (OpenJDK, Ubuntu build), JMH 1.37
+# Lenh: java -jar target/benchmarks.jar 'PerRequestBench|BatchBench' -prof gc
+#       (p01_json chay lai voi -wi 5 -i 10 vi lan dau sai so lon hon trung binh - xem cuoi file)
+# Chi giu cot thoi gian va gc.alloc.rate.norm (byte cap phat moi lan goi).
+
+Benchmark                                                                    (depth)    (n)  Mode  Cnt           Score       Error   Units
+BatchBench.p03_csv_plusInLoop                                                    N/A   1000  avgt    5        5582.980 ±   435.427   us/op
+BatchBench.p03_csv_plusInLoop:gc.alloc.rate.norm                                 N/A   1000  avgt    5    21904878.564 ±     3.302    B/op
+BatchBench.p03_csv_plusInLoop                                                    N/A  10000  avgt    5      639109.601 ± 39172.918   us/op
+BatchBench.p03_csv_plusInLoop:gc.alloc.rate.norm                                 N/A  10000  avgt    5  2234421371.200 ±    51.547    B/op
+BatchBench.p03_csv_stringBuilder                                                 N/A   1000  avgt    5          32.610 ±     2.504   us/op
+BatchBench.p03_csv_stringBuilder:gc.alloc.rate.norm                              N/A   1000  avgt    5       91840.227 ±     0.018    B/op
+BatchBench.p03_csv_stringBuilder                                                 N/A  10000  avgt    5         347.113 ±    26.768   us/op
+BatchBench.p03_csv_stringBuilder:gc.alloc.rate.norm                              N/A  10000  avgt    5      927818.417 ±     0.255    B/op
+BatchBench.p05_histogram_boxedMap                                                N/A   1000  avgt    5          23.902 ±     2.636   us/op
+BatchBench.p05_histogram_boxedMap:gc.alloc.rate.norm                             N/A   1000  avgt    5       42720.166 ±     0.018    B/op
+BatchBench.p05_histogram_boxedMap                                                N/A  10000  avgt    5         212.772 ±    45.167   us/op
+BatchBench.p05_histogram_boxedMap:gc.alloc.rate.norm                             N/A  10000  avgt    5      187841.474 ±     0.305    B/op
+BatchBench.p05_histogram_primitiveArray                                          N/A   1000  avgt    5           1.233 ±     0.052   us/op
+BatchBench.p05_histogram_primitiveArray:gc.alloc.rate.norm                       N/A   1000  avgt    5        4016.009 ±     0.001    B/op
+BatchBench.p05_histogram_primitiveArray                                          N/A  10000  avgt    5           6.529 ±     0.577   us/op
+BatchBench.p05_histogram_primitiveArray:gc.alloc.rate.norm                       N/A  10000  avgt    5        4016.045 ±     0.004    B/op
+BatchBench.p05_sum_boxedLong                                                     N/A   1000  avgt    5           6.399 ±     1.360   us/op
+BatchBench.p05_sum_boxedLong:gc.alloc.rate.norm                                  N/A   1000  avgt    5       24000.044 ±     0.009    B/op
+BatchBench.p05_sum_boxedLong                                                     N/A  10000  avgt    5          50.293 ±    36.334   us/op
+BatchBench.p05_sum_boxedLong:gc.alloc.rate.norm                                  N/A  10000  avgt    5      240000.350 ±     0.249    B/op
+BatchBench.p05_sum_primitive                                                     N/A   1000  avgt    5           0.304 ±     0.025   us/op
+BatchBench.p05_sum_primitive:gc.alloc.rate.norm                                  N/A   1000  avgt    5           0.002 ±     0.001    B/op
+BatchBench.p05_sum_primitive                                                     N/A  10000  avgt    5           3.119 ±     0.211   us/op
+BatchBench.p05_sum_primitive:gc.alloc.rate.norm                                  N/A  10000  avgt    5           0.021 ±     0.001    B/op
+BatchBench.p07_dedupe_linkedHashSet                                              N/A   1000  avgt    5          29.403 ±     8.436   us/op
+BatchBench.p07_dedupe_linkedHashSet:gc.alloc.rate.norm                           N/A   1000  avgt    5       28680.205 ±     0.065    B/op
+BatchBench.p07_dedupe_linkedHashSet                                              N/A  10000  avgt    5         460.297 ±    82.198   us/op
+BatchBench.p07_dedupe_linkedHashSet:gc.alloc.rate.norm                           N/A  10000  avgt    5      273419.211 ±     0.529    B/op
+BatchBench.p07_dedupe_listContains                                               N/A   1000  avgt    5         879.460 ±    86.262   us/op
+BatchBench.p07_dedupe_listContains:gc.alloc.rate.norm                            N/A   1000  avgt    5        6766.088 ±     0.470    B/op
+BatchBench.p07_dedupe_listContains                                               N/A  10000  avgt    5      117181.483 ±  6911.387   us/op
+BatchBench.p07_dedupe_listContains:gc.alloc.rate.norm                            N/A  10000  avgt    5       76006.222 ±    31.183    B/op
+PerRequestBench.ExceptionBench.p04_parse_exceptionAsFlow                           0    N/A  avgt    5         941.654 ±    64.087   ns/op
+PerRequestBench.ExceptionBench.p04_parse_exceptionAsFlow:gc.alloc.rate.norm        0    N/A  avgt    5         440.007 ±     0.001    B/op
+PerRequestBench.ExceptionBench.p04_parse_exceptionAsFlow                         150    N/A  avgt    5        4994.619 ±  1256.462   ns/op
+PerRequestBench.ExceptionBench.p04_parse_exceptionAsFlow:gc.alloc.rate.norm      150    N/A  avgt    5        2176.034 ±     0.025    B/op
+PerRequestBench.ExceptionBench.p04_parse_precheck                                  0    N/A  avgt    5           8.798 ±     1.445   ns/op
+PerRequestBench.ExceptionBench.p04_parse_precheck:gc.alloc.rate.norm               0    N/A  avgt    5          ≈ 10⁻⁴                B/op
+PerRequestBench.ExceptionBench.p04_parse_precheck                                150    N/A  avgt    5         556.410 ±    32.292   ns/op
+PerRequestBench.ExceptionBench.p04_parse_precheck:gc.alloc.rate.norm             150    N/A  avgt    5          16.004 ±     0.001    B/op
+PerRequestBench.p01_date_newFormatterPerCall                                     N/A    N/A  avgt    5         474.143 ±    29.467   ns/op
+PerRequestBench.p01_date_newFormatterPerCall:gc.alloc.rate.norm                  N/A    N/A  avgt    5         872.003 ±     0.001    B/op
+PerRequestBench.p01_date_sharedFormatter                                         N/A    N/A  avgt    5         175.425 ±    63.224   ns/op
+PerRequestBench.p01_date_sharedFormatter:gc.alloc.rate.norm                      N/A    N/A  avgt    5         256.001 ±     0.001    B/op
+PerRequestBench.p01_json_newMapperPerCall                                        N/A    N/A  avgt    5       18950.560 ± 23783.134   ns/op
+PerRequestBench.p01_json_newMapperPerCall:gc.alloc.rate.norm                     N/A    N/A  avgt    5       19768.277 ±     1.417    B/op
+PerRequestBench.p01_json_sharedMapper                                            N/A    N/A  avgt    5         499.962 ±    83.278   ns/op
+PerRequestBench.p01_json_sharedMapper:gc.alloc.rate.norm                         N/A    N/A  avgt    5         688.003 ±     0.001    B/op
+PerRequestBench.p02_regex_precompiled                                            N/A    N/A  avgt    5         116.423 ±    14.976   ns/op
+PerRequestBench.p02_regex_precompiled:gc.alloc.rate.norm                         N/A    N/A  avgt    5         208.001 ±     0.001    B/op
+PerRequestBench.p02_regex_stringMatches                                          N/A    N/A  avgt    5         429.279 ±    35.099   ns/op
+PerRequestBench.p02_regex_stringMatches:gc.alloc.rate.norm                       N/A    N/A  avgt    5        1472.003 ±     0.001    B/op
+PerRequestBench.p02_split_precompiled                                            N/A    N/A  avgt    5         417.851 ±    54.737   ns/op
+PerRequestBench.p02_split_precompiled:gc.alloc.rate.norm                         N/A    N/A  avgt    5         544.003 ±     0.001    B/op
+PerRequestBench.p02_split_regexEachCall                                          N/A    N/A  avgt    5         647.833 ±    96.698   ns/op
+PerRequestBench.p02_split_regexEachCall:gc.alloc.rate.norm                       N/A    N/A  avgt    5        1152.004 ±     0.001    B/op
+PerRequestBench.p06_log_concatWhenDisabled                                       N/A    N/A  avgt    5        1023.078 ±    63.855   ns/op
+PerRequestBench.p06_log_concatWhenDisabled:gc.alloc.rate.norm                    N/A    N/A  avgt    5        1584.007 ±     0.001    B/op
+PerRequestBench.p06_log_guarded                                                  N/A    N/A  avgt    5           0.988 ±     0.137   ns/op
+PerRequestBench.p06_log_guarded:gc.alloc.rate.norm                               N/A    N/A  avgt    5          ≈ 10⁻⁵                B/op
+PerRequestBench.p06_log_supplier                                                 N/A    N/A  avgt    5           0.957 ±     0.103   ns/op
+PerRequestBench.p06_log_supplier:gc.alloc.rate.norm                              N/A    N/A  avgt    5          ≈ 10⁻⁵                B/op
+Benchmark result is saved to /tmp/claude-0/-home-user-algorithms-prep/2c1f4c1f-decc-58d4-8963-ae5a6eb0b93c/scratchpad/jmh-main.json
+
+# p01_json chay lai: -wi 5 -i 10 -prof gc
+PerRequestBench.p01_json_newMapperPerCall                     avgt   10  14620.645 ± 547.149   ns/op
+PerRequestBench.p01_json_newMapperPerCall:gc.alloc.rate.norm  avgt   10  19640.101 ±   0.004    B/op
+PerRequestBench.p01_json_sharedMapper                         avgt   10    484.134 ±  23.050   ns/op
+PerRequestBench.p01_json_sharedMapper:gc.alloc.rate.norm      avgt   10    688.003 ±   0.001    B/op
+
+# ContentionBench -t 1
+Benchmark                                     Mode  Cnt   Score   Error   Units
+ContentionBench.p11_counter_chmLongAdder     thrpt    5  65.587 ± 3.599  ops/us
+ContentionBench.p11_counter_synchronizedMap  thrpt    5  24.687 ± 2.057  ops/us
+Benchmark result is saved to /tmp/claude-0/-home-user-algorithms-prep/2c1f4c1f-decc-58d4-8963-ae5a6eb0b93c/scratchpad/jmh-cont-t1.json
+
+# ContentionBench -t 4
+ContentionBench.p11_counter_chmLongAdder     thrpt    5  218.226 ± 35.269  ops/us
+ContentionBench.p11_counter_synchronizedMap  thrpt    5    8.867 ±  1.712  ops/us
+Benchmark result is saved to /tmp/claude-0/-home-user-algorithms-prep/2c1f4c1f-decc-58d4-8963-ae5a6eb0b93c/scratchpad/jmh-cont-t4.json

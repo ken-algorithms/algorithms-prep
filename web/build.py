@@ -95,9 +95,10 @@ def collect_docs() -> dict[str, dict]:
         rel = p.relative_to(ROOT).as_posix()
         head = (
             0 if rel == "README.md" else
-            1 if rel.startswith("ai-agent-learning/") else
-            2 if rel.startswith("ai-learning/") else
-            3 if rel.startswith("nab-prep/") else 4
+            1 if rel.startswith("java-system-design/") else
+            2 if rel.startswith("ai-agent-learning/") else
+            3 if rel.startswith("ai-learning/") else
+            4 if rel.startswith("nab-prep/") else 5
         )
         return (head, rel)
 
@@ -281,8 +282,96 @@ AXES = [
 ]
 
 
+# ---- lộ trình Java System Design 6 tháng (java-system-design/) -----------------------------
+# Khai tay như FAMS/AXES; anchor được tính bằng gh_slug từ đúng tiêu đề trong file .md và
+# main() kiểm tra từng anchor có thật trong HTML đã render — đổi tiêu đề mà quên sửa ở đây thì build báo.
+SDR_DIR = "java-system-design/"
+SDR = {
+    "doc": SDR_DIR + "00-lo-trinh-6-thang.md",
+    "phases": [
+        {"n": 1, "t": "Nền tảng", "w": "Tuần 1–4", "h": "Giai đoạn 1 — Nền tảng (tuần 1–4)",
+         "learn": "Ước lượng tải, networking và API, database sâu, caching và nhất quán",
+         "lab": "Rate limiter Redis + Lua · lost update → @Version · cache stampede",
+         "p": "Nhóm 1 bằng JMH, P08–P10, P15–P19", "s": "V1–V5 · L0/L1 100k users",
+         "impl": SDR_DIR + "10-implement-gd1-nen-tang.md",
+         "ms": "URL shortener + Rate limiter trong 45 phút"},
+        {"n": 2, "t": "Dữ liệu và hệ phân tán", "w": "Tuần 5–10",
+         "h": "Giai đoạn 2 — Dữ liệu và hệ phân tán (tuần 5–10)",
+         "learn": "Replication, partitioning, Saga và outbox, Kafka sâu, đồng thuận",
+         "lab": "Kafka + outbox + DLQ với Testcontainers · capstone bắt đầu tuần 9",
+         "p": "P20 Kafka consumer xử lý từng message", "s": "V6–V7 · L2 1M users",
+         "ms": "Giải thích Saga/outbox/Kafka không cần tài liệu"},
+        {"n": 3, "t": "Microservices, cloud, vận hành", "w": "Tuần 11–16",
+         "h": "Giai đoạn 3 — Microservices, cloud và vận hành (tuần 11–16)",
+         "learn": "DDD, resilience, observability, security, AWS multi-AZ, DR",
+         "lab": "Capstone: load test, thử phá, deploy lên cloud",
+         "p": "P11–P14, JFR + async-profiler, checklist review", "s": "V8–V10 · L3 10M users",
+         "ms": "Capstone chạy trên cloud, có số load test"},
+        {"n": 4, "t": "Phỏng vấn và ứng tuyển", "w": "Tuần 17–24",
+         "h": "Giai đoạn 4 — Luyện phỏng vấn và ứng tuyển (tuần 17–24)",
+         "learn": "3–4 đề mỗi tuần có bấm giờ, mock tiếng Anh, STAR, CV có số",
+         "lab": "Mock interview mỗi tuần",
+         "p": "1 câu chuyện STAR về hiệu năng", "s": "Drill: một hệ thống, ba quy mô",
+         "ms": "CV mới, 6–8 STAR, nộp đơn đợt đầu"},
+    ],
+    "tracks": [
+        {"k": "P", "t": "Code Java chậm dưới tải cao",
+         "d": "20 anti-pattern, 15 có code chạy được và số đo thật. Kiến trúc tốt không cứu được "
+              "code giữ connection, thread, carrier quá lâu.",
+         "doc": SDR_DIR + "01-java-code-cham-duoi-tai-cao.md",
+         "facts": [["P09 gọi HTTP trong @Transactional", "163 → 930 req/s"],
+                   ["P10 gọi đối tác không timeout", "p99 3,1 s → 5 ms"],
+                   ["P12 virtual thread pinning, JDK 21", "5,0 s → 23 ms"],
+                   ["P15 N+1, trang 100 đơn hàng", "101 → 2 query"]]},
+        {"k": "S", "t": "Vẽ hệ thống 100k → 1M → 10M users",
+         "d": "Đổi users ra DAU → CCU → RPS, chọn bậc kiến trúc L0–L4, 10 bản vẽ từ một máy tới "
+              "microservices, trả lời câu \"tải tăng 10 lần thì sao\".",
+         "doc": SDR_DIR + "02-ve-he-thong-100k-1m-10m.md",
+         "facts": [["Công thức", "users → DAU → CCU → RPS"],
+                   ["App ngân hàng vs app chat", "CCU chênh 12 lần"],
+                   ["10M users ngân hàng", "ghi vẫn vừa 1 Postgres"],
+                   ["Lộ trình vẽ", "V1 → V10 + drill"]]},
+    ],
+    "ladder": [
+        {"u": "100k", "ccu": "~1.200", "rps": "~200", "lv": "L1",
+         "arch": "Modular monolith × 2, Postgres Multi-AZ, Redis, CDN",
+         "h": "3.2 L1 — 100k users: sẵn sàng trước, tải sau"},
+        {"u": "1M", "ccu": "~12.000", "rps": "~2.000", "lv": "L2",
+         "arch": "Autoscale, read replica, cache-aside, outbox → Kafka",
+         "h": "3.3 L2 — 1M users: tách đọc, tách việc chậm"},
+        {"u": "10M", "ccu": "~120.000", "rps": "~20.000", "lv": "L3",
+         "arch": "Microservices theo bounded context, CQRS, CDC, multi-AZ + DR",
+         "h": "3.4 L3 — 10M users: microservices có lý do"},
+    ],
+    "ms": [
+        {"w": 4, "t": "URL shortener + Rate limiter trong 45 phút; tính CCU/RPS 100k–10M; JMH nhóm 1; bản vẽ V2"},
+        {"w": 10, "t": "Giải thích replication, Saga/outbox, Kafka delivery; lab Kafka + outbox chạy; bản vẽ V6"},
+        {"w": 12, "t": "Design doc đầu tiên được review; load test tìm và sửa 1 anti-pattern có số trước/sau"},
+        {"w": 16, "t": "Capstone trên cloud, có số load test và README; bản vẽ V10; qua checklist review track P"},
+        {"w": 20, "t": "20+ đề, 4+ mock interview; drill “một hệ thống, ba quy mô” 3 lần"},
+        {"w": 24, "t": "CV mới, 6–8 câu chuyện STAR, đã nộp đơn đợt đầu"},
+    ],
+}
+
+
+def resolve_sdr_anchors(docs: dict[str, dict]) -> None:
+    """Đổi tiêu đề ("h") thành anchor, và kiểm tra anchor có trong tài liệu đã render."""
+    ladder_doc = SDR_DIR + "02-ve-he-thong-100k-1m-10m.md"
+    for items, doc in ((SDR["phases"], SDR["doc"]), (SDR["ladder"], ladder_doc)):
+        for it in items:
+            it["a"] = gh_slug(it.pop("h"))
+            it["doc"] = doc
+            if doc not in docs or f'id="{it["a"]}"' not in docs[doc]["h"]:
+                print(f"⚠ anchor #{it['a']} không có trong {doc} — sửa SDR trong build.py")
+    for it in SDR["phases"] + SDR["tracks"]:
+        for key in ("impl", "doc"):
+            if it.get(key) and it[key] not in docs:
+                print(f"⚠ {it[key]} không tồn tại — sửa SDR trong build.py")
+
+
 def main() -> None:
     docs = collect_docs()
+    resolve_sdr_anchors(docs)
     algos = collect_algos()
     if len(algos) != 38:
         print(f"⚠ đọc được {len(algos)} bài thuật toán, kỳ vọng 38 — kiểm tra bảng mục lục")
@@ -297,6 +386,7 @@ def main() -> None:
                 .replace("/*__CO__*/{}", dump(COMPANIES))
                 .replace("/*__FAMS__*/[]", dump(FAMS))
                 .replace("/*__AXES__*/[]", dump(AXES))
+                .replace("/*__SDR__*/{}", dump(SDR))
                 .replace('/*__MEDIA_BASE__*/""', dump(media_base)))
 
     out = render(MEDIA_BASE_ARTIFACT)
