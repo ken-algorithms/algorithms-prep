@@ -24,6 +24,7 @@ SKIP_DIRS = {".git", "site", "__pycache__", "target", ".venv", "node_modules", "
 
 # Nav grouping: (directory prefix, section label, sort weight)
 SECTIONS = [
+    ("java-system-design", "Java System Design", 6),
     ("ai-agent-learning", "AI Agent", 7),
     ("ai-learning", "AI Learning", 8),
     ("nab-prep", "NAB", 10),
@@ -430,6 +431,13 @@ def build_home(pages: list[Page]) -> str:
         li("katalon-prep/katalon-system-design/03-realtime-analytics-dashboard.md"),
         li("katalon-prep/katalon-system-design/05-he-thong-that-allinone-aws.md", "kho bằng chứng AWS"),
     ])
+    jsd = "".join([
+        li("java-system-design/00-lo-trinh-6-thang.md", "4 giai đoạn, capstone, mốc kiểm tra", "⭐"),
+        li("java-system-design/01-java-code-cham-duoi-tai-cao.md", "20 anti-pattern, số đo thật", "mới"),
+        li("java-system-design/02-ve-he-thong-100k-1m-10m.md", "users → CCU → RPS, L0–L4", "mới"),
+        li("java-system-design/10-implement-gd1-nen-tang.md", "tuần 1–4: lab + bài tập có đáp án"),
+        li("java-system-design/perf-lab/README.md", "JMH + demo, 33 test"),
+    ])
     hero = f"""
 <div class="hero">
   <h1>Interview Prep</h1>
@@ -444,6 +452,8 @@ def build_home(pages: list[Page]) -> str:
   </div>
 </div>
 <div class="tracks">
+  <div class="track"><h3>Java System Design — 6 tháng</h3>
+    <p class="sub">Lộ trình v2 · Track P (code) + Track S (vẽ hệ thống)</p><ol>{jsd}</ol></div>
   <div class="track"><h3>NAB Innovation Centre</h3>
     <p class="sub">Senior / Lead Java Engineer · tra cứu 06/09/2026</p><ol>{nab}</ol></div>
   <div class="track"><h3>Katalon</h3>
