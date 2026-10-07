@@ -18,7 +18,7 @@
 | **Track S — Thang vẽ hệ thống** | Có đề bài, chưa có thang quy mô | Công thức **users → DAU → CCU → RPS**, thang 5 bậc L0→L4, **10 bản vẽ** từ một máy tới microservices 10M users, rải vào cả 24 tuần. Xem [02](02-ve-he-thong-100k-1m-10m.md) |
 | Bảng từng giai đoạn | 3 cột | Thêm cột **Track P · Track S** để biết tuần đó làm gì của hai track |
 | Tự đánh giá, mốc kiểm tra | 11 câu, 6 mốc | Thêm 3 câu tự đánh giá; thêm tiêu chí P/S vào các mốc |
-| Bài tập chi tiết | Không có | Mỗi giai đoạn một file implement. **Đã có: [giai đoạn 1](10-implement-gd1-nen-tang.md)** |
+| Bài tập chi tiết | Không có | Mỗi giai đoạn một file implement. **Đã có: [giai đoạn 1](10-implement-gd1-nen-tang.md), [giai đoạn 2](20-implement-gd2-du-lieu-phan-tan.md)** |
 
 ---
 
@@ -145,7 +145,7 @@ request, chọn đúng database. **Hướng dẫn và bài tập từng ngày: [
 ## Giai đoạn 2 — Dữ liệu và hệ phân tán (tuần 5–10)
 
 Phần này phân biệt senior với mid-level: hiểu dữ liệu chạy ra sao khi có nhiều node, nhiều service
-và mạng chập chờn.
+và mạng chập chờn. **Hướng dẫn và bài tập từng tuần: [20 — Implement giai đoạn 2](20-implement-gd2-du-lieu-phan-tan.md).**
 
 | Tuần | Học gì | Thực hành | **(v2) Track P · Track S** |
 |---|---|---|---|
@@ -213,6 +213,7 @@ Loại này đặt một trần cứng mà thêm máy không phá được.
 | P12 1.000 virtual thread, `synchronized` quanh I/O 20 ms, JDK 21 | **5,0 s** | **23 ms** |
 | P15 trang 100 đơn hàng | **101 query**, 116 ms | **2 query**, 9 ms |
 | P18 cache không giới hạn, heap 128 MB | **OOM** sau ~114k request | 1 triệu request, heap ổn định |
+| P20 Kafka consumer gọi downstream từng message (Kafka thật) | Sau 45 s chưa xong, ~2.000 lần gửi trùng | Gọi theo lô: 1,3 s, 0 trùng |
 
 Mốc của track: **tuần 4** chạy xong nhóm 1 bằng JMH và ghi số của máy mình; **tuần 12** load test
 capstone tìm ra ít nhất một anti-pattern thật; **tuần 16** capstone qua checklist review.

@@ -1,0 +1,44 @@
+# dist-lab - output that, chay ngay 07/10/2026
+# May: container Linux 4 vCPU, JDK 21.0.11. Postgres 16.4 (zonky embedded, chay bang user thuong).
+# Kafka: Apache Kafka 4.1.2 KRaft 1 node tai localhost:9092 (tarball tu downloads.apache.org, da kiem SHA-512).
+
+############ ConsistentHash (1.000.000 key) ############
+hash mod N, 4 -> 5 node: 80.0% key phai chuyen
+ring vnodes=  1: 4 node tai max/min = 6.77 (max 40.7%, ly tuong 25%) | them node 5: 9.1% key chuyen (ly tuong 20%)
+ring vnodes= 10: 4 node tai max/min = 2.20 (max 35.9%, ly tuong 25%) | them node 5: 16.4% key chuyen (ly tuong 20%)
+ring vnodes=100: 4 node tai max/min = 1.11 (max 26.7%, ly tuong 25%) | them node 5: 18.9% key chuyen (ly tuong 20%)
+ring vnodes=200: 4 node tai max/min = 1.19 (max 27.9%, ly tuong 25%) | them node 5: 19.8% key chuyen (ly tuong 20%)
+
+############ Fencing ############
+KHONG fencing token    A token=1 ghi=true | B token=2 ghi=true | gia tri cuoi: A: so du = 100 (gia tri cu)
+CO fencing token       A token=1 ghi=false | B token=2 ghi=true | gia tri cuoi: B: so du = 50
+
+############ Saga ############
+COMPLETED [OK   reserve 300 tu vi, OK   fraud check, OK   credit merchant 300, OK   gui thong bao] -> vi=700 merchant=300
+COMPENSATED [OK   reserve 300 tu vi, OK   fraud check, FAIL credit merchant 300: merchant bank timeout, UNDO fraud check, UNDO reserve 300 tu vi] -> vi=1000 merchant=0
+
+############ OutboxLab - lan 1 ############
+>>> PostgreSQL 16.4 on x86_64-pc-linux-gnu
+transfers committed: 1000
+relay A: relay crash sau khi gui, truoc khi danh dau
+relay A published+marked: 200
+relay B+C published+marked: 800
+messages in topic: 1100 (outbox rows: 1000)
+consumer: applied=1000 duplicates skipped=100
+sum(balance) = 100000000 (ban dau 100000000)
+sum(ledger)  = 0
+outbox pending = 0
+notifications = 1000, distinct transfers notified = 1000
+
+############ OutboxLab - lan 2 ############
+>>> PostgreSQL 16.4 on x86_64-pc-linux-gnu
+transfers committed: 1000
+relay A: relay crash sau khi gui, truoc khi danh dau
+relay A published+marked: 200
+relay B+C published+marked: 800
+messages in topic: 1100 (outbox rows: 1000)
+consumer: applied=1000 duplicates skipped=100
+sum(balance) = 100000000 (ban dau 100000000)
+sum(ledger)  = 0
+outbox pending = 0
+notifications = 1000, distinct transfers notified = 1000

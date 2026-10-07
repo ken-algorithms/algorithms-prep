@@ -5,7 +5,8 @@
 > phần Track P ([code chậm](01-java-code-cham-duoi-tai-cao.md)) và Track S ([vẽ hệ thống](02-ve-he-thong-100k-1m-10m.md)),
 > và một bài nói 2 phút bằng tiếng Anh.
 >
-> Kết thúc tuần 4 phải qua được [mốc kiểm tra](#mốc-tuần-4--tiêu-chí-qua-giai-đoạn).
+> Kết thúc tuần 4 phải qua được [mốc kiểm tra](#mốc-tuần-4--tiêu-chí-qua-giai-đoạn). Giai đoạn sau:
+> [20 — Implement giai đoạn 2](20-implement-gd2-du-lieu-phan-tan.md).
 
 ---
 

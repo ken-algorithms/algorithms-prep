@@ -22,6 +22,7 @@
 | **P15** trang 100 đơn hàng, **N+1** | **101 query**, 116 ms | **2 query**, 9 ms | Thêm pod thì DB nhận thêm query |
 | **P18** cache **không giới hạn**, heap 128 MB | **OOM** sau ~114k request | 1 triệu request, heap ổn định | Mỗi pod tự leak riêng |
 | **P11** bộ đếm `synchronized`, 4 thread | **8,9** ops/µs (tệ hơn 1 thread: 24,7) | **218** ops/µs | Thêm core làm tệ hơn |
+| **P20** Kafka consumer gọi downstream 20 ms **từng message**, Kafka thật | Sau 45 s vẫn chưa xong, **~2.000 lần gửi trùng** | Gọi theo lô: xong trong **1,3 s**, 0 trùng | Thêm consumer thì thêm người bị đuổi khỏi group |
 
 **Ba bài học, theo thứ tự quan trọng:**
 
@@ -533,21 +534,42 @@ Với Postgres: stream chỉ thật sự stream khi chạy **trong transaction**
 `@QueryHints(@QueryHint(name = HINT_FETCH_SIZE, value = "500"))`); thiếu một trong hai thì driver
 vẫn nạp cả `ResultSet` vào bộ nhớ.
 
-### P20 — Kafka consumer xử lý đồng bộ từng message *(không có demo; lab ở tuần 8–9)*
+### P20 — Kafka consumer xử lý đồng bộ từng message ⭐
 
 ```java
 // XẤU — mỗi message gọi HTTP 200 ms; poll 500 record = 100 s mới poll lại
 @KafkaListener(topics = "transfer.completed")
 void on(TransferCompleted e) { notificationClient.send(e); }
+
+// SỬA — batch listener + API gửi theo lô (cộng thêm: consumer idempotent, xem giai đoạn 2 lab 8)
+@KafkaListener(topics = "transfer.completed", batch = "true")
+void on(List<TransferCompleted> events) { notificationClient.sendBatch(events); }
 ```
 
 Khi đối tác chậm lên 1 s: 500 record × 1 s = 500 s, vượt `max.poll.interval.ms` (mặc định 300 s) →
 broker coi consumer đã chết → **rebalance** → partition chuyển sang consumer khác → nó xử lý lại từ
 offset chưa commit → cũng chậm → lại rebalance. Đó là *rebalance storm*, và nó gửi trùng thông báo.
 
-Sửa: giảm `max.poll.records`; gọi theo lô (batch listener + API batch); xử lý song song có giới hạn
-nhưng **giữ thứ tự theo key**; tạm `pause()` partition khi downstream chậm; consumer **idempotent**
-vì trùng là chắc chắn xảy ra.
+**Số đo với Kafka thật** (Apache Kafka 4.1.2, 2.000 message, 4 partition, 2 consumer, downstream 20 ms
+mỗi message; `max.poll.interval.ms` hạ xuống 6 s để demo chạy trong vài chục giây; 2 lần chạy):
+
+```text
+PER_MESSAGE_500  (500 × 20 ms = 10 s một poll > 6 s)  CHƯA XONG sau 45 s: 1.267–1.619/2.000 message,
+                                                     1.847–2.245 lần xử lý trùng, 6 lần mất partition,
+                                                     6–7 lần commit thất bại
+PER_MESSAGE_50   (50 × 20 ms = 1 s một poll)          xong trong 24,6 s, 0 trùng
+BATCH_CALL_500   (một lần gọi 20 ms + 1 ms/message)   xong trong 1,3 s, 0 trùng
+```
+
+Bản xấu không chỉ chậm mà **không bao giờ xong**: mỗi lô bị đuổi khỏi group trước khi commit, nên lô
+đó quay lại từ đầu. Quy ra cấu hình mặc định: downstream chậm hơn `300 s ÷ 500 = 600 ms` mỗi message
+là bắt đầu storm. Code: [`D20SlowKafkaConsumer`](perf-lab/src/main/java/com/prep/perf/demo/D20SlowKafkaConsumer.java),
+cần broker ở `localhost:9092` (cách chạy Kafka không Docker ở [giai đoạn 2 §0](20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu)).
+
+Sửa theo thứ tự: gọi theo lô (nhanh gấp 18 lần chỉ giảm `max.poll.records`); giảm `max.poll.records`
+theo **p99** của downstream chứ không theo trung bình; xử lý song song có giới hạn nhưng **giữ thứ tự
+theo key**; tạm `pause()` partition khi downstream chậm; consumer **idempotent** vì trùng là chắc chắn
+xảy ra.
 
 ---
 
@@ -604,15 +626,16 @@ java -jar target/benchmarks.jar -prof gc                           # nhóm 1, ~6
 java -jar target/benchmarks.jar ContentionBench -t 1               # P11, so 1 thread với 4 thread
 java -jar target/benchmarks.jar ContentionBench -t 4
 java -jar target/benchmarks.jar 'p03|p07' -p n=10000               # chỉ chạy một nhóm
+java -cp target/benchmarks.jar com.prep.perf.demo.D20SlowKafkaConsumer   # P20, cần Kafka localhost:9092, ~75 giây
 ```
 
 | Thư mục | Nội dung |
 |---|---|
 | [`perf-lab/src/main/java/com/prep/perf/code/`](perf-lab/src/main/java/com/prep/perf/code/) | Cặp `bad/good` của nhóm 1 và P11, dùng chung cho benchmark và test |
 | [`perf-lab/src/main/java/com/prep/perf/bench/`](perf-lab/src/main/java/com/prep/perf/bench/) | JMH: `PerRequestBench`, `BatchBench`, `ContentionBench` |
-| [`perf-lab/src/main/java/com/prep/perf/demo/`](perf-lab/src/main/java/com/prep/perf/demo/) | Demo hệ thống: `D09` … `D19`, chạy tất cả bằng `RunAll` |
+| [`perf-lab/src/main/java/com/prep/perf/demo/`](perf-lab/src/main/java/com/prep/perf/demo/) | Demo hệ thống: `D09` … `D19` chạy bằng `RunAll`; `D20` chạy riêng vì cần Kafka |
 | [`perf-lab/src/test/java/com/prep/perf/`](perf-lab/src/test/java/com/prep/perf/) | `SameResultTest` (bản sửa đúng như bản xấu), `CountedEffectsTest` (số query, số entry, số request bị từ chối, pinning trên JDK ≤ 23) |
-| [`perf-lab/results/`](perf-lab/results/) | Output thô của lần chạy ngày 04/10/2026 |
+| [`perf-lab/results/`](perf-lab/results/) | Output thô: nhóm 1–4 ngày 04/10/2026, P20 ngày 07/10/2026 |
 
 **Chạy trên máy bạn (JDK 25):** mọi thứ chạy được, trừ P12 sẽ cho hai bản ngang nhau (đúng như JEP
 491). Muốn thấy pinning thì chạy riêng D12 bằng JDK 21: `sdk use java 21.0.x-tem` rồi
@@ -661,7 +684,8 @@ R  p99 1,2 s → 250 ms ở cùng tải; số pod giảm từ 8 xuống 5. Viế
 | Số JMH nhóm 1, P11 | **Đã đo** trên container Linux 4 vCPU, JDK 21.0.11, JMH 1.37, 1 fork. Output thô: [results/jmh-2026-10-04.txt](perf-lab/results/jmh-2026-10-04.txt). P01 JSON lần đầu có sai số lớn hơn trung bình nên đã chạy lại với 10 vòng đo, bảng dùng số lần chạy lại |
 | Số demo P09, P10, P12, P13, P15, P18, P19 | **Đã đo, chạy 2 lần**, output ở [results/demos-2026-10-04.txt](perf-lab/results/demos-2026-10-04.txt). Chênh giữa hai lần dưới 5%, trừ thời gian của P19 bản xấu (1,3–2,4 s, phụ thuộc GC) |
 | Bản chất của các demo nhóm 2–3 | **Mô phỏng**: connection pool là `Semaphore`, I/O là `Thread.sleep`, DB là `FakeDb` đếm round trip. Thứ được đo là **hệ quả hàng đợi** (Little's Law), vốn không phụ thuộc vào việc I/O là thật hay giả. Chưa chạy với HikariCP + Postgres + HTTP thật |
-| P08, P14, P16, P17, P20 | **Chưa có demo**, chỉ giải thích. P16 có số thật ở module 05-postgres-depth; P20 sẽ làm ở lab Kafka tuần 8–9 |
+| P20 | **Đã đo với Kafka thật**, 2 lần: Apache Kafka 4.1.2 KRaft một node, client 4.1.2. Output: [results/d20-kafka-2026-10-07.txt](perf-lab/results/d20-kafka-2026-10-07.txt). `max.poll.interval.ms` hạ xuống 6 s; downstream là `sleep`. Số message hoàn thành của bản xấu dao động giữa hai lần (1.267 và 1.619) vì phụ thuộc thời điểm rebalance |
+| P08, P14, P16, P17 | **Chưa có demo**, chỉ giải thích. P16 có số thật ở module 05-postgres-depth |
 | Hành vi `open-in-view` giữ connection tới cuối request | Mô tả theo hành vi đã biết của Spring + Hibernate, **chưa kiểm chứng** trong workspace này. Kiểm chứng trên project thật bằng `hikaricp.connections.usage` khi bật và tắt |
 | Con số rác "~500 MB/s" và "+0,14 core" | Phép nhân từ số đo JMH; số "20 dòng debug mỗi request" là **giả định** |
 | P12 | Chỉ tái hiện được trên JDK 21–23. Trên JDK 24+ hai bản ngang nhau, và test tương ứng tự tắt |

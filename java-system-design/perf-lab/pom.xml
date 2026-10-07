@@ -20,6 +20,7 @@
 
       mvn -q package -DskipTests && java -jar target/benchmarks.jar -prof gc     # nhom 1
       java -cp target/benchmarks.jar com.prep.perf.demo.RunAll                   # nhom 2-4
+      java -cp target/benchmarks.jar com.prep.perf.demo.D20SlowKafkaConsumer     # P20, can Kafka localhost:9092
     -->
 
     <properties>
@@ -28,6 +29,7 @@
         <jmh.version>1.37</jmh.version>
         <jackson.version>2.17.2</jackson.version>
         <junit.version>5.11.3</junit.version>
+        <kafka.version>4.1.2</kafka.version>
     </properties>
 
     <dependencies>
@@ -40,6 +42,18 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+        <!-- Chi D20 dung: can broker Kafka that, khong nam trong RunAll va khong co test -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>2.0.16</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
