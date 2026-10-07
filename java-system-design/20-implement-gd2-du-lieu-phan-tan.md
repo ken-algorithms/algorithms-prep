@@ -7,7 +7,8 @@
 > Giai đoạn trước: [10 — Implement giai đoạn 1](10-implement-gd1-nen-tang.md) · Lời giải tham khảo
 > đã chạy: [dist-lab/](dist-lab/) · Track P: [01](01-java-code-cham-duoi-tai-cao.md) · Track S: [02](02-ve-he-thong-100k-1m-10m.md)
 >
-> Kết thúc tuần 10 phải qua được [mốc kiểm tra](#mốc-tuần-10--tiêu-chí-qua-giai-đoạn).
+> Kết thúc tuần 10 phải qua được [mốc kiểm tra](#mốc-tuần-10--tiêu-chí-qua-giai-đoạn). Giai đoạn sau:
+> [30 — Implement giai đoạn 3](30-implement-gd3-microservices-cloud.md).
 
 ---
 

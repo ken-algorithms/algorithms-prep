@@ -265,6 +265,15 @@ remote call INSIDE tx    163 req/s   p50 1.222 ms  p99 1.231 ms   chờ connecti
 remote call OUTSIDE tx   930 req/s   p50   212 ms  p99   258 ms   chờ connection p99   101 ms
 ```
 
+**Kiểm chứng trên stack thật** ([ops-lab](ops-lab/README.md), Spring Boot 3.3 + HikariCP pool 10 +
+PostgreSQL 16 + đối tác HTTP 50 ms + Gatling mô hình mở):
+
+```text
+/transfers/bad   150 rps   p99   105 ms   0 lỗi   Hikari active 9/10      ← dưới trần: trông như không có lỗi
+/transfers/bad   250 rps   p99  11,1 s    0 lỗi   phục vụ 183 req/s (lý thuyết 188), 189 request chờ connection
+/transfers/good  250 rps   p99   103 ms   0 lỗi   Hikari active 2/10
+```
+
 Bản xấu: 95% thời gian của request là **xếp hàng chờ connection**. Thêm pod thì tổng số connection
 tăng, nhưng DB có giới hạn `max_connections` và connection sống thì tốn RAM của DB; bạn sẽ chạm trần
 DB trước khi chạm trần app.
@@ -671,7 +680,7 @@ R  p99 1,2 s → 250 ms ở cùng tải; số pod giảm từ 8 xuống 5. Viế
 
 | Câu hỏi | Trả lời |
 |---|---|
-| *"Virtual thread giải quyết hết chuyện thread pool rồi đúng không?"* | Bỏ giới hạn về **thread**, không bỏ giới hạn về **connection pool**, **đối tác**, hay **khoá**. 10.000 virtual thread đập vào pool 20 connection là 9.980 cái xếp hàng. Và trên JDK 21–23, `synchronized` quanh I/O còn ghim carrier (P12) |
+| *"Virtual thread giải quyết hết chuyện thread pool rồi đúng không?"* | Bỏ giới hạn về **thread**, không bỏ giới hạn về **connection pool**, **đối tác**, hay **khoá**. Đo trong [ops-lab](ops-lab/README.md): bật virtual threads cho code P09 ở 250 rps làm hơn 4.000 request xếp hàng ở Hikari và **19% lỗi** vì chờ quá 30 s, tệ hơn platform threads (0 lỗi, vì Tomcat 200 thread vô tình làm bộ giới hạn). Và trên JDK 21–23, `synchronized` quanh I/O còn ghim carrier (P12) |
 | *"Tăng pool size lên 200 cho nhanh?"* | Thường **chậm hơn**: DB chỉ chạy song song thật sự cỡ vài lần số core; thêm connection là thêm tranh chấp và RAM ở DB. Xem bài *About Pool Sizing* của HikariCP. Sửa thời gian giữ, không sửa kích thước pool |
 | *"Retry khi timeout là đủ an toàn?"* | Chỉ khi thao tác **idempotent**, có **backoff + jitter**, và có **ngân sách retry**. Không thì retry nhân tải đúng lúc đối tác đang yếu nhất (retry storm) |
 
@@ -683,7 +692,7 @@ R  p99 1,2 s → 250 ms ở cùng tải; số pod giảm từ 8 xuống 5. Viế
 |---|---|
 | Số JMH nhóm 1, P11 | **Đã đo** trên container Linux 4 vCPU, JDK 21.0.11, JMH 1.37, 1 fork. Output thô: [results/jmh-2026-10-04.txt](perf-lab/results/jmh-2026-10-04.txt). P01 JSON lần đầu có sai số lớn hơn trung bình nên đã chạy lại với 10 vòng đo, bảng dùng số lần chạy lại |
 | Số demo P09, P10, P12, P13, P15, P18, P19 | **Đã đo, chạy 2 lần**, output ở [results/demos-2026-10-04.txt](perf-lab/results/demos-2026-10-04.txt). Chênh giữa hai lần dưới 5%, trừ thời gian của P19 bản xấu (1,3–2,4 s, phụ thuộc GC) |
-| Bản chất của các demo nhóm 2–3 | **Mô phỏng**: connection pool là `Semaphore`, I/O là `Thread.sleep`, DB là `FakeDb` đếm round trip. Thứ được đo là **hệ quả hàng đợi** (Little's Law), vốn không phụ thuộc vào việc I/O là thật hay giả. Chưa chạy với HikariCP + Postgres + HTTP thật |
+| Bản chất của các demo nhóm 2–3 | **Mô phỏng**: connection pool là `Semaphore`, I/O là `Thread.sleep`, DB là `FakeDb` đếm round trip. Thứ được đo là **hệ quả hàng đợi** (Little's Law), vốn không phụ thuộc vào việc I/O là thật hay giả. **P09 đã chạy thêm trên stack thật** ngày 07/10/2026 (Spring Boot 3.3.13 + HikariCP + PostgreSQL 16.4 + Gatling), output ở [ops-lab/results](ops-lab/results/2026-10-07.txt); hình dạng khớp mô phỏng (trần ~183 req/s thật so với 163 mô phỏng, khác vì thời gian giữ connection khác: 53 ms so với 60 ms). P10, P13, P15 vẫn chỉ có bản mô phỏng |
 | P20 | **Đã đo với Kafka thật**, 2 lần: Apache Kafka 4.1.2 KRaft một node, client 4.1.2. Output: [results/d20-kafka-2026-10-07.txt](perf-lab/results/d20-kafka-2026-10-07.txt). `max.poll.interval.ms` hạ xuống 6 s; downstream là `sleep`. Số message hoàn thành của bản xấu dao động giữa hai lần (1.267 và 1.619) vì phụ thuộc thời điểm rebalance |
 | P08, P14, P16, P17 | **Chưa có demo**, chỉ giải thích. P16 có số thật ở module 05-postgres-depth |
 | Hành vi `open-in-view` giữ connection tới cuối request | Mô tả theo hành vi đã biết của Spring + Hibernate, **chưa kiểm chứng** trong workspace này. Kiểm chứng trên project thật bằng `hikaricp.connections.usage` khi bật và tắt |

@@ -19,9 +19,10 @@
 | **02** | [**Track S — Vẽ hệ thống 100k → 1M → 10M users**](02-ve-he-thong-100k-1m-10m.md) ⭐ | Công thức users → DAU → CCU → RPS, thang 5 bậc L0–L4 có sơ đồ, lộ trình 10 bản vẽ | Xong |
 | **10** | [**Implement giai đoạn 1 — Nền tảng (tuần 1–4)**](10-implement-gd1-nen-tang.md) | Hướng dẫn học từng buổi, lab, bài tập có đáp án, tiêu chí đạt mốc tuần 4 | Xong |
 | **20** | [**Implement giai đoạn 2 — Dữ liệu và hệ phân tán (tuần 5–10)**](20-implement-gd2-du-lieu-phan-tan.md) | Replication, saga, Kafka sâu, đồng thuận; lab outbox + consumer idempotent, P20, bản vẽ V6–V7, khởi động capstone, mốc tuần 10 | Xong |
-| 30 | Implement giai đoạn 3 — Microservices, cloud, vận hành (tuần 11–16) | Capstone, load test tuần 12, V8–V10 | Chưa viết |
+| **30** | [**Implement giai đoạn 3 — Microservices, cloud, vận hành (tuần 11–16)**](30-implement-gd3-microservices-cloud.md) | DDD và ranh giới module, load test Gatling tìm nút thắt, Resilience4j, OpenTelemetry + SLO burn rate, Keycloak + BOLA, AWS + DR, V8–V10, mốc tuần 12 và 16 | Xong |
 | 40 | Implement giai đoạn 4 — Phỏng vấn (tuần 17–24) | Lịch đề, drill "một hệ thống, ba quy mô", STAR | Chưa viết |
 | — | [perf-lab/](perf-lab/) | Module Maven: JMH + demo cho Track P. 33 test | Đã chạy |
+| — | [ops-lab/](ops-lab/) | Lời giải tham khảo giai đoạn 3: Spring Boot + HikariCP + PostgreSQL 16 thật, load test Gatling, retry storm Resilience4j, khung Terraform đã `validate` | Đã chạy |
 | — | [dist-lab/](dist-lab/) | Lời giải tham khảo giai đoạn 2: consistent hashing, saga, fencing, outbox trên Postgres 16 + Kafka 4.1.2 thật | Đã chạy |
 
 ---

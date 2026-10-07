@@ -1,0 +1,96 @@
+# ops-lab - output that, chay ngay 07/10/2026
+# May: container Linux 4 vCPU, JDK 21.0.11. App, Gatling va Postgres chay CUNG may (tranh CPU) -> so tuyet doi khong dung cho production; ty le va hinh dang moi la thu so sanh.
+# Stack: Spring Boot 3.3.13, HikariCP pool 10 (connectionTimeout 30 s), PostgreSQL 16.4 (zonky embedded), doi tac gia JDK HttpServer tra loi sau 50 ms.
+# Tai: Gatling 3.11.5, mo hinh MO constantUsersPerSec(rps) trong 30 s. Hikari pending/active doc tu /actuator/metrics moi giay.
+# Tran ly thuyet cua /transfers/bad: 10 connection / ~53 ms giu = ~188 req/s.
+
+############ good-250  [platform threads (Tomcat 200)] ############
+/transfers/good @ 250 rps x 30 s
+request count                                       7500 (OK=7500   KO=0     )
+max response time                                    193 (OK=193    KO=-     )
+response time 50th percentile                         54 (OK=54     KO=-     )
+response time 95th percentile                         65 (OK=65     KO=-     )
+response time 99th percentile                        103 (OK=103    KO=-     )
+mean requests/sec                                 241.94 (OK=241.94 KO=-     )
+failed                                                 0 (     0%)
+hikari max pending=0 max active=2
+
+############ bad-150  [platform threads (Tomcat 200)] ############
+/transfers/bad @ 150 rps x 30 s
+request count                                       4500 (OK=4500   KO=0     )
+max response time                                    181 (OK=181    KO=-     )
+response time 50th percentile                         54 (OK=54     KO=-     )
+response time 95th percentile                         64 (OK=64     KO=-     )
+response time 99th percentile                        105 (OK=105    KO=-     )
+mean requests/sec                                 145.16 (OK=145.16 KO=-     )
+failed                                                 0 (     0%)
+hikari max pending=0 max active=9
+
+############ bad-250  [platform threads (Tomcat 200)] ############
+/transfers/bad @ 250 rps x 30 s
+request count                                       7500 (OK=7500   KO=0     )
+max response time                                  12399 (OK=12399  KO=-     )
+response time 50th percentile                       5553 (OK=5547   KO=-     )
+response time 95th percentile                      10426 (OK=10426  KO=-     )
+response time 99th percentile                      11101 (OK=11101  KO=-     )
+mean requests/sec                                 182.93 (OK=182.93 KO=-     )
+failed                                                 0 (     0%)
+hikari max pending=189 max active=10
+
+############ good-800  [platform threads (Tomcat 200)] ############
+/transfers/good @ 800 rps x 30 s
+request count                                      24000 (OK=24000  KO=0     )
+max response time                                   1078 (OK=1078   KO=-     )
+response time 50th percentile                         53 (OK=53     KO=-     )
+response time 95th percentile                        266 (OK=266    KO=-     )
+response time 99th percentile                        511 (OK=511    KO=-     )
+mean requests/sec                                 774.19 (OK=774.19 KO=-     )
+failed                                                 0 (     0%)
+hikari max pending=0 max active=6
+
+############ vt-bad-250  [VT=true (spring.threads.virtual.enabled)] ############
+/transfers/bad @ 250 rps x 30 s (lan 1)
+request count                                       7500 (OK=6008   KO=1492  )
+max response time                                  30219 (OK=30219  KO=30107 )
+response time 50th percentile                      22842 (OK=18524  KO=30005 )
+response time 95th percentile                      30097 (OK=30098  KO=30014 )
+response time 99th percentile                      30106 (OK=30108  KO=30068 )
+mean requests/sec                                 122.95 (OK=98.49  KO=24.46 )
+failed                                              1492 ( 19.89%)
+hikari max pending=4483 max active=10
+
+############ vt-bad-250-r2  [VT=true (spring.threads.virtual.enabled)] ############
+/transfers/bad @ 250 rps x 30 s (lan 2)
+request count                                       7500 (OK=6102   KO=1398  )
+max response time                                  30193 (OK=30193  KO=30065 )
+response time 50th percentile                      22081 (OK=18075  KO=30003 )
+response time 95th percentile                      30097 (OK=30097  KO=30006 )
+response time 99th percentile                      30102 (OK=30102  KO=30023 )
+mean requests/sec                                 122.95 (OK=100.03 KO=22.92 )
+failed                                              1398 ( 18.64%)
+hikari max pending=4260 max active=10
+
+############ vt-good-250  [VT=true (spring.threads.virtual.enabled)] ############
+/transfers/good @ 250 rps x 30 s
+request count                                       7500 (OK=7500   KO=0     )
+max response time                                    165 (OK=165    KO=-     )
+response time 50th percentile                         53 (OK=53     KO=-     )
+response time 95th percentile                         98 (OK=98     KO=-     )
+response time 99th percentile                        107 (OK=107    KO=-     )
+mean requests/sec                                 241.94 (OK=241.94 KO=-     )
+failed                                                 0 (     0%)
+hikari max pending=0 max active=1
+
+############ RetryStorm - lan 1 ############
+downstream 20 slot x 10 ms (2.000 req/s), su co 2000-4000 ms; client 1000 req/s x 8 s, deadline 1 s
+Result[policy=NO_RETRY, requests=8000, amplification=1.0, attemptsDuringOutage=2000, successOverall=74.7%, successDuringOutage=0.0%, successFirst500msAfter=95.2%, p99Ms=100]
+Result[policy=RETRY_3_IMMEDIATE, requests=8000, amplification=1.769, attemptsDuringOutage=7934, successOverall=74.6%, successDuringOutage=1.0%, successFirst500msAfter=97.0%, p99Ms=103]
+Result[policy=RETRY_3_BACKOFF_JITTER, requests=8000, amplification=1.702125, attemptsDuringOutage=6842, successOverall=83.7%, successDuringOutage=34.7%, successFirst500msAfter=100.0%, p99Ms=945]
+Result[policy=BACKOFF_JITTER_PLUS_BREAKER, requests=8000, amplification=0.647625, attemptsDuringOutage=75, successOverall=62.8%, successDuringOutage=0.0%, successFirst500msAfter=22.8%, p99Ms=125]
+
+############ RetryStorm - lan 2 ############
+downstream 20 slot x 10 ms (2.000 req/s), su co 2000-4000 ms; client 1000 req/s x 8 s, deadline 1 s
+Result[policy=NO_RETRY, requests=8000, amplification=1.0, attemptsDuringOutage=2000, successOverall=74.7%, successDuringOutage=0.0%, successFirst500msAfter=95.4%, p99Ms=100]
+Result[policy=RETRY_3_IMMEDIATE, requests=8000, amplification=1.767, attemptsDuringOutage=7934, successOverall=74.6%, successDuringOutage=1.0%, successFirst500msAfter=96.8%, p99Ms=103]
+Result[policy=RETRY_3_BACKOFF_JITTER, requests=8000, amplification=1.7015, attemptsDuringOutage=6829, successOverall=83.8%, successDuringOutage=35.1%, successFirst500msAfter=100.0%, p99Ms=946]
+Result[policy=BACKOFF_JITTER_PLUS_BREAKER, requests=8000, amplification=0.6475, attemptsDuringOutage=75, successOverall=62.7%, successDuringOutage=0.0%, successFirst500msAfter=23.0%, p99Ms=122]
