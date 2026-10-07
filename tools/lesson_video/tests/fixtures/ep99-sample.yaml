@@ -1,0 +1,207 @@
+id: ep99-sample
+ep: 99
+week: 1
+title: "Sample episode with every scene kind"
+subtitle: "Smoke test for the slide renderer"
+sources: "."
+covers: ["src.md#1-quy-đổi"]
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: src.md §1–2"}
+    lines:
+      - tom: "Welcome. This sample uses every scene kind."
+  - kind: acronyms
+    chapter: "Acronyms"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: CCU, full: "concurrent users", vi: "số user đang dùng cùng lúc"}
+      - {abbr: DAU, full: "daily active users", vi: "số user dùng trong ngày"}
+      - {abbr: RTT, full: "round-trip time", vi: "thời gian gói tin đi và về"}
+      - {abbr: p99, full: "99th percentile latency", vi: "99% request nhanh hơn số này"}
+      - {abbr: SPOF, full: "single point of failure", vi: "điểm chết đơn"}
+    lines:
+      - tom: "RPS means requests per second."
+        focus: 0
+      - tom: "CCU means concurrent users."
+        focus: 1
+  - kind: table
+    chapter: "Conversions"
+    heading: "Conversions to know by heart"
+    sub: "Order of magnitude matters, not the digits"
+    columns: ["Quantity", "Exact", "Rounded", "Error"]
+    widths: [2, 2, 2, 1]
+    mono: [1, 2]
+    accent: [2]
+    build: true
+    covers: ["src.md#1-quy-đổi"]
+    points: [day]
+    rows:
+      - ["1 day", "86,400 s", "≈ 10⁵ s", "16%"]
+      - ["1 month", "2,592,000 s", "≈ 2.5 × 10⁶ s", "small"]
+      - ["1 year", "31,536,000 s", "≈ 3.15 × 10⁷ s", "—"]
+    note: "Typical values; measure your own."
+    lines:
+      - tom: "One day is 86,400 seconds, roughly 10^5."
+        say: "One day is eighty-six thousand four hundred seconds, roughly ten to the fifth."
+        focus: 0
+      - tom: "A month is about 2.5 times 10^6 seconds."
+        say: "A month is about two point five times ten to the sixth seconds."
+        focus: 1
+      - tom: "A year is about 3.15 times 10^7."
+        say: "A year is about three point one five times ten to the seventh."
+        focus: 2
+  - kind: bullets
+    chapter: "Bullets"
+    heading: "Week 1 deliverables"
+    style: check
+    items:
+      - {t: "Estimation table for 3 systems", s: "Every number has an assumption next to it"}
+      - {t: "JMH numbers from your machine", s: "Next to the lab numbers"}
+      - {t: "Drawings V1 and V2"}
+    lines:
+      - tom: "First, the estimation table."
+        focus: 0
+        reveal: 0
+      - tom: "Second, JMH numbers."
+        focus: 1
+        reveal: 1
+  - kind: code
+    chapter: "Code"
+    heading: "Exercise 1.7 — review this service"
+    code: |
+      @Service
+      public class StatementService {
+          private static final Map<String, byte[]> CACHE = new HashMap<>();
+
+          @Transactional
+          public byte[] monthlyStatement(long accountId, String month) throws Exception {
+              String key = accountId + ":" + month + ":" + System.currentTimeMillis();
+              if (CACHE.containsKey(key)) return CACHE.get(key);
+              // TODO: more
+              String fx = new RestTemplate().getForObject(fxUrl + "?ccy=" + acc.getCurrency(), String.class);
+              return null;
+          }
+      }
+    items:
+      - {lines: [3, 3], t: "P18 · unbounded static cache"}
+      - {lines: [5, 10], t: "P09 · HTTP call inside @Transactional"}
+    lines:
+      - tom: "Line three is an unbounded cache."
+        focus: 0
+      - tom: "The HTTP call sits inside the transaction."
+        focus: 1
+  - kind: pattern
+    chapter: "Pattern"
+    heading: "P01 · Recreating expensive objects per request"
+    sub: "ObjectMapper, DateTimeFormatter, Pattern, HTTP clients"
+    bad: |
+      public String toJson(Transfer t) throws Exception {
+          return new ObjectMapper().writeValueAsString(t);
+      }
+    good: |
+      private final ObjectMapper mapper;   // injected bean
+      public String toJson(Transfer t) throws Exception {
+          return mapper.writeValueAsString(t);
+      }
+    stats:
+      - ["JSON serialize", "14.6 µs", "0.48 µs", "30×", "19.6 KB → 688 B"]
+      - ["DateTimeFormatter.ofPattern", "474 ns", "175 ns", "2.7×", "872 B → 256 B"]
+    lines:
+      - tom: "The bad version builds a new ObjectMapper every call."
+        focus: 0
+      - tom: "The fix shares one instance."
+        focus: 1
+      - tom: "Thirty times faster."
+        focus: 2
+  - kind: compare
+    chapter: "Compare"
+    heading: "Two frameworks"
+    items:
+      - {title: "Alex Xu: 4 steps", lines: ["Understand the problem", "High-level design", "Deep dive", "Wrap up"]}
+      - {title: "Roadmap: 6 steps", tone: ok, lines: ["Clarify requirements", "Estimate", "API and data model", "Design", "Deep dive", "Summary"]}
+    lines:
+      - tom: "Alex Xu uses four steps."
+        say: "Alex Shoo uses four steps."
+        focus: 0
+      - tom: "The roadmap uses six."
+        focus: 1
+  - kind: flow
+    chapter: "Flow"
+    heading: "Four steps from users to RPS"
+    build: true
+    points: [little]
+    items:
+      - {t: "Registered", s: "Number in the problem statement", f: "N"}
+      - {t: "DAU", s: "× daily active ratio", f: "N × 30%"}
+      - {t: "Peak CCU", s: "× minutes per day × peak share ÷ 60", f: "DAU × 8 × 0.10 ÷ 60"}
+      - {t: "Peak RPS", s: "× requests per second per active user", f: "CCU × 0.17"}
+    lines:
+      - tom: "Step one."
+        focus: 0
+      - tom: "Then λ, step four."
+        say: "Then lambda, step four."
+        focus: 3
+  - kind: diagram
+    chapter: "Diagram"
+    heading: "L1 — 100k users"
+    nodes:
+      - {id: az, label: "AZ a + AZ b", shape: zone, x: 640, y: 200, w: 520, h: 370, at: 1}
+      - {id: u, label: "Mobile / Web", sub: "CCU 400–1,200", x: 90, y: 195, w: 160, h: 70, shape: user}
+      - {id: lb, label: "Load balancer L7", sub: "TLS, health check", x: 290, y: 195, w: 170, h: 70}
+      - {id: a1, label: "App 1", sub: "modular monolith", x: 520, y: 110, at: 1}
+      - {id: a2, label: "App 2", sub: "same image, other AZ", x: 520, y: 280, at: 1}
+      - {id: pg, label: "PostgreSQL", sub: "primary + standby", x: 800, y: 195, w: 170, h: 90, shape: db, at: 2}
+      - {id: q, label: "Job queue", sub: "SKIP LOCKED", x: 1050, y: 300, w: 170, h: 64, shape: queue, at: 2}
+    edges:
+      - {a: u, b: lb, label: "HTTPS"}
+      - {a: lb, b: a1, at: 1}
+      - {a: lb, b: a2, at: 1}
+      - {a: a1, b: pg, at: 2}
+      - {a: a2, b: pg, at: 2}
+      - {a: pg, b: q, dashed: true, label: "same tx", at: 2}
+    lines:
+      - tom: "Users hit the load balancer."
+        focus: 0
+      - tom: "Two app instances in two zones."
+        focus: 1
+      - tom: "Postgres with a standby."
+        focus: 2
+  - kind: stats
+    chapter: "Stats"
+    heading: "What the lab measured"
+    items:
+      - {v: "163 → 930", l: "requests per second", s: "P09: HTTP call moved out of the transaction", tone: ok}
+      - {v: "3.1 s → 5 ms", l: "p99 of an unrelated endpoint", s: "P10: timeouts"}
+      - {v: "101 → 2", l: "queries per page", s: "P15: N+1"}
+    lines:
+      - tom: "Three numbers."
+        focus: 0
+  - kind: exercise
+    chapter: "Exercise"
+    heading: "Exercise 1.1"
+    n: "1.1"
+    q: "A banking app with 5 million users. Estimate peak CCU and RPS, writes per second, 5-year storage, and peak egress."
+    items:
+      - {t: "Profile A: 30% daily active, 8 minutes a day, peak hour 10%, 0.17 requests per second"}
+      - {t: "1 transfer per DAU per day, 6 DB writes per transfer, 600 B per transfer"}
+    lines:
+      - tom: "Here is the exercise."
+      - wait: 3
+        note: "Write your assumptions first."
+  - kind: speech
+    chapter: "Speaking"
+    heading: "Model answer"
+    items:
+      - {t: "I'd go in four steps and say every assumption out loud."}
+      - {t: "Five million registered users, maybe 30% active daily, so 1.5 million DAU.", say: "Five million registered users, maybe thirty percent active daily, so one point five million D A U."}
+      - {t: "A banking session is short, two sessions of about four minutes a day."}
+    lines:
+      - read: tom
+        focus: 0
+      - read: tom
+        focus: 1
+      - read: tom
+        focus: 2

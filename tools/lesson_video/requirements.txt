@@ -1,0 +1,5 @@
+kokoro-onnx>=0.4
+numpy>=1.26
+pillow>=10
+pydantic>=2.5
+pyyaml>=6
