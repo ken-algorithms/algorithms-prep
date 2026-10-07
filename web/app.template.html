@@ -290,6 +290,44 @@ h2.sec:first-child{margin-top:0}
   .pane{padding:18px 16px}
   .head{padding:12px 16px}
 }
+
+/* ---------- video bài giảng (tab Video) ---------- */
+.vhead{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.vhead h3{margin:0 0 4px;font-size:17px;letter-spacing:-.01em}
+.vhead p{margin:0;color:var(--ink-2);font-size:13.5px;max-width:66ch}
+.vwrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;margin-top:14px;align-items:start}
+@media(max-width:1060px){.vwrap{grid-template-columns:minmax(0,1fr)}}
+.vplayer video{display:block;width:100%;aspect-ratio:16/9;background:#0c0f14;border-radius:var(--r)}
+.vplayer .miss{aspect-ratio:16/9;display:grid;place-items:center;text-align:center;padding:18px;
+  border:1px dashed var(--line-2);border-radius:var(--r);color:var(--ink-2);font-size:13px;background:var(--sunken)}
+.vmeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline;margin:12px 0 2px}
+.vmeta h3{margin:0;font-size:17px;letter-spacing:-.01em}
+.vmeta .sub{color:var(--ink-2);font-size:13.5px}
+.vmeta label{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2);cursor:pointer}
+.vmeta input{accent-color:var(--accent);width:16px;height:16px}
+.vrate{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.vrate .fbtn{padding:3px 10px;font-size:12px}
+.vsec{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:16px 0 6px}
+.vchaps{display:flex;flex-wrap:wrap;gap:6px}
+.vchaps button{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:12.5px;color:var(--ink-2)}
+.vchaps button:hover{border-color:var(--accent);color:var(--accent)}
+.vchaps button b{font-family:var(--f-mono);font-weight:500;font-size:11px;color:var(--ink-3);margin-right:5px}
+.vpts{display:flex;flex-direction:column;gap:2px}
+.vpt{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;align-items:start;padding:6px 8px;border-radius:var(--r-sm);font-size:13px}
+.vpt:hover{background:var(--sunken)}
+.vpt .t{font-family:var(--f-mono);font-size:11.5px;color:var(--accent);background:none;border:0;padding:1px 0;text-align:left}
+.vpt .src{display:block;background:none;border:0;padding:2px 0 0;color:var(--ink-3);font-size:11.5px;text-align:left}
+.vpt .src:hover{color:var(--accent)}
+.vlist{display:flex;flex-direction:column;gap:6px}
+.vweek{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:10px 2px 2px}
+.vitem{display:grid;grid-template-columns:104px minmax(0,1fr);gap:10px;align-items:center;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px}
+.vitem:hover{border-color:var(--accent)}
+.vitem[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.vitem img,.vitem .ph{width:104px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:var(--sunken);display:block}
+.vitem b{display:block;font-size:13px;font-weight:600;line-height:1.3}
+.vitem small{display:block;color:var(--ink-3);font-size:11.5px;margin-top:2px;font-family:var(--f-mono)}
+.vitem.seen b::after{content:" ✓";color:var(--ok)}
 </style>
 
 <div class="shell">
@@ -299,6 +337,7 @@ h2.sec:first-child{margin-top:0}
     <button class="tab" data-act="tab" data-t="co">Công ty<span class="n">2</span></button>
     <button class="tab" data-act="tab" data-t="algo">Thuật toán<span class="n" id="nAlgo">38</span></button>
     <button class="tab" data-act="tab" data-t="sd">System design<span class="n" id="nSd">0/6</span></button>
+    <button class="tab" data-act="tab" data-t="vid">Video<span class="n" id="nVid">0</span></button>
     <button class="tab" data-act="tab" data-t="docs">Tài liệu<span class="n" id="nDocs">0</span></button>
     <div class="foot">
       <button class="mini" data-act="theme" id="themeBtn">Giao diện: theo máy</button>
@@ -408,6 +447,25 @@ h2.sec:first-child{margin-top:0}
       <div class="grid g2" id="sdDocs"></div>
     </section>
 
+    <!-- ============ VIDEO ============ -->
+    <section class="pane" id="p-vid" hidden>
+      <div class="card vhead">
+        <div>
+          <p class="eyebrow">Java System Design · giai đoạn 1 · tiếng Anh · giọng Tom (Kokoro am_michael)</p>
+          <h3 id="vTitle">Video bài giảng</h3>
+          <p id="vLead"></p>
+        </div>
+        <div class="rm-actions" id="vActions"></div>
+      </div>
+      <div class="vwrap">
+        <div>
+          <div class="vplayer" id="vPlayer"></div>
+          <div id="vInfo"></div>
+        </div>
+        <div class="vlist" id="vList"></div>
+      </div>
+    </section>
+
     <!-- ============ TÀI LIỆU ============ -->
     <section class="pane" id="p-docs" hidden>
       <div class="docwrap">
@@ -440,11 +498,13 @@ const SDR = /*__SDR__*/{};
 const KEY = "algo-learning-v1";
 const DSA_DOC = "leetcode-38-bai-phong-van-vietnam.md";
 const MEDIA_BASE = /*__MEDIA_BASE__*/"";
+const JSDV = /*__JSDV__*/{};
 
 /* ---------- state ---------- */
 let S = {done:{}, req:{}, ms:{}};
 try{ const r = localStorage.getItem(KEY); if(r) S = Object.assign(S, JSON.parse(r)); }catch(e){}
 S.ms = S.ms || {};
+S.vid = S.vid || {};
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 
 const el = id => document.getElementById(id);
@@ -481,9 +541,10 @@ function cycleTheme(){
 }
 
 /* ---------- tabs ---------- */
-const TABS = ["over","co","algo","sd","docs"];
+const TABS = ["over","co","algo","sd","vid","docs"];
 const TITLES = {over:["Tổng quan","Bạn đang ở đâu"], co:["Công ty","JD, các vòng, và gap thật"],
   algo:["Thuật toán","38 bài — gõ tay, tắt Copilot"], sd:["System design","Lộ trình 24 tuần · 2 track · 7 họ bài · 6 bài đầy đủ"],
+  vid:["Video","Bài giảng tiếng Anh cho lộ trình Java System Design"],
   docs:["Tài liệu","Toàn bộ kho, đọc ngay trong trang"]};
 function go(t){
   if(!TABS.includes(t)) return;
@@ -627,7 +688,8 @@ function renderRoadmap(){
   el("rmActions").innerHTML = `
     <button class="fbtn" data-act="doc" data-doc="${esc(SDR.doc)}" aria-pressed="true">Mở lộ trình đầy đủ →</button>` +
     SDR.phases.filter(p => p.impl).map(p =>
-      `<button class="fbtn" data-act="doc" data-doc="${esc(p.impl)}">Bài tập GĐ${p.n} →</button>`).join("");
+      `<button class="fbtn" data-act="doc" data-doc="${esc(p.impl)}">Bài tập GĐ${p.n} →</button>`).join("") +
+    ((JSDV.lessons || []).length ? `<button class="fbtn" data-act="tab" data-t="vid">▶ Video GĐ1 (${JSDV.lessons.length}) →</button>` : "");
   el("phases").innerHTML = SDR.phases.map(p => `
     <div class="card phase">
       <div class="top"><i>${p.n}</i>
@@ -664,6 +726,80 @@ function renderRoadmap(){
       <span class="chip num">tuần ${m.w}</span>
       <span class="nm">${esc(m.t)}</span>
     </div>`).join("");
+}
+
+/* ---------- video bài giảng ----------
+   Dữ liệu ở JSDV (build.py đọc lessons.json do tools/lesson_video ghi). Mỗi video có chương (bấm để tua)
+   và danh sách ý chính đã dạy, kèm thời điểm và liên kết về đúng mục trong tài liệu nguồn. */
+let vidCur = null;
+const mmss = t => { t = Math.round(t); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
+const vSrc = f => esc((JSDV.base || "") + f);
+function srcRef(ref){  // "10-implement-gd1-nen-tang.md#11-..." → [khoá tài liệu, anchor]
+  const [f, a] = String(ref).split("#");
+  return [(JSDV.dir || "") + f, a || ""];
+}
+const srcLabel = ref => String(ref).split("#")[0].replace(/\.md$/, "").split("-")[0];
+function renderVid(){
+  const L = JSDV.lessons || [];
+  el("nVid").textContent = L.length;
+  if(!L.length){
+    el("vLead").textContent = "Chưa có video nào được dựng.";
+    el("vPlayer").innerHTML = ""; el("vInfo").innerHTML = ""; el("vList").innerHTML = "";
+    return;
+  }
+  if(!vidCur || !L.find(v => v.id === vidCur)) vidCur = L[0].id;
+  const total = L.reduce((n, v) => n + v.duration, 0);
+  const pts = new Set(L.flatMap(v => (v.points || []).map(p => p.id)));
+  const seen = L.filter(v => S.vid[v.id]).length;
+  el("vTitle").textContent = `Giai đoạn 1 · ${L.length}/${JSDV.total || L.length} video đã có`;
+  el("vLead").textContent = `${Math.round(total / 60)} phút video · ${pts.size} ý chính của tài liệu đã được dạy, ` +
+    `mỗi ý có thời điểm và liên kết về mục nguồn · bạn đã xem ${seen}/${L.length}.`;
+  el("vActions").innerHTML = [
+      ["Độ phủ nội dung", JSDV.coverage], ["Kế hoạch + nhật ký", JSDV.plan], ["Bảng chữ viết tắt", JSDV.glossary]]
+    .filter(([, d]) => d && DOCS[d])
+    .map(([t, d], i) => `<button class="fbtn" data-act="doc" data-doc="${esc(d)}"${i ? "" : ' aria-pressed="true"'}>${esc(t)} →</button>`).join("");
+  const v = L.find(x => x.id === vidCur);
+  const miss = `<div class="miss">Không tải được video trong bản này.<br>Mở web/index.html từ thư mục repo, hoặc xem bản GitHub Pages.</div>`;
+  el("vPlayer").innerHTML = `<video id="vEl" controls preload="metadata" playsinline
+      ${v.poster ? `poster="${vSrc(v.poster)}"` : ""} src="${vSrc(v.file)}"
+      onerror="this.outerHTML=this.dataset.miss" data-miss="${esc(miss)}"></video>`;
+  const ve = el("vEl");
+  if(ve){ ve.playbackRate = S.vrate || 1; ve.addEventListener("ratechange", () => { S.vrate = ve.playbackRate; save(); }); }
+  const chaps = (v.chapters || []).map(c =>
+    `<button data-act="seek" data-t="${c.t}"><b>${mmss(c.t)}</b>${esc(c.title)}</button>`).join("");
+  const plist = (v.points || []).map(p => {
+    const [d, a] = srcRef(p.src);
+    return `<div class="vpt"><button class="t" data-act="seek" data-t="${p.t}">▶ ${mmss(p.t)}</button>
+      <span>${esc(p.text || p.id)}${DOCS[d] ? `<button class="src" data-act="doc" data-doc="${esc(d)}" data-anchor="${esc(a)}"
+        title="${esc(p.src)}">↳ ${esc(p.section || srcLabel(p.src))} →</button>` : ""}</span></div>`;
+  }).join("");
+  const covers = (v.covers || []).map(r => { const [d, a] = srcRef(r);
+    return DOCS[d] ? `<button data-act="doc" data-doc="${esc(d)}" data-anchor="${esc(a)}" title="${esc(r)}">${esc(DOCS[d].t.split(" — ")[0].slice(0, 40))}${a ? " · mục" : ""}</button>` : ""; }).join("");
+  el("vInfo").innerHTML = `
+    <div class="vmeta"><div><h3>Ep${String(v.ep).padStart(2, "0")} · ${esc(v.title)}</h3>
+      <div class="sub">${esc(v.subtitle)} · ${mmss(v.duration)} · ${v.mb} MB</div></div>
+      <span class="vrate">${[1, 1.25, 1.5].map(r => `<button class="fbtn" data-act="vrate" data-r="${r}" aria-pressed="${(S.vrate || 1) === r}">${r}×</button>`).join("")}
+      <label><input type="checkbox" data-act="vseen" data-v="${esc(v.id)}" ${S.vid[v.id] ? "checked" : ""}> Đã xem</label></span></div>
+    <div class="vsec">Chương — bấm để tua</div><div class="vchaps">${chaps}</div>
+    <div class="vsec">Nội dung chính đã dạy (${(v.points || []).length}) — bấm thời điểm để xem, bấm ↳ để mở mục nguồn</div>
+    <div class="card vpts" style="padding:8px">${plist || '<p class="hint">Video này không có ý chính gắn nhãn.</p>'}</div>
+    <div class="vsec">Nguồn</div><div class="vchaps">${covers}</div>`;
+  const weeks = {};
+  L.forEach(x => (weeks[x.week] = weeks[x.week] || []).push(x));
+  el("vList").innerHTML = Object.keys(weeks).sort((a, b) => a - b).map(w =>
+    `<div class="vweek">${+w ? "Tuần " + w : "Định hướng"}</div>` + weeks[w].map(x => `
+      <button class="vitem${S.vid[x.id] ? " seen" : ""}" data-act="vid" data-v="${esc(x.id)}" aria-current="${x.id === vidCur}">
+        ${x.poster ? `<img loading="lazy" alt="" src="${vSrc(x.poster)}" onerror="this.style.visibility='hidden'">` : '<span class="ph"></span>'}
+        <span><b>Ep${String(x.ep).padStart(2, "0")} · ${esc(x.title)}</b><small>${mmss(x.duration)} · ${(x.chapters || []).length} chương · ${(x.points || []).length} ý</small></span>
+      </button>`).join("")).join("") +
+    `<p class="hint">Các tuần sau (Ep07–Ep29) làm theo kế hoạch; tiến độ ghi trong “Kế hoạch + nhật ký”.</p>`;
+}
+function seekVid(t){
+  const v = el("vEl");
+  if(!v) return;
+  v.currentTime = +t;
+  const p = v.play(); if(p && p.catch) p.catch(() => {});
+  try{ v.scrollIntoView({block:"nearest"}); }catch(e){}
 }
 
 /* ---------- tài liệu ---------- */
@@ -828,8 +964,9 @@ function handleAct(e){
   if(!t) return;
   const act = t.dataset.act;
 
-  if(act === "req" || act === "algo" || act === "ms"){  // checkbox: để trình duyệt tự toggle
-    if(act === "ms"){ S.ms[t.dataset.ms] = t.checked; save(); renderRoadmap(); renderOver(); }
+  if(act === "req" || act === "algo" || act === "ms" || act === "vseen"){  // checkbox: để trình duyệt tự toggle
+    if(act === "vseen"){ S.vid[t.dataset.v] = t.checked; save(); renderVid(); }
+    else if(act === "ms"){ S.ms[t.dataset.ms] = t.checked; save(); renderRoadmap(); renderOver(); }
     else if(act === "req"){ S.req[t.dataset.req] = t.checked; save(); renderOver(); renderCo(); }
     else { S.done[t.dataset.a] = t.checked; save(); renderAlgo(); renderOver(); }
     return;
@@ -843,6 +980,13 @@ function handleAct(e){
     case "co":     coCur = t.dataset.co; renderCo(); go("co"); break;
     case "doc":    openDoc(t.dataset.doc, t.dataset.anchor || undefined, t.dataset.nohist !== "1"); break;
     case "anchor": scrollToAnchor(t.dataset.anchor); break;
+    case "vid":    vidCur = t.dataset.v; renderVid(); toTop(); break;
+    case "seek":   seekVid(t.dataset.t); break;
+    case "vrate":
+      S.vrate = +t.dataset.r; save();
+      if(el("vEl")) el("vEl").playbackRate = S.vrate;
+      document.querySelectorAll('[data-act="vrate"]').forEach(o => o.setAttribute("aria-pressed", String(+o.dataset.r === S.vrate)));
+      break;
     case "filter":
       F[t.dataset.f] = t.dataset.v;
       document.querySelectorAll(`[data-act="filter"][data-f="${t.dataset.f}"]`).forEach(o =>
@@ -856,13 +1000,13 @@ function handleAct(e){
     case "theme": cycleTheme(); break;
     case "reset":
       if(confirm("Xoá toàn bộ tiến độ đã tick? Không khôi phục lại được.")){
-        S = {done:{}, req:{}, ms:{}}; save(); renderAll();
+        S = {done:{}, req:{}, ms:{}, vid:{}}; save(); renderAll();
       }
       break;
   }
 }
 document.addEventListener("click", handleAct);
-document.addEventListener("change", e => { if(e.target.matches('[data-act="req"],[data-act="algo"],[data-act="ms"]')) handleAct(e); });
+document.addEventListener("change", e => { if(e.target.matches('[data-act="req"],[data-act="algo"],[data-act="ms"],[data-act="vseen"]')) handleAct(e); });
 // phần tử bấm được nhưng không phải <button> vẫn phải dùng được bằng bàn phím
 document.addEventListener("keydown", e => {
   if((e.key === "Enter" || e.key === " ") && e.target.matches('[data-act][role="button"]')){
@@ -874,7 +1018,7 @@ document.addEventListener("keydown", e => {
 el("q").addEventListener("input", runSearch);
 
 /* ---------- boot ---------- */
-function renderAll(){ renderOver(); renderCo(); renderAlgo(); renderSd(); renderNav(); }
+function renderAll(){ renderOver(); renderCo(); renderAlgo(); renderSd(); renderVid(); renderNav(); }
 themeLabel();
 el("nDocs").textContent = Object.keys(DOCS).length;
 renderAll();

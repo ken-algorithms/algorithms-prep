@@ -439,6 +439,7 @@ def build_home(pages: list[Page]) -> str:
         li("java-system-design/20-implement-gd2-du-lieu-phan-tan.md", "tuần 5–10: saga, Kafka, đồng thuận"),
         li("java-system-design/30-implement-gd3-microservices-cloud.md", "tuần 11–16: load test, SLO, security, AWS", "mới"),
         li("java-system-design/video-gd1/00-ke-hoach-va-lich-su.md", "30 video tiếng Anh tuần 1–4: kế hoạch, nhật ký", "mới"),
+        li("java-system-design/video-gd1/02-do-phu-tuan-1.md", "7 video tuần 1: ý chính nào dạy ở phút nào", "mới"),
         li("java-system-design/video-gd1/01-bang-chu-viet-tat.md", "148 chữ viết tắt giai đoạn 1, cách đọc"),
         li("java-system-design/perf-lab/README.md", "JMH + demo, 33 test"),
         li("java-system-design/dist-lab/README.md", "lời giải giai đoạn 2, Postgres + Kafka thật"),

@@ -27,6 +27,12 @@ VIDEO_ROOT = ROOT / "leetcode-38-bai-video"
 # (xem .github/workflows/pages.yml).
 MEDIA_BASE_STANDALONE = os.environ.get("MEDIA_BASE", "../leetcode-38-bai-video/")
 MEDIA_BASE_ARTIFACT = "media/"
+# Video bài giảng Java System Design (tools/lesson_video): mp4 + jpg + lessons.json ở thư mục dưới.
+# Bản mở trực tiếp trỏ thẳng vào thư mục đó; GitHub Pages / Artifact dùng media/jsd/ (workflow copy sang).
+JSD_VIDEO_DIR = ROOT / "java-system-design" / "video-gd1" / "lessons"
+JSD_BASE_STANDALONE = (os.environ["MEDIA_BASE"] + "jsd/") if os.environ.get("MEDIA_BASE") \
+    else "../java-system-design/video-gd1/lessons/"
+JSD_BASE_ARTIFACT = MEDIA_BASE_ARTIFACT + "jsd/"
 SKIP = {".git", "site", "web", "__pycache__", "target", ".venv", "node_modules"}
 
 
@@ -153,6 +159,24 @@ def collect_media() -> dict[int, dict]:
         if entry:
             media[i] = entry
     return media
+
+
+def collect_jsd_videos() -> list[dict]:
+    """Mục lục video từ lessons.json (do tools/lesson_video ghi); bỏ mục nào thiếu file mp4."""
+    path = JSD_VIDEO_DIR / "lessons.json"
+    if not path.exists():
+        return []
+    out = []
+    for x in json.loads(path.read_text(encoding="utf-8")).get("lessons", []):
+        mp4 = JSD_VIDEO_DIR / x["file"]
+        if not mp4.exists():
+            print(f"⚠ lessons.json có {x['file']} nhưng không thấy file — bỏ qua")
+            continue
+        x = dict(x, mb=round(mp4.stat().st_size / 1_048_576, 1))
+        if x.get("poster") and not (JSD_VIDEO_DIR / x["poster"]).exists():
+            x["poster"] = ""
+        out.append(x)
+    return sorted(out, key=lambda v: v["ep"])
 
 
 # ---- hand-authored, derived from nab-prep/ and katalon-prep/ --------------------------------
@@ -379,11 +403,23 @@ def main() -> None:
     if len(algos) != 38:
         print(f"⚠ đọc được {len(algos)} bài thuật toán, kỳ vọng 38 — kiểm tra bảng mục lục")
 
+    jsd = collect_jsd_videos()
+    for v in jsd:  # mỗi anchor nguồn (covers, points) phải mở được trong app
+        for ref in v.get("covers", []) + [p["src"] for p in v.get("points", []) if p.get("src")]:
+            f, _, anchor = ref.partition("#")
+            key = SDR_DIR + f
+            if key not in docs or (anchor and f'id="{anchor}"' not in docs[key]["h"]):
+                print(f"⚠ video {v['id']}: không mở được {ref}")
     tpl = (WEB / "app.template.html").read_text(encoding="utf-8")
     dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":"))
 
-    def render(media_base: str) -> str:
+    def render(media_base: str, jsd_base: str) -> str:
         return (tpl
+                .replace("/*__JSDV__*/{}", dump({"base": jsd_base, "dir": SDR_DIR, "lessons": jsd,
+                                                 "plan": SDR_DIR + "video-gd1/00-ke-hoach-va-lich-su.md",
+                                                 "glossary": SDR_DIR + "video-gd1/01-bang-chu-viet-tat.md",
+                                                 "coverage": SDR_DIR + "video-gd1/02-do-phu-tuan-1.md",
+                                                 "total": 30}))
                 .replace("/*__DOCS__*/{}", dump(docs))
                 .replace("/*__ALGOS__*/[]", dump(algos))
                 .replace("/*__CO__*/{}", dump(COMPANIES))
@@ -392,9 +428,9 @@ def main() -> None:
                 .replace("/*__SDR__*/{}", dump(SDR))
                 .replace('/*__MEDIA_BASE__*/""', dump(media_base)))
 
-    out = render(MEDIA_BASE_ARTIFACT)
+    out = render(MEDIA_BASE_ARTIFACT, JSD_BASE_ARTIFACT)
     (WEB / "algorithms-learning.html").write_text(out, encoding="utf-8")
-    out = render(MEDIA_BASE_STANDALONE)
+    out = render(MEDIA_BASE_STANDALONE, JSD_BASE_STANDALONE)
 
     standalone = ('<!doctype html>\n<html lang="vi">\n<head>\n<meta charset="utf-8">\n'
                   '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
@@ -410,6 +446,9 @@ def main() -> None:
           f"{sum(len(c['req']) for c in COMPANIES.values())} yêu cầu JD")
     print(f"  web/algorithms-learning.html  {kb:.0f} KB  → publish làm Artifact")
     print(f"  web/index.html                          → mở trực tiếp bằng trình duyệt")
+    if jsd:
+        print(f"  {len(jsd)} video Java System Design (tab Video): {', '.join('Ep%02d' % v['ep'] for v in jsd)}"
+              f" — media từ {JSD_BASE_STANDALONE}")
     videos = [a for a in algos if "v" in a]
     if videos:
         print(f"  {len(videos)} bài có video: {', '.join(str(a['i']) for a in videos)}"
