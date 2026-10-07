@@ -1,17 +1,18 @@
 # perf-lab — code Java chậm dưới tải cao, đo được
 
 Code chạy được cho [Track P](../01-java-code-cham-duoi-tai-cao.md). Một module Maven, không cần
-Docker, không cần DB hay broker thật.
+Docker hay DB thật; riêng D20 (P20) cần một broker Kafka.
 
 ```bash
 mvn -q test                                              # 33 test, ~6 giây
 mvn -q package -DskipTests                               # target/benchmarks.jar
 java -cp target/benchmarks.jar com.prep.perf.demo.RunAll # nhóm 2-4, ~40 giây
 java -jar target/benchmarks.jar -prof gc                 # nhóm 1 + P11, ~6 phút
+java -cp target/benchmarks.jar com.prep.perf.demo.D20SlowKafkaConsumer   # P20, cần Kafka localhost:9092
 ```
 
-Đã chạy ngày 04/10/2026 trên container Linux 4 vCPU, JDK 21.0.11: **33 test, 0 failure**. Output
-thô ở [results/](results/).
+Đã chạy ngày 04/10/2026 trên container Linux 4 vCPU, JDK 21.0.11: **33 test, 0 failure**. D20 chạy
+ngày 07/10/2026 với Apache Kafka 4.1.2. Output thô ở [results/](results/).
 
 ## Hai loại đo, hai loại kiểm tra
 
@@ -42,10 +43,12 @@ JDK 24+ vì pinning không còn tồn tại ở đó.
 | P15 N+1 | `demo/D15NPlusOne` | `main` |
 | P18 cache không giới hạn | `demo/D18UnboundedCache` | `main`, JVM con `-Xmx128m` |
 | P19 nạp hết vào bộ nhớ | `demo/D19MaterializeAll` | `main`, JVM con `-Xmx512m` |
+| P20 Kafka consumer chậm | `demo/D20SlowKafkaConsumer` | `main`, **cần Kafka thật** ở `localhost:9092`; không nằm trong `RunAll` |
 
-P08, P14, P16, P17, P20 chưa có code; lý do ghi ở [file 01 §10](../01-java-code-cham-duoi-tai-cao.md#10-ranh-giới-trung-thực).
+P08, P14, P16, P17 chưa có code; lý do ghi ở [file 01 §10](../01-java-code-cham-duoi-tai-cao.md#10-ranh-giới-trung-thực).
 
 ## Bài tập kèm theo
 
 Hướng dẫn từng bước và bài tập tự làm nằm ở [10 — Implement giai đoạn 1](../10-implement-gd1-nen-tang.md)
-(tuần 1: nhóm 1 bằng JMH; tuần 2–4: P08–P10, P15–P19).
+(tuần 1: nhóm 1 bằng JMH; tuần 2–4: P08–P10, P15–P19) và [20 — Implement giai đoạn 2](../20-implement-gd2-du-lieu-phan-tan.md)
+(tuần 8–9: P20).

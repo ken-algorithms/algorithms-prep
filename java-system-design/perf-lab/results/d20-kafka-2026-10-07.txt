@@ -1,0 +1,16 @@
+# D20 - P20 Kafka consumer xu ly dong bo tung message. Chay ngay 07/10/2026.
+# Broker: Apache Kafka 4.1.2 (KRaft, 1 node, tai tu downloads.apache.org, da kiem SHA-512), client kafka-clients 4.1.2
+# May: container Linux 4 vCPU, JDK 21.0.11. Lenh: java -cp target/benchmarks.jar com.prep.perf.demo.D20SlowKafkaConsumer
+# partitionsRevokedOrLost chi dem sau khi group on dinh va truoc khi dung (khong tinh luc join/close).
+
+############ LAN 1 ############
+2000 messages, 4 partitions, 2 consumers, downstream 20 ms/message, max.poll.interval.ms=6000
+Result[mode=PER_MESSAGE_500, messages=2000, distinctProcessed=1619, totalProcessed=3864, duplicates=2245, partitionsRevokedOrLost=6, commitFailures=7, wallMs=45075, finished=false]
+Result[mode=PER_MESSAGE_50, messages=2000, distinctProcessed=2000, totalProcessed=2000, duplicates=0, partitionsRevokedOrLost=0, commitFailures=0, wallMs=24598, finished=true]
+Result[mode=BATCH_CALL_500, messages=2000, distinctProcessed=2000, totalProcessed=2000, duplicates=0, partitionsRevokedOrLost=0, commitFailures=0, wallMs=1338, finished=true]
+
+############ LAN 2 ############
+2000 messages, 4 partitions, 2 consumers, downstream 20 ms/message, max.poll.interval.ms=6000
+Result[mode=PER_MESSAGE_500, messages=2000, distinctProcessed=1267, totalProcessed=3114, duplicates=1847, partitionsRevokedOrLost=6, commitFailures=6, wallMs=45014, finished=false]
+Result[mode=PER_MESSAGE_50, messages=2000, distinctProcessed=2000, totalProcessed=2000, duplicates=0, partitionsRevokedOrLost=0, commitFailures=0, wallMs=24593, finished=true]
+Result[mode=BATCH_CALL_500, messages=2000, distinctProcessed=2000, totalProcessed=2000, duplicates=0, partitionsRevokedOrLost=0, commitFailures=0, wallMs=1342, finished=true]

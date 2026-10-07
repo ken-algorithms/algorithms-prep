@@ -300,6 +300,7 @@ SDR = {
          "learn": "Replication, partitioning, Saga và outbox, Kafka sâu, đồng thuận",
          "lab": "Kafka + outbox + DLQ với Testcontainers · capstone bắt đầu tuần 9",
          "p": "P20 Kafka consumer xử lý từng message", "s": "V6–V7 · L2 1M users",
+         "impl": SDR_DIR + "20-implement-gd2-du-lieu-phan-tan.md",
          "ms": "Giải thích Saga/outbox/Kafka không cần tài liệu"},
         {"n": 3, "t": "Microservices, cloud, vận hành", "w": "Tuần 11–16",
          "h": "Giai đoạn 3 — Microservices, cloud và vận hành (tuần 11–16)",
@@ -316,13 +317,14 @@ SDR = {
     ],
     "tracks": [
         {"k": "P", "t": "Code Java chậm dưới tải cao",
-         "d": "20 anti-pattern, 15 có code chạy được và số đo thật. Kiến trúc tốt không cứu được "
+         "d": "20 anti-pattern, 16 có code chạy được và số đo thật. Kiến trúc tốt không cứu được "
               "code giữ connection, thread, carrier quá lâu.",
          "doc": SDR_DIR + "01-java-code-cham-duoi-tai-cao.md",
          "facts": [["P09 gọi HTTP trong @Transactional", "163 → 930 req/s"],
                    ["P10 gọi đối tác không timeout", "p99 3,1 s → 5 ms"],
                    ["P12 virtual thread pinning, JDK 21", "5,0 s → 23 ms"],
-                   ["P15 N+1, trang 100 đơn hàng", "101 → 2 query"]]},
+                   ["P15 N+1, trang 100 đơn hàng", "101 → 2 query"],
+                   ["P20 Kafka consumer chậm, Kafka thật", "chưa xong sau 45 s → 1,3 s"]]},
         {"k": "S", "t": "Vẽ hệ thống 100k → 1M → 10M users",
          "d": "Đổi users ra DAU → CCU → RPS, chọn bậc kiến trúc L0–L4, 10 bản vẽ từ một máy tới "
               "microservices, trả lời câu \"tải tăng 10 lần thì sao\".",

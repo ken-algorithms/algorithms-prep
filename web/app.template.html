@@ -624,10 +624,10 @@ function renderSd(){
 /* Lộ trình 6 tháng: giai đoạn, hai track, thang 100k → 10M, mốc tick được. Dữ liệu ở SDR (build.py). */
 function renderRoadmap(){
   if(!SDR.phases) return;
-  const phase1Impl = SDR.phases.find(p => p.impl);
   el("rmActions").innerHTML = `
-    <button class="fbtn" data-act="doc" data-doc="${esc(SDR.doc)}" aria-pressed="true">Mở lộ trình đầy đủ →</button>
-    ${phase1Impl ? `<button class="fbtn" data-act="doc" data-doc="${esc(phase1Impl.impl)}">Bài tập giai đoạn 1 →</button>` : ""}`;
+    <button class="fbtn" data-act="doc" data-doc="${esc(SDR.doc)}" aria-pressed="true">Mở lộ trình đầy đủ →</button>` +
+    SDR.phases.filter(p => p.impl).map(p =>
+      `<button class="fbtn" data-act="doc" data-doc="${esc(p.impl)}">Bài tập GĐ${p.n} →</button>`).join("");
   el("phases").innerHTML = SDR.phases.map(p => `
     <div class="card phase">
       <div class="top"><i>${p.n}</i>
