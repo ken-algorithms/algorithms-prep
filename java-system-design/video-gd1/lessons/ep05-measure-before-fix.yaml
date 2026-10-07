@@ -1,0 +1,407 @@
+id: ep05-measure-before-fix
+ep: 5
+week: 1
+title: "Measure before you fix"
+subtitle: "Lab 1B with JMH, multiplying by RPS, and a code-review drill"
+covers:
+  - 10-implement-gd1-nen-tang.md#lab-1b--đo-chi-phí-một-request-bằng-jmh-thứ-bảy-2-giờ
+  - 10-implement-gd1-nen-tang.md#bài-tập-tuần-1
+  - 01-java-code-cham-duoi-tai-cao.md#6-checklist-review-code-trước-khi-lên-tải
+  - 01-java-code-cham-duoi-tai-cao.md#8-chạy-lab
+  - 01-java-code-cham-duoi-tai-cao.md#9-kể-trong-phỏng-vấn
+  - 02-ve-he-thong-100k-1m-10m.md#6-code-xấu-nhân-với-số-máy--nối-sang-track-p
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 10 · Lab 1B, exercises 1.5, 1.6, 1.7 · 01 §6 checklist, §8 running the lab, §9 interview · 02 §6 bad code × machines"}
+      - {t: "Week 1 · Saturday lab (2 hours)"}
+    lines:
+      - tom: "Episode five. Last time we saw what group one costs on the lab machine. Today you measure your own machine and your own code, then turn nanoseconds into cores and pods."
+      - tom: "And we finish with a code-review drill: one small service with eight problems."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video (1/2)"
+    items:
+      - {abbr: JMH, full: "Java Microbenchmark Harness", vi: "thư viện đo hiệu năng hàm Java"}
+      - {abbr: JDK, full: "Java Development Kit", vi: "bộ công cụ và runtime Java"}
+      - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo chạy bytecode Java"}
+      - {abbr: JIT, full: "just-in-time compiler", vi: "biên dịch code nóng thành mã máy lúc chạy"}
+      - {abbr: "C1 · C2", full: "the two JIT tiers: quick and optimising", vi: "C1 biên dịch nhanh, C2 tối ưu sâu"}
+      - {abbr: "CPU · vCPU", full: "processor · one virtual CPU in the cloud", vi: "bộ xử lý · một luồng phần cứng trên cloud"}
+      - {abbr: GC, full: "garbage collection", vi: "bộ dọn rác của JVM"}
+      - {abbr: "RPS · QPS", full: "requests / queries per second", vi: "số request / truy vấn mỗi giây"}
+      - {abbr: DTO, full: "data transfer object", vi: "object chỉ chứa dữ liệu để truyền đi"}
+    lines:
+      - tom: "JMH is the Java Microbenchmark Harness. JDK is the Java Development Kit, and the JVM runs your code. The JIT is the just-in-time compiler, with two tiers called C1 and C2."
+        say: "J M H is the Java Microbenchmark Harness. J D K is the Java Development Kit, and the J V M runs your code. The JIT is the just-in-time compiler, with two tiers called C one and C two."
+        focus: 4
+      - tom: "CPU and vCPU are the processor and one virtual CPU. GC is garbage collection, RPS and QPS are requests and queries per second, and a DTO is a data transfer object."
+        say: "CPU and v C P U are the processor and one virtual CPU. G C is garbage collection, R P S and Q P S are requests and queries per second, and a D T O is a data transfer object."
+        focus: 8
+  - kind: acronyms
+    heading: "Acronyms in this video (2/2)"
+    items:
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức của web"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu của REST API"}
+      - {abbr: CSV, full: "comma-separated values", vi: "file bảng, giá trị cách nhau dấu phẩy"}
+      - {abbr: OOM, full: "out of memory", vi: "JVM hết heap, process chết"}
+      - {abbr: PR, full: "pull request", vi: "yêu cầu gộp code, nơi review code"}
+      - {abbr: "MB/s · GB/s", full: "megabytes / gigabytes per second", vi: "ở đây: tốc độ tạo rác cho GC"}
+      - {abbr: STAR, full: "situation, task, action, result", vi: "khung kể chuyện kinh nghiệm"}
+    lines:
+      - tom: "HTTP, JSON and CSV: the web protocol, the data format, and comma-separated files. OOM is out of memory, and a PR is a pull request, where code review happens."
+        say: "HTTP, JSON and C S V: the web protocol, the data format, and comma-separated files. O O M is out of memory, and a P R is a pull request, where code review happens."
+        focus: 4
+      - tom: "Megabytes and gigabytes per second will measure garbage today. And STAR is situation, task, action, result."
+        focus: 6
+
+  - kind: code
+    chapter: "Lab 1B: run it"
+    heading: "Lab 1B, step 1: re-run the numbers on your machine"
+    code: |
+      cd java-system-design/perf-lab
+      mvn -q test                   # 33 tests: each fix returns the SAME result
+      mvn -q package -DskipTests    # builds target/benchmarks.jar
+
+      # group 1 with the GC profiler, ~6 min
+      java -jar target/benchmarks.jar 'PerRequestBench|BatchBench' -prof gc
+
+      # system demos for groups 2-4, ~40 s
+      java -cp target/benchmarks.jar com.prep.perf.demo.RunAll
+    items:
+      - {lines: [2, 2], t: "33 tests: every fix returns the same result as the bad version"}
+      - {lines: [5, 6], t: "-prof gc adds B/op: bytes allocated per call"}
+      - {lines: [8, 9], t: "Demos for P09 … P19 — weeks 2–4"}
+    points: [lab-run]
+    lines:
+      - tom: "Step one: run the lab on your machine. The test suite has 33 tests that prove every fix returns the same result as the bad version."
+        focus: 0
+      - tom: "Then package and run the group-one benchmarks with the GC profiler. That takes about six minutes and adds the bytes allocated per call."
+        focus: 1
+      - tom: "RunAll runs the system demos for later weeks in about 40 seconds."
+        focus: 2
+
+  - kind: bullets
+    heading: "Lab 1B, step 1: compare like a scientist"
+    points: [lab1b-run]
+    items:
+      - {t: "Copy the table from 01 §2 and add a column: “my machine”", s: "write down your JDK version"}
+      - {t: "The bad / fix ratio must be the same order of magnitude as the lab's", s: "absolute numbers differ between machines; ratios and shapes must match"}
+      - {t: "Off by more than 3 times? Write it in your error log and find out why", s: "different JDK, a busy machine, a laptop in battery-saving mode"}
+      - {t: "On JDK 25, P12 shows both versions equal — that is expected", s: "the virtual-thread pinning fix landed in JDK 24"}
+    lines:
+      - tom: "Copy the lab's table into your notes, add a column for your machine, and write down your JDK version."
+        say: "Copy the lab's table into your notes, add a column for your machine, and write down your J D K version."
+        focus: 0
+      - tom: "Your absolute numbers will differ. What must match is the ratio between bad and fixed, and the shape: for example, the bad version growing with the square of the data."
+        focus: 1
+      - tom: "If a ratio is off by more than three times, write it in your error log and find out why: a different JDK, a busy machine, or a laptop saving battery."
+        say: "If a ratio is off by more than three times, write it in your error log and find out why: a different J D K, a busy machine, or a laptop saving battery."
+        focus: 2
+      - tom: "One expected difference: on JDK 25, the pinning demo P12 shows both versions equal, because the JDK fixed it."
+        say: "One expected difference: on J D K twenty-five, the pinning demo P12 shows both versions equal, because the J D K fixed it."
+        focus: 3
+
+  - kind: code
+    chapter: "Exercise 1.5"
+    heading: "Exercise 1.5 — why is a benchmark written like this?"
+    code: |
+      @BenchmarkMode(Mode.AverageTime)
+      @Warmup(iterations = 3, time = 1)
+      @Measurement(iterations = 5, time = 1)
+      @Fork(1)
+      @State(Scope.Thread)
+      public class PerRequestBench {
+          private final Transfer transfer = new Transfer("tx-000123", "101-22334455", ...);
+
+          @Benchmark
+          public String p01_json_newMapperPerCall() throws Exception {
+              return P01ExpensiveObjects.toJsonBad(transfer);
+          }
+      }
+    items:
+      - {lines: [7, 7], t: "(a) why a field, not a constant inside the method?"}
+      - {lines: [11, 11], t: "(b) why return the value (or use a Blackhole)?"}
+      - {lines: [2, 4], t: "(c) why @Warmup and @Fork?"}
+    lines:
+      - tom: "Exercise 1.5. Look at this benchmark from the lab. Four questions. A: why is the input a field of the class, and not a constant written inside the method?"
+        say: "Exercise one point five. Look at this benchmark from the lab. Four questions. Eigh: why is the input a field of the class, and not a constant written inside the method?"
+        focus: 0
+      - tom: "B: why does the method return its result, or pass it to a Blackhole?"
+        focus: 1
+      - tom: "C: why warm-up iterations and a fork? And D: why not just measure System.nanoTime around a loop of one million calls?"
+        focus: 2
+      - wait: 5
+        note: "Answer (a) to (d) in one line each."
+
+  - kind: table
+    heading: "Answer 1.5"
+    columns: ["", "Why", "The trap it avoids"]
+    widths: [1.8, 3.2, 1.9]
+    accent: [2]
+    build: true
+    points: [ex15]
+    rows:
+      - ["(a) Input in a @State field", "A constant can be computed once by the JIT; the benchmark would measure returning a constant", "constant folding"]
+      - ["(b) Return the result or use a Blackhole", "An unused result lets the JIT delete the whole computation", "dead code elimination"]
+      - ["(c) @Warmup and @Fork", "The first seconds run in the interpreter and C1, not optimised C2 code; a fresh JVM stops one benchmark's profile from skewing the next", "measuring cold code; profile pollution"]
+      - ["(d) Not nanoTime around a loop", "A hand-made loop has all three traps plus loop optimisations, and it can't measure allocation", "all of the above"]
+    lines:
+      - tom: "A: a constant can be computed once by the JIT, so you'd measure returning a constant. That's constant folding."
+        say: "Eigh: a constant can be computed once by the JIT, so you'd measure returning a constant. That's constant folding."
+        focus: 0
+      - tom: "B: if nobody uses the result, the JIT deletes the computation. That's dead code elimination."
+        focus: 1
+      - tom: "C: the first seconds run in the interpreter and the quick C1 compiler, not the optimised C2 code. Warm-up skips that. And a fork starts a fresh JVM, so one benchmark's profile doesn't skew the next."
+        say: "C: the first seconds run in the interpreter and the quick C one compiler, not the optimised C two code. Warm-up skips that. And a fork starts a fresh J V M, so one benchmark's profile doesn't skew the next."
+        focus: 2
+      - tom: "D: a hand-made loop falls into all three traps, plus loop optimisations, and it can't measure allocation at all."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Benchmark your code"
+    heading: "Lab 1B, steps 3–4: benchmark your own code"
+    points: [lab1b-own]
+    items:
+      - {t: "Pick a function that runs on every request in your real project", s: "mapping a DTO, validation, a fee calculation, building a cache key"}
+      - {t: "Copy it into perf-lab's code/ package", s: "write a xxxBad / xxxGood pair if you see a fix — or just measure it"}
+      - {t: "Add a test to SameResultTest", s: "proof that both versions return the same result"}
+      - {t: "Multiply by RPS: fill a table for 1k, 10k and 50k RPS", s: "ns/op → cores · B/op → MB/s of garbage"}
+    note: "Pass: numbers from your own machine, at least one benchmark of real code, and you can say what it costs at 10k RPS."
+    lines:
+      - tom: "Steps three and four. Pick a function that runs on every request in your real project: mapping a DTO, validating input, calculating a fee, building a cache key."
+        say: "Steps three and four. Pick a function that runs on every request in your real project: mapping a D T O, validating input, calculating a fee, building a cache key."
+        focus: 0
+      - tom: "Copy it into the lab, write a bad and a good version if you see a fix, and add a test to SameResultTest that proves both return the same result."
+        focus: 2
+      - tom: "Then multiply by requests per second: at 1,000, 10,000 and 50,000 RPS, how many cores and how many megabytes of garbage per second does it cost?"
+        focus: 3
+
+  - kind: exercise
+    chapter: "Exercise 1.6"
+    n: "1.6"
+    q: "Use the lab numbers: P01 JSON (14.6 µs, 19.6 KB per call) and P06 logging (1.0 µs, 1.6 KB, × 20 debug lines per request). At 50k RPS, how many extra cores and how much extra garbage per second? With 2-vCPU pods at 60% CPU, how many extra pods?"
+    items:
+      - {t: "The fixed P01 still costs ~0.5 µs, so the waste is 14.6 − 0.5 µs"}
+      - {t: "1 core = 1,000,000 µs of CPU per second"}
+    lines:
+      - tom: "Exercise 1.6. Take the lab numbers for P01 and P06, with twenty debug lines per request. At 50,000 requests per second, how many extra cores, and how much extra garbage per second? And how many extra pods?"
+        say: "Exercise one point six. Take the lab numbers for P01 and P06, with twenty debug lines per request. At fifty thousand requests per second, how many extra cores, and how much extra garbage per second? And how many extra pods?"
+      - wait: 5
+        note: "One core = 1,000,000 µs of CPU per second."
+
+  - kind: table
+    heading: "Answer 1.6"
+    columns: ["", "Working", "Result"]
+    widths: [1.3, 3.2, 1.8]
+    mono: [1]
+    accent: [2]
+    build: true
+    points: [ex16]
+    rows:
+      - ["P01 CPU", "(14.6 − 0.5) µs × 50,000", "0.71 core"]
+      - ["P06 CPU", "1.0 µs × 20 × 50,000", "1.0 core"]
+      - ["Extra pods", "≈ 1.7 cores ÷ (2 × 0.6) ≈ 1.4", "~2 pods"]
+      - ["P01 garbage", "18.9 KB × 50,000", "≈ 950 MB/s"]
+      - ["P06 garbage", "1.6 KB × 20 × 50,000", "≈ 1.6 GB/s"]
+      - ["Fleet for context", "50,000 × 4.5 ms of CPU per request ≈ 225 cores", "~190 pods"]
+    lines:
+      - tom: "P01 wastes 14.1 microseconds times 50,000: 0.71 of a core. P06 wastes one microsecond, times 20 lines, times 50,000: one core."
+        say: "P01 wastes fourteen point one microseconds times fifty thousand: zero point seven one of a core. P06 wastes one microsecond, times twenty lines, times fifty thousand: one core."
+        focus: 1
+      - tom: "About 1.7 cores in total. Divided by 1.2 usable cores per pod, that's about two extra pods."
+        say: "About one point seven cores in total. Divided by one point two usable cores per pod, that's about two extra pods."
+        focus: 2
+      - tom: "Garbage: about 950 megabytes per second from P01, 1.6 gigabytes from P06. About 2.5 gigabytes per second in total."
+        say: "Garbage: about nine hundred fifty megabytes per second from P01, one point six gigabytes from P06. About two point five gigabytes per second in total."
+        focus: 4
+      - tom: "Now the context: at 50,000 requests per second with 4.5 milliseconds of CPU each, the fleet already needs about 225 cores, around 190 pods."
+        say: "Now the context: at fifty thousand requests per second with four point five milliseconds of CPU each, the fleet already needs about two hundred twenty-five cores, around one hundred ninety pods."
+        focus: 5
+
+  - kind: stats
+    heading: "Answer 1.6 — the verdict"
+    points: [ex16-lesson]
+    items:
+      - {v: "< 1%", l: "of the fleet's CPU", s: "1.7 extra cores next to ~225", tone: ok}
+      - {v: "~13 MB/s", l: "garbage per pod", s: "2.5 GB/s spread over ~190 pods"}
+      - {v: "P06 first", l: "if you fix only one", s: "it multiplies by the number of log lines"}
+    note: "The value of measuring: it tells you what NOT to optimise. Fix these in review, not in a sprint — one P09 deserves a sprint."
+    lines:
+      - tom: "So the verdict: these two problems are small for the system. Under one percent of the CPU, and about 13 megabytes per second of garbage per pod."
+        focus: 1
+      - tom: "Fix them during code review, not in a dedicated sprint. A single P09 would deserve a sprint. If you can fix only one, fix P06 first, because it multiplies by the number of log lines."
+        focus: 2
+      - tom: "Before trusting any multiplication, measure allocated bytes per request in production. That's the real value of measuring: it tells you what not to optimise."
+
+  - kind: table
+    chapter: "Bad code × machines"
+    heading: "Where real cost comes from: bad code × machines"
+    sub: "02 §6 — level L3, 20,000 RPS on salary day, pods of 2 vCPU at 60%"
+    columns: ["CPU per request", "Pods needed", "Difference"]
+    widths: [1.3, 3.4, 2]
+    mono: [1]
+    accent: [2]
+    points: [code-times-machines]
+    rows:
+      - ["4.5 ms", "20,000 × 4.5 ms ÷ (2 × 1,000 × 0.6) ≈ 75 pods", ""]
+      - ["6.5 ms (+2 ms)", "20,000 × 6.5 ms ÷ 1,200 ≈ 108 pods", "+33 pods, +44% app cost"]
+    note: "+2 ms is ~140 calls of new ObjectMapper() — or one O(n²) loop: contains on ~1,500 items, or += on ~600 rows."
+    lines:
+      - tom: "Where does real cost come from? At level L3, 20,000 requests per second on salary day: with 4.5 milliseconds of CPU per request you need about 75 pods."
+        say: "Where does real cost come from? At level L three, twenty thousand requests per second on salary day: with four point five milliseconds of CPU per request you need about seventy-five pods."
+        focus: 0
+      - tom: "Add 2 milliseconds per request and you need 108. That's 33 more pods, 44% more cost for the app tier."
+        say: "Add two milliseconds per request and you need one hundred eight. That's thirty-three more pods, forty-four percent more cost for the app tier."
+        focus: 1
+      - tom: "Two milliseconds don't come from a microsecond mistake; you'd need 140 ObjectMappers. They come from one quadratic loop over data: contains on about 1,500 items, or plus-equals on about 600 rows."
+        say: "Two milliseconds don't come from a microsecond mistake; you'd need a hundred forty ObjectMappers. They come from one quadratic loop over data: contains on about one thousand five hundred items, or plus-equals on about six hundred rows."
+      - tom: "And worse than any CPU waste: code that holds a connection while it waits. That sets a ceiling of about 163 requests per second for the whole service, whatever the number of pods."
+
+  - kind: code
+    chapter: "Code review drill"
+    heading: "Exercise 1.7 — find at least 6 problems, name the P code, fix them"
+    code: |
+      @Service
+      public class StatementService {
+          private static final Map<String, byte[]> CACHE = new HashMap<>();
+
+          @Transactional
+          public byte[] monthlyStatement(long accountId, String month) throws Exception {
+              String key = accountId + ":" + month + ":" + System.currentTimeMillis();
+              if (CACHE.containsKey(key)) return CACHE.get(key);
+              Account acc = accountRepo.findById(accountId).orElseThrow();
+              String fx = new RestTemplate()
+                      .getForObject(fxUrl + "?ccy=" + acc.getCurrency(), String.class);
+              String csv = "";
+              for (Txn t : txnRepo.findAll()) {
+                  if (t.getAccountId() == accountId && t.getMonth().equals(month)) {
+                      csv += t.getId() + "," + t.getAmount() + "," + fx + "\n";
+                      log.debug("added " + t);
+                  }
+              }
+              byte[] out = new ObjectMapper().writeValueAsBytes(Map.of("csv", csv));
+              CACHE.put(key, out);
+              return out;
+          }
+      }
+    items:
+      - {lines: [1, 23], t: "Review it like a PR: at least 6 problems"}
+    lines:
+      - tom: "Exercise 1.7, the code-review drill. This service builds a monthly statement. It has at least six Track P problems. Find each one, name its P code, and say how you'd fix it."
+        say: "Exercise one point seven, the code-review drill. This service builds a monthly statement. It has at least six Track P problems. Find each one, name its P code, and say how you'd fix it."
+        focus: 0
+      - wait: 8
+        note: "Look at the cache key, the transaction, the loop and every “new”."
+
+  - kind: code
+    heading: "Answer 1.7 — eight problems"
+    code: |
+      @Service
+      public class StatementService {
+          private static final Map<String, byte[]> CACHE = new HashMap<>();
+
+          @Transactional
+          public byte[] monthlyStatement(long accountId, String month) throws Exception {
+              String key = accountId + ":" + month + ":" + System.currentTimeMillis();
+              if (CACHE.containsKey(key)) return CACHE.get(key);
+              Account acc = accountRepo.findById(accountId).orElseThrow();
+              String fx = new RestTemplate()
+                      .getForObject(fxUrl + "?ccy=" + acc.getCurrency(), String.class);
+              String csv = "";
+              for (Txn t : txnRepo.findAll()) {
+                  if (t.getAccountId() == accountId && t.getMonth().equals(month)) {
+                      csv += t.getId() + "," + t.getAmount() + "," + fx + "\n";
+                      log.debug("added " + t);
+                  }
+              }
+              byte[] out = new ObjectMapper().writeValueAsBytes(Map.of("csv", csv));
+              CACHE.put(key, out);
+              return out;
+          }
+      }
+    points: [ex17-issues]
+    items:
+      - {lines: [3, 8], t: "1 · P18: unbounded static HashMap; currentTimeMillis in the key → never hits, only leaks; not thread-safe"}
+      - {lines: [5, 11], t: "2 · P09: HTTP call for the exchange rate inside @Transactional"}
+      - {lines: [10, 11], t: "3 · P08 + P10: new RestTemplate() per call, no timeout"}
+      - {lines: [13, 14], t: "4 · P16 + P19: findAll() then filter in Java"}
+      - {lines: [15, 15], t: "5 · P03: csv += in a loop"}
+      - {lines: [16, 16], t: "6 · P06: log.debug with string concatenation in the loop"}
+      - {lines: [19, 19], t: "7 · P01: new ObjectMapper() per call"}
+      - {lines: [19, 19], t: "8 · P19 (bonus): CSV wrapped in JSON, returned as byte[]"}
+    lines:
+      - tom: "One: a static HashMap with no limit, and the key contains the current time in milliseconds, so it never hits. It only leaks. And it isn't thread-safe. Fix: drop the timestamp, use Caffeine with a maximum size and an expiry."
+        focus: 0
+      - tom: "Two: the HTTP call for the exchange rate happens inside the transaction. That's P09. Fetch the rate first, cached, and keep the transaction short and read-only."
+        focus: 1
+      - tom: "Three: a new RestTemplate on every call, with no timeout. That's P08 and P10. Use one shared client bean with connect and read timeouts, and a fallback."
+        focus: 2
+      - tom: "Four: findAll, then filtering in Java, reads the whole table. That's P16 and P19. Query by account and month, with an index on those two columns, and stream large months."
+        focus: 3
+      - tom: "Five: plus-equals on a string in a loop, P03. Use a StringBuilder, or write straight to the output stream."
+        focus: 4
+      - tom: "Six: a debug log built by concatenation inside the loop, P06. Use a placeholder with just the id, or remove it."
+        focus: 5
+      - tom: "Seven: a new ObjectMapper on every call, P01. Inject it. And a bonus, eight: wrapping CSV inside JSON. Return text/csv as a stream instead."
+        focus: 7
+
+  - kind: bullets
+    heading: "Answer 1.7 — fix in order of danger"
+    points: [ex17-order]
+    items:
+      - {t: "First: 2 → 3 → 4 → 1", s: "holding a connection, a call without timeout, reading a whole table, a leak: these can take the system down"}
+      - {t: "Then: 5, 6, 7", s: "CPU and garbage waste: real, but they only cost money"}
+    lines:
+      - tom: "Fix them in order of danger: two, three, four, then one. Holding a connection, a call without a timeout, reading a whole table, and a memory leak can take the whole system down."
+        say: "Fix them in order of danger: two, three, four, then one. Holding a connection, a call without a timeout, reading a whole table, and a memory leak can take the whole system down."
+        focus: 0
+      - tom: "Then five, six and seven. They waste CPU and memory, which costs money, but they won't cause an outage."
+        focus: 1
+
+  - kind: table
+    chapter: "Review checklist"
+    heading: "The review checklist (01 §6): 13 yes/no questions"
+    sub: "Use it on every PR; in week 1 the starred rows matter most"
+    columns: ["#", "Question", "Catches"]
+    widths: [0.35, 6, 1]
+    points: [checklist]
+    rows:
+      - ["1", "HTTP call, synchronous Kafka send, file read or sleep inside @Transactional? Is open-in-view off?", "P09"]
+      - ["2", "Does every network call have a connect AND a read timeout, smaller than the caller's?", "P10"]
+      - ["3 ★", "Are HTTP clients, ObjectMapper, Pattern and formatters created once and shared?", "P01, P02, P08"]
+      - ["4–6", "Unbounded executors or queues? parallelStream doing I/O? synchronized on the hot path?", "P11–P14"]
+      - ["7–8", "Repository calls or lazy relations in a loop? findAll(), deep pages, filtering in Java?", "P15–P17"]
+      - ["9–10", "Static maps without a size limit? Loading a whole growing dataset into memory?", "P18, P19"]
+      - ["11 ★", "A loop over data with contains, indexOf, remove(0) or string concatenation?", "P03, P07"]
+      - ["12 ★", "Debug or trace logs that call an expensive function in their arguments?", "P06"]
+      - ["13", "A Kafka consumer calling out synchronously for every message? Is it idempotent?", "P20"]
+    lines:
+      - tom: "Everything we caught is in the review checklist of the Track P file: 13 yes-or-no questions to ask on every pull request."
+      - tom: "This week, the starred ones matter most. Are clients, mappers and patterns created once and shared?"
+        focus: 2
+      - tom: "Is there a loop over data with contains, indexOf or string concatenation? And do debug logs call expensive functions in their arguments? The other rows come in weeks two, three and four."
+        say: "Is there a loop over data with contains, index of, or string concatenation? And do debug logs call expensive functions in their arguments? The other rows come in weeks two, three and four."
+        focus: 7
+
+  - kind: speech
+    chapter: "Interview line"
+    heading: "Interview line — “We have autoscaling, so why is it still slow?”"
+    points: [tp-interview]
+    items:
+      - {t: "Because autoscaling only multiplies what one instance can do."}
+      - {t: "If a request holds a database connection while it waits on a fifty-millisecond partner call, the pool caps the whole service at pool size divided by hold time, about a hundred and sixty requests per second for a pool of ten, no matter how many pods I add."}
+      - {t: "I measured exactly that in a lab: 163 requests per second with the call inside the transaction, 930 after moving it out.", say: "I measured exactly that in a lab: one hundred sixty-three requests per second with the call inside the transaction, nine hundred thirty after moving it out."}
+      - {t: "So before scaling out, I check what each request holds, and for how long."}
+    lines:
+      - read: tom
+        focus: 0
+      - read: tom
+        focus: 1
+      - read: tom
+        focus: 2
+      - read: tom
+        focus: 3
+      - tom: "Next, episode six, the last one of week one: drawing V1 and V2 for Track S."

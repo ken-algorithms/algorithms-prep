@@ -1,0 +1,284 @@
+id: ep00-orientation
+ep: 0
+week: 0
+tag: "EP00 · START"
+title: "Phase 1 orientation"
+subtitle: "The roadmap, two tracks, and how to use these videos"
+covers:
+  - 00-lo-trinh-6-thang.md#mục-tiêu-và-giả-định
+  - 00-lo-trinh-6-thang.md#tự-đánh-giá-điểm-xuất-phát
+  - 00-lo-trinh-6-thang.md#tổng-quan-lộ-trình
+  - 00-lo-trinh-6-thang.md#lịch-tuần-mẫu
+  - 00-lo-trinh-6-thang.md#giai-đoạn-1--nền-tảng-tuần-14
+  - 00-lo-trinh-6-thang.md#v2-track-p--code-java-chậm-dưới-tải-cao
+  - 00-lo-trinh-6-thang.md#v2-track-s--vẽ-hệ-thống-từ-100k-tới-10m-users
+  - 10-implement-gd1-nen-tang.md#0-cách-dùng-file-này
+  - README.md
+scenes:
+  - kind: title
+    chapter: "Welcome"
+    items:
+      - {t: "Sources: 00 roadmap (goals, self-check, overview, weekly rhythm, phase 1, Track P, Track S) · 10 §0 · README"}
+      - {t: "Phase 1 = weeks 1–4 · 30 videos · this week: Ep00–Ep06"}
+    lines:
+      - tom: "Welcome to the Java System Design roadmap. I'm Tom, and this is episode zero, the orientation for phase one."
+      - tom: "In about eight minutes you'll see where the six months lead, how one week is organised, what the two extra tracks are, and how to study with these videos."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    sub: "Every video starts with this card. The full list is in the glossary file."
+    items:
+      - {abbr: CCU, full: "concurrent users", vi: "số user đang dùng cùng một lúc"}
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý; 'core' là một lõi"}
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức của web và REST API"}
+      - {abbr: URL, full: "uniform resource locator", vi: "địa chỉ web; đề 'URL shortener'"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: SaaS, full: "software as a service", vi: "phần mềm bán dạng thuê bao trên cloud"}
+      - {abbr: STAR, full: "situation, task, action, result", vi: "khung kể chuyện kinh nghiệm khi phỏng vấn"}
+      - {abbr: CV, full: "curriculum vitae", vi: "hồ sơ xin việc"}
+    lines:
+      - tom: "Eight acronyms first. CCU means concurrent users, the people using the app at the same moment. RPS means requests per second."
+        focus: 0
+      - tom: "CPU is the processor. HTTP is the protocol of the web. URL is a web address, as in the URL shortener problem. API is an application programming interface, and ID means identifier."
+        focus: 2
+      - tom: "SaaS is software as a service. STAR is situation, task, action, result, a way to tell an interview story. And CV is your résumé."
+        say: "SaaS is software as a service. STAR is situation, task, action, result, a way to tell an interview story. And C V is your resume."
+        focus: 7
+
+  - kind: bullets
+    chapter: "Where six months lead"
+    heading: "Three results after 24 weeks"
+    points: [goal-three]
+    items:
+      - {t: "Interview: lead a 45–60 minute design in English", s: "with load estimates and clear trade-offs"}
+      - {t: "Work: write design docs and review architecture — and code", s: "spot the Java code that becomes the bottleneck before it ships"}
+      - {t: "Evidence: a capstone project with load-test numbers", s: "plus 2–3 real design stories from your current job"}
+    lines:
+      - tom: "Where does this lead? Three results. First, in an interview you can lead a 45–60 minute design in English, with numbers and trade-offs."
+        focus: 0
+      - tom: "Second, at work you write design docs and review architecture. And, new in this version, you review code: you can point at the Java that will choke under load."
+        focus: 1
+      - tom: "Third, evidence: a capstone project with load-test numbers, plus two or three real design stories from your current job."
+        focus: 2
+
+  - kind: bullets
+    heading: "Time budget"
+    style: dot
+    points: [goal-time]
+    items:
+      - {t: "10–12 hours a week, next to a full-time job"}
+      - {t: "Only 5–6 hours a week? Stretch the plan to 9–10 months"}
+      - {t: "Interview in 6–8 weeks? Go fast through phase 1, skim phases 2–3, put your effort into phase 4"}
+    lines:
+      - tom: "The plan assumes you keep your job and study 10–12 hours a week."
+        focus: 0
+      - tom: "With only 5–6 hours, stretch it to 9–10 months. With an interview in 6–8 weeks, go fast through phase 1 and put your effort into phase 4."
+        focus: 2
+
+  - kind: flow
+    heading: "Four steps for every topic"
+    sub: "The last step is the one the interviewer scores"
+    build: true
+    points: [goal-four-steps]
+    items:
+      - {t: "Read", s: "the chapter or article of the week; take notes as diagrams"}
+      - {t: "Draw", s: "the system on one page, with numbers on the arrows"}
+      - {t: "Run", s: "a small Java / Spring demo: code it, measure it, break it"}
+      - {t: "Explain", s: "the trade-off in 2 minutes, out loud, in English"}
+    lines:
+      - tom: "Every topic goes through four steps. Read."
+        focus: 0
+      - tom: "Draw."
+        focus: 1
+      - tom: "Run a small Java or Spring demo."
+        focus: 2
+      - tom: "And explain the trade-off in 2 minutes. That last step is exactly what the interviewer scores, so practise it in English from the first month."
+        focus: 3
+
+  - kind: table
+    chapter: "Self-check"
+    heading: "Self-check: where do you start?"
+    sub: "Tick the questions you can answer fluently in 2 minutes"
+    columns: ["Boxes ticked (out of 14)", "What to do"]
+    widths: [1.2, 3]
+    points: [self-check]
+    rows:
+      - ["Fewer than 5", "Do phase 1 fully, week by week"]
+      - ["5 to 9", "Skim phase 1, spend the saved time on phase 2"]
+      - ["10 or more", "Go straight to phases 3–4 and practise problems"]
+      - ["Any score", "Never skip Track P and Track S — they are what many seniors still lack"]
+    lines:
+      - tom: "The roadmap opens with a self-check of 14 questions. Tick the ones you can answer fluently in two minutes."
+      - tom: "Fewer than 5 ticks: do phase 1 fully. 5 to 9: skim phase 1. 10 or more: jump to phases 3 and 4."
+        focus: 1
+      - tom: "Whatever your score, never skip Track P and Track S. We'll see in a minute what they are."
+        focus: 3
+
+  - kind: table
+    chapter: "Four phases"
+    heading: "Four phases, 24 weeks"
+    columns: ["Phase", "Weeks", "Focus", "Milestone"]
+    widths: [1.7, 0.7, 3.1, 2.6]
+    points: [phases, milestones]
+    rows:
+      - ["1 · Foundations", "1–4", "Estimation, networking and APIs, databases, caching and consistency", "URL shortener + rate limiter, 45 minutes each"]
+      - ["2 · Data and distributed systems", "5–10", "Replication, partitioning, consensus, saga, outbox, idempotency, Kafka", "Week-10 milestone"]
+      - ["3 · Microservices and cloud", "11–16", "Resilience, observability, security, cloud architecture, disaster recovery", "Capstone on the cloud with load-test numbers"]
+      - ["4 · Interviews and applications", "17–24", "3–4 timed problems a week, weekly mock interviews", "New CV, 6–8 STAR stories, first applications"]
+    lines:
+      - tom: "The six months are four phases. Phase 1, weeks 1–4, is foundations. Its milestone: design a URL shortener and a rate limiter in 45 minutes each."
+        focus: 0
+      - tom: "Phase 2, weeks 5–10, is data and distributed systems."
+        focus: 1
+      - tom: "Phase 3, weeks 11–16, is microservices and the cloud. It ends with your capstone running on the cloud, with load-test numbers."
+        focus: 2
+      - tom: "Phase 4, weeks 17–24, is interview practice. It ends with a new CV, six to eight STAR stories, and the first applications."
+        say: "Phase 4, weeks 17 to 24, is interview practice. It ends with a new C V, six to eight STAR stories, and the first applications."
+        focus: 3
+
+  - kind: compare
+    heading: "The capstone, weeks 9–16"
+    points: [capstone]
+    items:
+      - {title: "Version A · bank", lines: ["Mini Core Transfer: open accounts, internal transfers, history, notifications", "Fits the NAB-style banking track", "All drawings in Track S use this system"]}
+      - {title: "Version B · SaaS", lines: ["A software-as-a-service platform", "Fits the Katalon-style product track", "Same steps: design doc, MVP, load test, break it, deploy"]}
+    lines:
+      - tom: "From week 9 to week 16 you build a capstone. Version A is a bank: the Mini Core Transfer system. All the Track S drawings use it."
+        focus: 0
+      - tom: "Version B is a SaaS product. Either way you go from design doc, to a working product, to a load test, to deliberately breaking it."
+        focus: 1
+
+  - kind: table
+    chapter: "One week"
+    heading: "One week: five sessions, 10–11 hours"
+    columns: ["Day", "Time", "What you do"]
+    widths: [1, 0.8, 5]
+    points: [week-rhythm]
+    rows:
+      - ["Monday", "1.5 h", "Read the week's chapters; notes as diagrams, not copied text"]
+      - ["Wednesday", "1.5 h", "One engineering blog post, then the first exercises"]
+      - ["Friday", "1 h", "30 min review and error log, 30 min Track P: run one anti-pattern, write the numbers down"]
+      - ["Saturday", "3–4 h", "The lab: code it, measure it, try to break it"]
+      - ["Sunday", "3 h", "Track S drawing, one timed 45-minute problem, the 2-minute talk"]
+    lines:
+      - tom: "A normal week has five sessions, about 10–11 hours, with the heavy work at the weekend."
+      - tom: "Monday you read. Wednesday, a blog post and the first exercises. Friday, review your error log, plus thirty minutes of Track P."
+        focus: 2
+      - tom: "Saturday is lab day. Sunday you draw the week's Track S diagram, solve one timed problem, and record a 2-minute talk."
+        focus: 4
+
+  - kind: table
+    chapter: "Phase 1 at a glance"
+    heading: "Phase 1 at a glance"
+    columns: ["Week", "Learn", "Practise", "Track P · Track S"]
+    widths: [0.6, 2.6, 2.6, 2.2]
+    points: [phase1-table]
+    rows:
+      - ["1", "Estimation, latency numbers, converting load", "Estimate 3 systems: a bank, a test platform, a chat app", "P01–P07, measured with a benchmark tool · V1, V2"]
+      - ["2", "Networking and APIs: how a request travels, load balancers, API styles, idempotency", "Rate limiter: token bucket on Redis + Lua", "P08, P10 · V3"]
+      - ["3", "Databases: storage engines, indexes, isolation, locking, replicas", "URL shortener, ID generator, a test that reproduces a lost update", "P09, P15, P16 · V4"]
+      - ["4", "Caching and consistency: cache strategies, stampedes, consistency trade-offs", "Notification system and a recorded 45-minute mock", "P18, P19 · V5"]
+    lines:
+      - tom: "Here is phase 1 week by week. Week 1: estimation. You estimate three systems and measure the cost of one request."
+        focus: 0
+      - tom: "Week 2: networking and APIs, and you build a rate limiter on Redis."
+        focus: 1
+      - tom: "Week 3: databases, the URL shortener, and an ID generator."
+        focus: 2
+      - tom: "Week 4: caching and consistency, a notification system, and a recorded 45-minute mock interview."
+        focus: 3
+
+  - kind: stats
+    chapter: "Two tracks"
+    heading: "Track P: Java code that is slow under load"
+    sub: "Architecture multiplies what one request does — good or bad"
+    points: [trackp-why, trackp-groups]
+    items:
+      - {v: "163 req/s", l: "a hard ceiling", s: "a 50 ms HTTP call inside @Transactional, pool of 10 connections — more pods don't help", tone: bad}
+      - {v: "20", l: "anti-patterns P01–P20", s: "in 4 groups: per-request waste, holding scarce resources, extra round trips, memory"}
+      - {v: "measured", l: "numbers from real runs", s: "runnable code with bad and fixed versions in perf-lab"}
+    lines:
+      - tom: "Now the two extra tracks. Track P is about Java code that becomes slow under load. A load balancer, autoscaling and caches only multiply what one request does."
+      - tom: "One HTTP call of 50 milliseconds inside a transaction, with a pool of 10 connections, caps the whole service at about 163 requests per second. Adding pods changes nothing."
+        focus: 0
+      - tom: "The track has 20 anti-patterns in 4 groups, each with runnable code, a fixed version, and measured numbers."
+        focus: 1
+
+  - kind: table
+    heading: "Track S: drawing systems from 100k to 10M users"
+    sub: "Interviews say '10 million users' but never give you CCU or RPS"
+    columns: ["Registered users (bank)", "Salary-day CCU", "Peak RPS", "Architecture level"]
+    widths: [1.6, 1.3, 1, 2.6]
+    accent: [2]
+    points: [tracks-why, tracks-answer, tracks-drawings]
+    rows:
+      - ["100k", "~1,200", "~200", "L1 — modular monolith × 2"]
+      - ["1M", "~12,000", "~2,000", "L2 — read replicas, cache, outbox → Kafka"]
+      - ["10M", "~120,000", "~20,000", "L3 — microservices by bounded context"]
+    note: "10 drawings, V1–V10, spread over 24 weeks. Phase 1 draws V1–V5."
+    lines:
+      - tom: "Track S is about drawing systems. A problem says ten million users but never says CCU or RPS. This track converts users into real load, picks the right architecture level, and answers: what if load grows ten times?"
+      - tom: "For a bank, 100k registered users is about 1,200 concurrent users on salary day and 200 requests per second: level L1."
+        focus: 0
+      - tom: "10 million users is about 120,000 concurrent users and 20,000 requests per second: level L3. There are ten drawings, V1–V10. Phase 1 draws V1–V5."
+        focus: 2
+
+  - kind: bullets
+    chapter: "How to study"
+    heading: "How to use the phase-1 material"
+    points: [use-rule, use-folder, use-errlog, use-stack]
+    items:
+      - {t: "Do the exercise first, then open the answer", s: "an answer is one reasonable solution; write the differences in your error log"}
+      - {t: "Keep your work in java-system-design/my-work/", s: "error log, w1 estimates, w2–w4 lab projects, drawings, recordings"}
+      - {t: "Error log: one row per mistake", s: "date · problem or lab · mistake · why it was wrong · what to do next time"}
+      - {t: "Lab stack: Java 21, Spring Boot 3.3+, PostgreSQL 16, Redis 7, JUnit 5", s: "Testcontainers with Docker; without Docker, embedded-postgres and a local redis-server"}
+    lines:
+      - tom: "Four rules for the material. Do every exercise yourself before opening the answer. An answer is one reasonable solution, not the only one; write any difference in your error log."
+        focus: 0
+      - tom: "Keep your work in a folder called my-work: the error log, estimates, lab projects, drawings and recordings."
+        focus: 1
+      - tom: "The error log has one row per mistake: date, problem, mistake, why it was wrong, and what you'll do next time."
+        focus: 2
+      - tom: "The lab stack is Java 21, Spring Boot 3.3+, PostgreSQL 16, Redis 7 and JUnit 5. Use Testcontainers, or embedded-postgres if you have no Docker."
+        focus: 3
+
+  - kind: table
+    chapter: "Codes and video tips"
+    heading: "Codes you will hear"
+    columns: ["Code", "Means"]
+    widths: [1, 4]
+    rows:
+      - ["P01–P20", "Track P anti-patterns, e.g. P09 = an HTTP call inside a transaction"]
+      - ["D09, D10, …", "Runnable demos in perf-lab; the number matches the P code"]
+      - ["V1–V10", "Track S drawings"]
+      - ["L0–L4", "Scale levels of the architecture ladder — not network layers L4 / L7"]
+      - ["Exercise 1.4", "Exercise 1.4 of the week-1 file (bài tập 1.4 in the Vietnamese notes)"]
+      - ["Ep00–Ep29", "These videos: 27 lessons and 3 acronym reviews"]
+    lines:
+      - tom: "You'll hear short codes. P01 to P20 are the Track P anti-patterns. D numbers are runnable demos in the perf-lab module."
+        focus: 0
+      - tom: "V1 to V10 are the Track S drawings. L0 to L4 are scale levels of the architecture ladder. Careful: L4 and L7 also name network layers; when we mean those, I'll say layer four and layer seven."
+        focus: 3
+      - tom: "Exercise numbers follow the week files. And Ep00 to Ep29 are these videos."
+        say: "Exercise numbers follow the week files. And episodes zero to twenty-nine are these videos."
+        focus: 5
+
+  - kind: bullets
+    heading: "How to watch these videos"
+    style: dot
+    items:
+      - {t: "Each video starts with an acronym card"}
+      - {t: "A countdown means: pause the video and do the exercise yourself"}
+      - {t: "Use the chapters in the player to jump back to one topic"}
+      - {t: "Each video ends with an interview line — say it out loud"}
+      - {t: "This week: Ep01–Ep03 estimation · Ep04–Ep05 Track P · Ep06 Track S drawings"}
+    lines:
+      - tom: "How to watch. Each video starts with an acronym card. When a countdown appears, pause and do the exercise yourself, then press play to compare."
+        focus: 1
+      - tom: "Use the chapters in the player to jump back to one topic. And at the end, say the interview line out loud."
+        focus: 3
+      - tom: "This week has six more videos: estimation, users to load, an estimation workout, two Track P videos, and one Track S drawing video. Next up: episode one, the estimation toolkit."
+        focus: 4

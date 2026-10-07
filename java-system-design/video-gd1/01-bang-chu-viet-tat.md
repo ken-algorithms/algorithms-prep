@@ -26,7 +26,7 @@
 | **CCU** | Concurrent Users | Số user đang dùng **cùng một lúc**; lấy theo giờ cao điểm. Phụ thuộc độ dài phiên hơn số user | ✓ | Ep00 |
 | **RPS** | Requests Per Second | Số request mỗi giây vào hệ thống. Đơn vị tải chính của lộ trình | ✓ | Ep00 |
 | **QPS** | Queries Per Second | Thường dùng như RPS; khi nói về database là số truy vấn mỗi giây | ✓ | Ep01 |
-| **TPS** | Transactions Per Second | Số giao dịch nghiệp vụ (ví dụ chuyển tiền) mỗi giây, khác số request | ✓ | Ep03 |
+| **TPS** | Transactions Per Second | Số giao dịch nghiệp vụ (ví dụ chuyển tiền) mỗi giây, khác số request | ✓ | Ep02 |
 | req/s, rps | requests per second | Cách viết khác của RPS trong bảng số đo | `requests per second` | Ep00 |
 | **p50, p95, p99** | 50th / 95th / 99th percentile | 50%, 95%, 99% request nhanh hơn con số này. p99 là "đuôi" mà user chậm nhất thấy | ✓ (*P fifty*, *P ninety-nine*) | Ep01 |
 | **RTT** | Round-Trip Time | Thời gian một gói tin đi và về giữa hai máy | ✓ | Ep01 |
@@ -42,11 +42,11 @@
 | **I/O** | Input/Output | Đọc ghi đĩa hoặc mạng; thứ làm thread phải chờ | `I O` | Ep13 |
 | **GC** | Garbage Collection / Collector | Bộ dọn rác của JVM; mỗi lần dừng GC cộng vào p99 | ✓ | Ep01 |
 | G1 | Garbage-First (collector) | GC mặc định của JDK hiện đại, chia heap thành vùng | `G one` | Ep01 |
-| **OOM** | Out Of Memory (`OutOfMemoryError`) | JVM hết heap, process chết | ✓ | Ep05 |
+| **OOM** | Out Of Memory (`OutOfMemoryError`) | JVM hết heap, process chết | ✓ | Ep04 |
 | **SLA** | Service Level Agreement | Cam kết có hợp đồng với khách hàng, vi phạm thì bồi thường | ✓ | Ep01 |
 | **SLO** | Service Level Objective | Mục tiêu nội bộ cho một chỉ số, ví dụ "99,9% request dưới 300 ms" | ✓ | Ep00 |
 | **SLI** | Service Level Indicator | Chỉ số đo được để so với SLO, ví dụ tỉ lệ request thành công | ✓ | Ep00 |
-| **SPOF** | Single Point Of Failure | Điểm chết đơn: một thành phần hỏng là cả hệ thống ngừng | ✓ (*spoff*) | Ep06 |
+| **SPOF** | Single Point Of Failure | Điểm chết đơn: một thành phần hỏng là cả hệ thống ngừng | ✓ (*spoff*) | Ep01 |
 | **HA** | High Availability | Sẵn sàng cao: có bản dự phòng để một thành phần chết vẫn chạy | ✓ | Ep25 |
 | **DR** | Disaster Recovery | Khôi phục sau thảm hoạ, thường là một region dự phòng | ✓ | Ep25 |
 | **RPO** | Recovery Point Objective | Tối đa được mất bao nhiêu dữ liệu (tính bằng thời gian) khi có sự cố | ✓ | Ep25 |
@@ -60,17 +60,17 @@
 |---|---|---|---|---|
 | **API** | Application Programming Interface | Giao diện để chương trình khác gọi vào; ở đây chủ yếu là HTTP API | ✓ | Ep00 |
 | **JVM** | Java Virtual Machine | Máy ảo chạy bytecode Java | ✓ | Ep04 |
-| **JDK** | Java Development Kit | Bộ công cụ và runtime Java; lab dùng JDK 21 | ✓ | Ep05 |
+| **JDK** | Java Development Kit | Bộ công cụ và runtime Java; lab dùng JDK 21 | ✓ | Ep04 |
 | **JIT** | Just-In-Time compiler | Trình biên dịch lúc chạy, biến code nóng thành mã máy; lý do benchmark cần warm-up | ✓ | Ep05 |
 | C1, C2 | JIT tier 1 (client), tier 2 (server) | Hai tầng JIT: C1 biên dịch nhanh, C2 tối ưu sâu | `C one`, `C two` | Ep05 |
-| **JMH** | Java Microbenchmark Harness | Thư viện đo hiệu năng hàm Java đúng cách (warm-up, fork, chống JIT xoá code) | ✓ | Ep04 |
+| **JMH** | Java Microbenchmark Harness | Thư viện đo hiệu năng hàm Java đúng cách (warm-up, fork, chống JIT xoá code) | ✓ | Ep01 |
 | **JFR** | Java Flight Recorder | Profiler có sẵn trong JDK, ghi sự kiện với chi phí thấp | ✓ | Ep04 |
 | JEP | JDK Enhancement Proposal | Đề xuất thay đổi JDK có số hiệu; file 01 nhắc một JEP sửa lỗi pinning của virtual thread | ✓ | Ep27 |
-| **JSON** | JavaScript Object Notation | Định dạng dữ liệu dạng văn bản của REST API | ✓ (*jay-son*) | Ep04 |
+| **JSON** | JavaScript Object Notation | Định dạng dữ liệu dạng văn bản của REST API | ✓ (*jay-son*) | Ep02 |
 | **CSV** | Comma-Separated Values | File bảng, mỗi dòng các giá trị cách nhau dấu phẩy; dùng cho export | ✓ | Ep05 |
 | UTF-8 | Unicode Transformation Format, 8-bit | Bảng mã chữ dùng khi ghi CSV ra byte | ✓ | Ep23 |
 | **DTO** | Data Transfer Object | Object chỉ chứa dữ liệu để truyền giữa các tầng hoặc qua API | ✓ | Ep05 |
-| **JPA** | Jakarta Persistence API | Chuẩn ánh xạ object ↔ bảng (object-relational mapping) của Java; Hibernate là bản cài đặt Spring dùng | ✓ | Ep15 |
+| **JPA** | Jakarta Persistence API | Chuẩn ánh xạ object ↔ bảng (object-relational mapping) của Java; Hibernate là bản cài đặt Spring dùng | ✓ | Ep04 |
 | **JDBC** | Java Database Connectivity | API cấp thấp để Java nói chuyện với database; `fetchSize` là của JDBC | ✓ | Ep23 |
 | **MVC** | Model-View-Controller | Ở đây là Spring MVC, tầng web xử lý HTTP request | ✓ | Ep04 |
 | **AOP** | Aspect-Oriented Programming | Cơ chế Spring bọc method (transaction, log) bằng proxy; làm stack sâu thêm | ✓ | Ep04 |
@@ -79,10 +79,10 @@
 | O(n²) | Big-O, quadratic | Thời gian tăng theo bình phương kích thước dữ liệu (P07) | `O of n squared` | Ep04 |
 | **LRU** | Least Recently Used | Chính sách xoá phần tử lâu chưa dùng nhất khi cache đầy | ✓ | Ep23 |
 | **UUID** | Universally Unique Identifier | Mã 128 bit sinh ngẫu nhiên, gần như không trùng; dùng làm idempotency key | ✓ | Ep10 |
-| **ID** | identifier | Mã định danh | ✓ | Ep18 |
+| **ID** | identifier | Mã định danh | ✓ | Ep00 |
 | MD5, SHA | Message Digest 5, Secure Hash Algorithm | Hàm băm; một cách sinh mã URL ngắn (phải kiểm va chạm) | ✓ | Ep18 |
 | HikariCP | Hikari Connection Pool | Connection pool mặc định của Spring Boot (CP = connection pool) | ✓ | Ep16 |
-| N+1 | N+1 query problem | Một query lấy danh sách rồi N query lấy từng phần tử con (P15) | ✓ | Ep17 |
+| N+1 | N+1 query problem | Một query lấy danh sách rồi N query lấy từng phần tử con (P15) | ✓ | Ep04 |
 | **TTL** | Time To Live | Thời gian sống của một key trong cache hoặc một idempotency key | ✓ | Ep10 |
 | MAT | (Eclipse) Memory Analyzer Tool | Công cụ mở heap dump, tìm object nào giữ nhiều bộ nhớ nhất (P18, P19) | ✓ (*M A T*) | Ep23 |
 | -Xmx | maximum heap size (cờ JVM) | Giới hạn heap, ví dụ `-Xmx64m` trong demo OOM | `X M X` | Ep23 |
@@ -96,9 +96,9 @@
 |---|---|---|---|---|
 | **DNS** | Domain Name System | Đổi tên miền ra địa chỉ IP | ✓ | Ep07 |
 | **IP** | Internet Protocol (address) | Địa chỉ của máy trên mạng; WAF thường giới hạn theo IP | ✓ | Ep08 |
-| **TCP** | Transmission Control Protocol | Giao thức truyền tin cậy, có bắt tay 1 RTT | ✓ | Ep07 |
+| **TCP** | Transmission Control Protocol | Giao thức truyền tin cậy, có bắt tay 1 RTT | ✓ | Ep01 |
 | **UDP** | User Datagram Protocol | Giao thức không bắt tay, không đảm bảo thứ tự; HTTP/3 chạy trên nó | ✓ | Ep07 |
-| **TLS** | Transport Layer Security | Mã hoá kết nối; TLS 1.3 bắt tay 1 RTT | ✓ | Ep07 |
+| **TLS** | Transport Layer Security | Mã hoá kết nối; TLS 1.3 bắt tay 1 RTT | ✓ | Ep01 |
 | mTLS | mutual TLS | Cả hai phía cùng trình chứng chỉ; đối tác ngân hàng hay yêu cầu | ✓ | Ep08 |
 | **HTTP** | Hypertext Transfer Protocol | Giao thức của web và REST API | ✓ | Ep00 |
 | **HTTPS** | HTTP Secure | HTTP chạy trên TLS | ✓ | Ep07 |
@@ -113,7 +113,7 @@
 | **CDN** | Content Delivery Network | Mạng máy chủ đặt gần user, giữ bản sao file tĩnh | ✓ | Ep06 |
 | **URL** | Uniform Resource Locator | Địa chỉ web; đề "URL shortener" | ✓ | Ep00 |
 | **REST** | Representational State Transfer | Kiểu API theo tài nguyên + HTTP method, thường trả JSON | ✓ | Ep09 |
-| **RPC**, gRPC | Remote Procedure Call; gRPC Remote Procedure Calls | Gọi hàm ở máy khác; gRPC là framework RPC trên HTTP/2 + protobuf | ✓ | Ep08 |
+| **RPC**, gRPC | Remote Procedure Call; gRPC Remote Procedure Calls | Gọi hàm ở máy khác; gRPC là framework RPC trên HTTP/2 + protobuf | ✓ | Ep06 |
 | gRPC-Web | gRPC for browsers | Bản gRPC trình duyệt gọi được (qua proxy) | ✓ | Ep09 |
 | WS | WebSocket | Kết nối hai chiều giữ lâu; app chat giữ một kết nối mỗi user | `WebSocket` | Ep03 |
 | **SSE** | Server-Sent Events | Server đẩy dữ liệu một chiều xuống trình duyệt qua HTTP | ✓ | Ep09 |
@@ -122,7 +122,7 @@
 | **JWT** | JSON Web Token | Token có chữ ký chứa thông tin đăng nhập; app không cần lưu session | ✓ | Ep06 |
 | **OIDC** | OpenID Connect | Chuẩn đăng nhập dựa trên OAuth 2.0; Keycloak hỗ trợ | `O I D C` | Ep25 |
 | **OTP** | One-Time Password | Mã dùng một lần gửi qua SMS hoặc app | ✓ | Ep08 |
-| **SMS** | Short Message Service | Tin nhắn điện thoại | ✓ | Ep24 |
+| **SMS** | Short Message Service | Tin nhắn điện thoại | ✓ | Ep06 |
 | **FCM** | Firebase Cloud Messaging | Dịch vụ push của Google cho Android | ✓ | Ep24 |
 | APNs | Apple Push Notification service | Dịch vụ push của Apple cho iOS | ✓ | Ep24 |
 | **DLQ** | Dead-Letter Queue | Hàng đợi chứa message đã thử nhiều lần vẫn lỗi, để xử lý tay hoặc đối soát | ✓ | Ep24 |
@@ -147,7 +147,7 @@
 | **LSN** | Log Sequence Number | Vị trí trong nhật ký ghi (write-ahead log) của Postgres; dùng để biết replica đã theo kịp tới đâu | ✓ | Ep19 |
 | **CAP** | Consistency, Availability, Partition tolerance | Khi mạng bị chia cắt phải chọn nhất quán hoặc sẵn sàng | `cap` | Ep19 |
 | **PACELC** | if Partition: Availability or Consistency; Else: Latency or Consistency | Thêm vế lúc bình thường: chọn độ trễ hay nhất quán | `pass-elk` | Ep19 |
-| **CDC** | Change Data Capture | Đọc log thay đổi của database để phát sự kiện | ✓ | Ep25 |
+| **CDC** | Change Data Capture | Đọc log thay đổi của database để phát sự kiện | ✓ | Ep06 |
 | **CQRS** | Command Query Responsibility Segregation | Tách mô hình ghi và mô hình đọc (read model riêng) | ✓ | Ep25 |
 | **DDIA** | *Designing Data-Intensive Applications* (Martin Kleppmann) | Sách đọc tuần 3–4 | `dee dee eye ay` | Ep13 |
 | **NTP** | Network Time Protocol | Đồng bộ đồng hồ; có thể kéo đồng hồ lùi, làm Snowflake sinh trùng | ✓ | Ep18 |
@@ -159,7 +159,7 @@
 
 | Viết tắt | Đầy đủ | Nghĩa | Tom đọc | Video |
 |---|---|---|---|---|
-| **AWS** | Amazon Web Services | Nhà cung cấp cloud dùng trong lộ trình | ✓ | Ep08 |
+| **AWS** | Amazon Web Services | Nhà cung cấp cloud dùng trong lộ trình | ✓ | Ep03 |
 | **AZ** | Availability Zone | Một trung tâm dữ liệu độc lập trong một region; AZ-a, AZ-b là tên từng zone | ✓ (AZ-a: `AZ eigh`) | Ep01 |
 | Multi-AZ | multiple Availability Zones | Chạy bản dự phòng ở AZ khác; Postgres Multi-AZ chờ thêm 1–2 ms mỗi commit | ✓ | Ep01 |
 | **S3** | Simple Storage Service | Object storage của AWS: ảnh, video, file sao kê | ✓ | Ep03 |
