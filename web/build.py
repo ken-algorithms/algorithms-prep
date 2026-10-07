@@ -307,6 +307,7 @@ SDR = {
          "learn": "DDD, resilience, observability, security, AWS multi-AZ, DR",
          "lab": "Capstone: load test, thử phá, deploy lên cloud",
          "p": "P11–P14, JFR + async-profiler, checklist review", "s": "V8–V10 · L3 10M users",
+         "impl": SDR_DIR + "30-implement-gd3-microservices-cloud.md",
          "ms": "Capstone chạy trên cloud, có số load test"},
         {"n": 4, "t": "Phỏng vấn và ứng tuyển", "w": "Tuần 17–24",
          "h": "Giai đoạn 4 — Luyện phỏng vấn và ứng tuyển (tuần 17–24)",
@@ -320,7 +321,7 @@ SDR = {
          "d": "20 anti-pattern, 16 có code chạy được và số đo thật. Kiến trúc tốt không cứu được "
               "code giữ connection, thread, carrier quá lâu.",
          "doc": SDR_DIR + "01-java-code-cham-duoi-tai-cao.md",
-         "facts": [["P09 gọi HTTP trong @Transactional", "163 → 930 req/s"],
+         "facts": [["P09 trên Spring Boot + Hikari thật, 250 rps", "p99 11,1 s → 103 ms"],
                    ["P10 gọi đối tác không timeout", "p99 3,1 s → 5 ms"],
                    ["P12 virtual thread pinning, JDK 21", "5,0 s → 23 ms"],
                    ["P15 N+1, trang 100 đơn hàng", "101 → 2 query"],

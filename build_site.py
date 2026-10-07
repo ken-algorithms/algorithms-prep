@@ -436,9 +436,11 @@ def build_home(pages: list[Page]) -> str:
         li("java-system-design/01-java-code-cham-duoi-tai-cao.md", "20 anti-pattern, số đo thật", "mới"),
         li("java-system-design/02-ve-he-thong-100k-1m-10m.md", "users → CCU → RPS, L0–L4", "mới"),
         li("java-system-design/10-implement-gd1-nen-tang.md", "tuần 1–4: lab + bài tập có đáp án"),
-        li("java-system-design/20-implement-gd2-du-lieu-phan-tan.md", "tuần 5–10: saga, Kafka, đồng thuận", "mới"),
+        li("java-system-design/20-implement-gd2-du-lieu-phan-tan.md", "tuần 5–10: saga, Kafka, đồng thuận"),
+        li("java-system-design/30-implement-gd3-microservices-cloud.md", "tuần 11–16: load test, SLO, security, AWS", "mới"),
         li("java-system-design/perf-lab/README.md", "JMH + demo, 33 test"),
         li("java-system-design/dist-lab/README.md", "lời giải giai đoạn 2, Postgres + Kafka thật"),
+        li("java-system-design/ops-lab/README.md", "lời giải giai đoạn 3, Gatling + Hikari thật"),
     ])
     hero = f"""
 <div class="hero">

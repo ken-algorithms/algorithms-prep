@@ -18,7 +18,7 @@
 | **Track S — Thang vẽ hệ thống** | Có đề bài, chưa có thang quy mô | Công thức **users → DAU → CCU → RPS**, thang 5 bậc L0→L4, **10 bản vẽ** từ một máy tới microservices 10M users, rải vào cả 24 tuần. Xem [02](02-ve-he-thong-100k-1m-10m.md) |
 | Bảng từng giai đoạn | 3 cột | Thêm cột **Track P · Track S** để biết tuần đó làm gì của hai track |
 | Tự đánh giá, mốc kiểm tra | 11 câu, 6 mốc | Thêm 3 câu tự đánh giá; thêm tiêu chí P/S vào các mốc |
-| Bài tập chi tiết | Không có | Mỗi giai đoạn một file implement. **Đã có: [giai đoạn 1](10-implement-gd1-nen-tang.md), [giai đoạn 2](20-implement-gd2-du-lieu-phan-tan.md)** |
+| Bài tập chi tiết | Không có | Mỗi giai đoạn một file implement. **Đã có: [giai đoạn 1](10-implement-gd1-nen-tang.md), [giai đoạn 2](20-implement-gd2-du-lieu-phan-tan.md), [giai đoạn 3](30-implement-gd3-microservices-cloud.md)** |
 
 ---
 
@@ -159,7 +159,7 @@ và mạng chập chờn. **Hướng dẫn và bài tập từng tuần: [20 —
 ## Giai đoạn 3 — Microservices, cloud và vận hành (tuần 11–16)
 
 Sáu tuần này biến lý thuyết thành kiến trúc chạy thật trên cloud, đúng loại việc ngân hàng số và
-công ty SaaS làm hằng ngày.
+công ty SaaS làm hằng ngày. **Hướng dẫn và bài tập từng tuần: [30 — Implement giai đoạn 3](30-implement-gd3-microservices-cloud.md).**
 
 | Tuần | Học gì | Thực hành | **(v2) Track P · Track S** |
 |---|---|---|---|

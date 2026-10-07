@@ -2,7 +2,7 @@
 
 **Artifact:** https://claude.ai/code/artifact/51b40ad7-c7ed-434f-9de6-56ddf4079a77
 
-Một trang duy nhất, chạy hoàn toàn ngoại tuyến. Toàn bộ 88 tài liệu markdown được nhúng
+Một trang duy nhất, chạy hoàn toàn ngoại tuyến. Toàn bộ 90 tài liệu markdown được nhúng
 thẳng vào HTML nên đọc được cả kho mà không cần mạng.
 
 ```bash
@@ -20,7 +20,7 @@ Chạy lại build sau **mỗi lần sửa `app.template.html` hoặc bất kỳ
 | **Công ty** | NAB và Katalon tách riêng: stack, các vòng phỏng vấn đánh số, và **checklist yêu cầu JD tick được** — mỗi dòng ghi rõ mạnh / cần ôn / gap kèm lý do. Bấm **Mở** để nhảy thẳng tới tài liệu chứng minh |
 | **Thuật toán** | 38 bài, lọc theo nhóm A/B/C, độ khó, hoặc chỉ hiện bài chưa làm. Tick là **đã gõ tay xong, tắt Copilot** — không phải đã đọc lời giải. Bấm tên bài mở thẳng phần phân tích. Bài có video (nút **▶ Video**) hiện video mp4 + GIF ngay dưới tiêu đề bài trong phần phân tích |
 | **System design** | **Lộ trình Java System Design 24 tuần** ([java-system-design/](../java-system-design/README.md)): 4 giai đoạn bấm vào mở đúng mục, hai track P (code chậm dưới tải) và S (vẽ hệ thống), bảng 100k → 1M → 10M users bấm vào mở sơ đồ, và **6 mốc kiểm tra tick được**. Bên dưới: 5 trục nhận diện họ bài, bảng 7 họ, 6 bài design đầy đủ |
-| **Tài liệu** | Toàn bộ 88 file, nhóm theo folder, tìm kiếm **không dấu** trên toàn văn, link giữa các tài liệu bấm được |
+| **Tài liệu** | Toàn bộ 90 file, nhóm theo folder, tìm kiếm **không dấu** trên toàn văn, link giữa các tài liệu bấm được |
 
 Bấm `/` ở bất kỳ đâu để nhảy vào ô tìm kiếm.
 
