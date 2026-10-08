@@ -1355,14 +1355,15 @@
   {
    "id": "ep14-lab8-outbox-relay",
    "ep": 14,
+   "code": "Ep14",
    "week": 8,
    "title": "Lab 8, part 1: the outbox and its relay on real Kafka",
    "subtitle": "Six tables, one transaction for the money and the event, and a relay that claims rows with SKIP LOCKED",
    "file": "ep14-lab8-outbox-relay.mp4",
    "poster": "ep14-lab8-outbox-relay.jpg",
    "source": "ep14-lab8-outbox-relay.yaml",
-   "duration": 296.8,
-   "bytes": 4680654,
+   "duration": 304.0,
+   "bytes": 4752285,
    "engine": "kokoro",
    "voices": [
     "Emma (narrator) — Kokoro af_heart"
@@ -1377,27 +1378,27 @@
      "title": "Acronyms in this video"
     },
     {
-     "t": 51.6,
+     "t": 58.9,
      "title": "The project"
     },
     {
-     "t": 84.5,
+     "t": 91.7,
      "title": "Step 1 · Schema"
     },
     {
-     "t": 125.2,
+     "t": 132.5,
      "title": "Step 2 · One transaction"
     },
     {
-     "t": 165.5,
+     "t": 172.8,
      "title": "Step 3 · The relay"
     },
     {
-     "t": 231.9,
+     "t": 239.1,
      "title": "P09, on purpose"
     },
     {
-     "t": 268.3,
+     "t": 275.5,
      "title": "Interview line"
     }
    ],
@@ -1407,35 +1408,35 @@
    "points": [
     {
      "id": "lab8-setup",
-     "t": 51.6,
+     "t": 58.9,
      "text": "Project my-work/w8-9-kafka-lab: spring-boot-starter-web, spring-kafka, spring-boot-starter-jdbc, Postgres; bản lõi không Spring OutboxLab.java đã chạy với Postgres 16.4 và Kafka 4.1.2 thật, dùng để đối chiếu không để chép; test bằng Testcontainers nếu có Docker, không thì Kafka từ tarball như §0",
      "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
      "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
     },
     {
      "id": "lab8-schema",
-     "t": 84.5,
+     "t": 91.7,
      "text": "Bước 1 schema 6 bảng: account (check balance >= 0), transfer, ledger_entry, outbox (event_id unique, topic, msg_key, payload, created_at, published_at null = chưa gửi), partial index outbox_pending where published_at is null, processed_event (event_id khoá chính), notification",
      "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
      "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
     },
     {
      "id": "lab8-tx",
-     "t": 125.2,
+     "t": 132.5,
      "text": "Bước 2: TransferService.transfer() @Transactional: trừ có điều kiện (where id = ? and balance >= ?), 0 dòng thì từ chối; cộng bên nhận; insert transfer; hai ledger_entry; một dòng outbox key = acct-{from}; một commit cho tiền, sổ cái và sự kiện",
      "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
      "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
     },
     {
      "id": "lab8-relay",
-     "t": 165.5,
+     "t": 172.8,
      "text": "Bước 3 relay @Scheduled(fixedDelay = 200): trong một transaction ngắn select … where published_at is null order by id limit 100 for update skip locked (relay khác bỏ qua, không chờ); producer.send(record).get() với header event-id, chỉ đánh dấu published_at khi broker đã ack; relay crash sau khi gửi trước khi đánh dấu → gửi lại (at-least-once)",
      "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
      "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
     },
     {
      "id": "lab8-relay-conn",
-     "t": 231.9,
+     "t": 239.1,
      "text": "Relay giữ connection trong lúc gửi lô 100 message: P09 ở mức nhỏ, chấp nhận vì Kafka cùng AZ ack trong vài ms, relay 1–2 instance với pool riêng, delivery.timeout.ms chặn trên thời gian giữ; không chấp nhận được thì chuyển sang CDC",
      "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
      "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
