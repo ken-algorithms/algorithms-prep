@@ -26,6 +26,11 @@
 | Ôn chữ viết tắt | 3 | Ep27–Ep29 | 21 phút |
 | **Tổng** | **30** | | **≈ 236 phút** |
 
+> **Tuần 1 đã dựng (đợt 1):** Ep00–Ep06 dài thật **69 phút**, bảng trên dự kiến 57 phút. Kịch
+> bản dài hơn dự kiến vì mỗi video phải nói đủ các ý chính liệt kê ở
+> [`lessons/points.yaml`](lessons/points.yaml). Nếu tuần 2–4 dày như vậy thì cả bộ khoảng
+> **290 phút**. Số thật từng video ở [bảng trạng thái](#8-bảng-trạng-thái).
+
 Vì sao là con số này:
 
 1. **Nguồn dài.** File 10 có 1.211 dòng; cộng phần giai đoạn 1 của file 00, 01, 02 là khoảng
@@ -68,9 +73,9 @@ machine"; số điển hình (bảng latency, ba con số nhẩm) nói rõ là "
 | Giọng | Kokoro-82M bản nén q8, giọng **Tom `am_michael`** (nam, Mỹ), **một người đọc** cho cả bộ |
 | Tốc độ | **0,9**, giống repo IELTS |
 | Ngôn ngữ | Lời đọc và phụ đề **tiếng Anh**. Tiếng Việt chỉ xuất hiện trên thẻ chữ viết tắt (một dòng nghĩa ngắn) |
-| Độ dài | 6–9 phút. Kịch bản quá 1.200 từ thì tách cảnh hoặc chuyển bớt sang video khác |
-| Khung hình | 1280×720, slide tĩnh có hiện dần (cách của công cụ IELTS), H.264 + AAC, có chương (chapter) |
-| Tên file | `lessons/epNN-<slug>.yaml` và `.mp4` cùng tên, ví dụ `ep01-estimation-toolkit.mp4` |
+| Độ dài | Kế hoạch 6–9 phút. Tuần 1 dựng thật dài 8–12 phút (1.000–1.400 từ) vì phải đủ mọi ý chính ở [mục 4](#4-bảng-phủ-nội-dung); tab **Video** có nút tốc độ 1,25× và 1,5×. Kịch bản quá 1.400 từ thì tách cảnh hoặc chuyển bớt sang video khác |
+| Khung hình | 1280×720, 15 khung/giây, slide tĩnh có hiện dần (cách của công cụ IELTS); H.264 + AAC 64 kbit/s một kênh, âm lượng chuẩn hoá bằng `loudnorm` (đo được −17,0 đến −17,5 LUFS ở cả 7 video tuần 1); có chương (chapter) và ảnh bìa `.jpg` |
+| Tên file | `lessons/epNN-<slug>.yaml`, `.mp4` và `.jpg` cùng tên, ví dụ `ep01-estimation-toolkit.mp4` |
 
 **Khung một video** (thứ tự cố định để người xem quen):
 
@@ -79,8 +84,8 @@ machine"; số điển hình (bảng latency, ba con số nhẩm) nói rõ là "
    dạng tắt, dạng đầy đủ tiếng Anh và nghĩa ngắn tiếng Việt. Tom đọc dạng đầy đủ.
 3. **Nội dung**: 3–5 chương. Bảng trong tài liệu thì hiện từng dòng; phép tính thì hiện từng bước;
    code thì tô dòng đang nói.
-4. **Bài tập**: hiện đề, thẻ "Pause and try" đếm ngược 5 giây (người xem tự bấm dừng), rồi mới tới
-   đáp án. Đáp án là **một** lời giải hợp lý, giống ghi chú trong file 10.
+4. **Bài tập**: hiện đề, thẻ "Pause the video and try it yourself" đếm ngược 4–8 giây (người xem tự
+   bấm dừng), rồi mới tới đáp án. Đáp án là **một** lời giải hợp lý, giống ghi chú trong file 10.
 5. **Interview line**: 1–3 câu tiếng Anh mẫu để nói trong phỏng vấn. Ở 4 video có bài nói 2 phút
    (Ep03, Ep11, Ep14, Ep21) thì đây là bài nói mẫu đầy đủ.
 6. **Recap** và, khi cần, **"measured vs typical"**: phần nào đã chạy thật, phần nào là suy luận
@@ -91,8 +96,8 @@ machine"; số điển hình (bảng latency, ba con số nhẩm) nói rõ là "
 - Lần đầu trong **mỗi** video: nói dạng đầy đủ trước rồi mới dùng dạng tắt, ví dụ *"concurrent users,
   CCU for short"*. Không giả định người xem đã xem video trước.
 - Mọi chữ viết tắt hiện trên slide đều phải có trong thẻ ở bước 2 **và** trong
-  [bảng chữ viết tắt](01-bang-chu-viet-tat.md). Lúc dựng sẽ kiểm bằng script: quét chữ hoa trong
-  YAML, so với bảng (mục 6, bước 4).
+  [bảng chữ viết tắt](01-bang-chu-viet-tat.md). Lệnh `check --glossary` kiểm việc này (mục 6.2,
+  bước 3): quét chữ hoa trên slide và trong lời đọc, so với bảng và với thẻ của video.
 - Hai nghĩa của chữ **L**: `L4/L7` là **tầng mạng** (Tom đọc *"layer four, layer seven"*), còn
   `L0–L4` là **bậc quy mô** của Track S (đọc *"level L zero to L four"*). Video nào dùng cả hai thì
   nói rõ ngay lần đầu.
@@ -171,6 +176,9 @@ Cột **Nguồn**: `10 §1.1` là mục 1.1 của file 10; `BT 1.4` là bài t�
 Mỗi mục của nguồn phải có ít nhất một video. Khi dựng xong một video, đánh dấu ở
 [bảng trạng thái](#8-bảng-trạng-thái); bảng này chỉ đổi khi danh sách video đổi.
 
+Tuần 1 đã kiểm bằng lệnh `coverage`, chi tiết hơn bảng dưới: [02 — Độ phủ tuần 1](02-do-phu-tuan-1.md)
+liệt kê 91 ý chính và 48 mục nguồn, ý nào được dạy ở phút nào của video nào.
+
 ### 4.1 File 10 — Implement giai đoạn 1
 
 | Mục | Video |
@@ -247,6 +255,11 @@ Mỗi mục của nguồn phải có ít nhất một video. Khi dựng xong m�
 từ và cụm** lấy từ nguồn (nhiều lượt). Bộ tách âm này chính là bước biến chữ thành âm trước khi Kokoro đọc, nên
 kết quả khớp với cái Tom sẽ đọc. Lần kiểm này **chưa sinh tiếng**: nghe lại vẫn là bước cuối.
 
+Từ đợt 1, `tools/lesson_video/speak.py` tự đổi phần lớn các dòng ở mục 5.2 (số thập phân, dải có
+gạch, mã `P01`, đơn vị, lũy thừa, `~`, `≈`, `→`, `×`, chữ "A" đứng riêng, OIDC, PACELC, ReDoS, SaaS,
+RAM, idempotency, regex, Alex Xu, Ho Chi Minh City) cho cả phụ đề lẫn `say`; `say` chỉ còn cần cho
+câu muốn đọc khác hẳn chữ trên màn hình. Lệnh `phon` in phiên âm sau khi đổi để soát.
+
 ### 5.1 Đọc đúng sẵn, không cần `say`
 
 API, CPU, vCPU, SSD, GC, JVM, JDK, JIT, JMH, JFR, JSON (*jay-son*), CSV, DTO, JPA, JDBC, UUID, SQL,
@@ -294,6 +307,9 @@ Stripe, tên lớp Java viết kiểu camelCase (`ObjectMapper`, `StringBuilder`
 | `→` | `to` hoặc `then` | *right arrow* |
 | INCR, PEXPIRE | `increment`, `P expire` | *inker*, *pexpire* |
 | X-Api-Key | `X API key` | dính liền |
+| `say` đánh vần có chữ A: `D A U`, `multi A Z` (gặp ở đợt 1) | viết liền: `DAU`, `multi AZ` | chữ A thành mạo từ, giống chữ "A" đứng riêng |
+| `Mbit/s` (gặp ở đợt 1) | `megabits per second` (speak.py tự đổi) | *Mbit per second*: quy tắc `/s` chạy trước quy tắc đơn vị, đã sửa thứ tự |
+| `text/csv` | để nguyên | *text slash CSV*: nghe được, giữ vì đó đúng là tên kiểu nội dung |
 
 Câu mẫu: `say: "The pool holds ten connections, each held for about fifty-three milliseconds, so the
 ceiling is about one hundred eighty-eight requests per second."` trong khi phụ đề vẫn là
@@ -308,67 +324,52 @@ viết hoa còn lại, để soát bằng mắt những chỗ chưa có trong b�
 
 ### 6.1 Công cụ
 
-Mang `agents/lesson_video` từ repo IELTS (bản ở commit `930feee`) sang repo này tại
-`tools/lesson_video/`, giữ nguyên lõi (TTS, timeline, ghép video, bộ nhớ tiếng từng câu) và đổi:
+Đã làm ở đợt 1: [`tools/lesson_video/`](../../tools/lesson_video/README.md) (cách chạy, định dạng kịch
+bản, bảng kiểu cảnh ở README của công cụ). Lấy từ `agents/lesson_video` của repo IELTS (commit
+`930feee`), giữ cách nạp giọng Kokoro, bộ nhớ tiếng từng câu, ghép tiếng và mã hoá; viết mới phần slide
+và phần kiểm nội dung.
 
-| Thay đổi | Lý do |
+| Kế hoạch ở đợt 0 | Đã làm ở đợt 1 |
 |---|---|
-| Một người đọc: `speakers: {tom: …}` với `voice: {kokoro: am_michael}` | Yêu cầu giọng Tom; không có vai cô giáo Emma |
-| Bỏ phụ thuộc `book.json`; mỗi kịch bản có `covers:` là danh sách anchor của file nguồn | Ở đây không có sách in; anchor là thứ để đối chiếu với bảng phủ ở mục 4 |
-| Lệnh `coverage` đọc heading của file 10, 00, 01, 02 và in mục nào đã có video | Thay cho lệnh `coverage` theo unit sách của IELTS |
-| Cảnh mới: `acronyms` (thẻ chữ viết tắt), `code` (Java/Lua/SQL, tô dòng), `table` (bảng hiện từng dòng), `calc` (phép tính hiện từng bước), `diagram` (ảnh PNG dựng từ mermaid bằng Chromium có sẵn), `checklist` | Nội dung system design cần code, bảng, phép tính, sơ đồ; các cảnh IELTS chủ yếu cho từ vựng và bài đọc |
-| Giữ: `title`, `bullets`, `compare`, `qa`, `mcq`, `errors`, `order`, `timing`, `practice`, `pairs` | Dùng lại cho bài tập, so sánh, lỗi thường gặp, mock bấm giờ |
-| Script kiểm chữ viết tắt: mọi chữ hoa trong kịch bản phải có trong `01-bang-chu-viet-tat.md` và trong thẻ `acronyms` của video | Thực thi quy tắc ở mục 2 |
+| Một người đọc: Tom `am_michael` | Như kế hoạch. Bỏ bộ đọc Flite; thêm bộ đọc `silent` (im lặng, dài theo số chữ) để soát slide và chạy test không cần model |
+| `covers:` (anchor của file nguồn) thay `book.json` | Như kế hoạch. Thêm `points:` ở từng cảnh: ý chính cảnh đó dạy, khai trong [`lessons/points.yaml`](lessons/points.yaml) kèm các chữ bắt buộc (`expect`) phải có ngay trong cảnh |
+| Lệnh `coverage` theo heading | Như kế hoạch. In ra [02 — Độ phủ tuần 1](02-do-phu-tuan-1.md): ý chính nào dạy ở phút nào của video nào, mục nguồn nào có video; `--strict` báo lỗi khi còn thiếu |
+| Cảnh mới `acronyms`, `code`, `table`, `calc`, `diagram` (mermaid → PNG), `checklist` | 12 kiểu cảnh: `title`, `acronyms`, `bullets` (kiểu `check` thay `checklist`), `table` (`build` hiện từng dòng, thay `calc`), `code`, `pattern` (code xấu / code sửa + số đo), `compare`, `flow`, `diagram` (vẽ thẳng bằng Pillow, không cần mermaid hay Chromium), `speech` (bài nói mẫu), `stats`, `exercise` (đi với `wait` đếm ngược) |
+| Giữ `qa`, `mcq`, `errors`, `order`, `timing`, `practice`, `pairs` của IELTS | Chưa mang sang vì tuần 1 không cần; bài tập dùng `exercise` + `wait`. Mang sang khi tuần sau cần (ví dụ mock bấm giờ ở Ep26) |
+| Script kiểm chữ viết tắt | `check --glossary`: mọi chữ viết tắt trên slide và trong lời đọc phải có trong bảng **và** trên thẻ của video |
+| — | `speak.py` đổi chữ trên màn hình sang chữ Kokoro đọc đúng (mục 5); `phon` in phiên âm; `frames` xuất ảnh cuối mỗi cảnh để soát bố cục |
+| — | `lessons.json`: chương, ý chính kèm thời điểm, link mục nguồn của từng video, cho tab **Video** của app |
 
-Model: bản q8 `model_quantized.onnx` (~92 MB) và giọng `am_michael.bin`, để ở
-`~/.cache/lesson_video/kokoro/`, **không commit**. Môi trường cloud chặn Hugging Face, nên lấy theo
-cách repo IELTS đã làm: model từ gói npm `kokoro-q8-shards` (ghép 6 mảnh, kiểm sha256 theo ghi chú ở
-`docs/agent-hoc-tap/05-lich-su-thay-doi.md` của repo IELTS), giọng từ gói npm `kokoro-js`.
-
-Kịch bản dự kiến (định dạng IELTS, thêm `covers`, `acronyms`, `table`):
-
-```yaml
-id: ep01-estimation-toolkit
-title: "Ep01 · The estimation toolkit"
-subtitle: "Conversions, nines, latency, and Little's Law"
-covers:
-  - 10-implement-gd1-nen-tang.md#11-quy-đổi-phải-nhẩm-được
-  - 10-implement-gd1-nen-tang.md#13-littles-law--công-thức-dùng-nhiều-nhất-cả-lộ-trình
-speakers:
-  tom: {name: Tom, role: narrator, color: "#1F5FAD", voice: {kokoro: am_michael, flite: rms}}
-scenes:
-  - kind: acronyms
-    chapter: "Acronyms in this video"
-    items:
-      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
-      - {abbr: RTT, full: "round-trip time", vi: "thời gian gói tin đi và về"}
-    lines:
-      - tom: "RPS means requests per second. RTT is the round-trip time of one network message."
-  - kind: table
-    chapter: "Conversions"
-    rows:
-      - ["1 day", "86,400 s ≈ 10^5 s"]
-      - ["1 million requests/day", "≈ 12 RPS on average"]
-    lines:
-      - tom: "One day is 86,400 seconds, roughly 10^5."
-        say: "One day is eighty-six thousand four hundred seconds, roughly ten to the fifth."
-        reveal: 1
-```
+Model: bản q8 `model_quantized.onnx` (92.361.116 byte, sha256 `fbae9257…a1478`) ghép từ 6 mảnh của
+gói npm `kokoro-q8-shards@1.0.0`, giọng `am_michael.bin` từ gói npm `kokoro-js@1.2.1`, để ở
+`~/.cache/lesson_video/kokoro/` và **không commit**. Môi trường cloud chặn Hugging Face nên lấy từ npm
+như repo IELTS; lệnh tải ở README của công cụ.
 
 ### 6.2 Quy trình một video
 
-1. **Đọc nguồn** theo cột *Nguồn* ở mục 3; ghi danh sách chương và số liệu sẽ dùng.
-2. **Viết kịch bản** YAML tiếng Anh theo khung ở mục 2; viết `say` theo mục 5.
-3. `python -m lesson_video check <yaml>`: kiểm cú pháp, anchor trong `covers` có thật.
-4. **Kiểm chữ viết tắt và phát âm**: script quét chữ hoa (mục 6.1) và in phiên âm của mọi câu `say`.
-5. `build --engine silent --work <thư mục>`: dựng nhanh không tiếng để soát slide, chữ tràn.
-6. `build --engine kokoro`: dựng thật, **từng video một** (Kokoro dùng hết CPU).
-7. **Xem lại ở tốc độ 1×**, ghi lỗi; sửa, dựng lại (nhờ bộ nhớ tiếng, chỉ đọc lại câu đã đổi).
-8. **Cập nhật** bảng trạng thái và nhật ký trong file này, rồi commit kịch bản + video.
+Lệnh chạy trong `tools/` (README của công cụ có dòng `uv run` đầy đủ):
 
-Kích thước: video slide của IELTS khoảng 0,8 MB/phút, nên 236 phút ≈ **190 MB**. Video commit thẳng
-vào git như `leetcode-38-bai-video/` đang làm (93 MB). Workflow Pages cần thêm một dòng copy
-`java-system-design/video-gd1/lessons/*.mp4` vào `_deploy/media/`.
+1. **Đọc nguồn** theo cột *Nguồn* ở mục 3. Thêm các ý chính vào `points.yaml`, mỗi ý có `expect`
+   (chữ bắt buộc, ví dụ con số) và `src` (anchor của mục nguồn).
+2. **Viết kịch bản** YAML tiếng Anh theo khung ở mục 2. Mỗi cảnh khai `points:` (ý chính dạy trong
+   cảnh); `say` chỉ khi `speak.py` chưa đổi đúng (mục 5).
+3. `check <yaml> --points points.yaml --glossary 01-bang-chu-viet-tat.md`: cú pháp, anchor có thật,
+   chữ bắt buộc có trong cảnh, chữ viết tắt có trong bảng và trên thẻ.
+4. `phon <yaml>`: soát phiên âm các câu có số, ký hiệu, chữ hoa.
+5. `frames <yaml> --out <thư mục>`: ảnh cuối mỗi cảnh (`--all`: mọi khung) để soát chữ tràn, bảng
+   chật. Không cần model.
+6. `build <yaml>`: dựng thật bằng Kokoro → `.mp4`, `.jpg`, mục trong `lessons.json`. Tối đa hai video
+   song song trên máy 4 nhân.
+7. `coverage <thư mục> --week N --strict`: mọi ý chính và mọi mục nguồn của tuần đã có video; ghi ra
+   file độ phủ của tuần.
+8. **Xem lại** ở tab Video (1×), ghi lỗi; sửa, dựng lại (bộ nhớ tiếng chỉ đọc lại câu đã đổi).
+9. **Cập nhật** bảng trạng thái và nhật ký trong file này, rồi commit kịch bản + mp4 + jpg +
+   `lessons.json`.
+
+Kích thước: tuần 1 thật là 0,86 MB/phút (kế hoạch đoán 0,8), nên 30 video ≈ **250 MB** nếu các tuần sau dài
+như tuần 1. Video commit thẳng vào git như `leetcode-38-bai-video/` (93 MB). Workflow Pages copy
+`java-system-design/video-gd1/lessons/ep*.mp4` và `ep*.jpg` vào `_deploy/media/jsd/`, và báo lỗi nếu
+`lessons.json` nhắc tới file không có.
 
 ---
 
@@ -377,32 +378,35 @@ vào git như `leetcode-38-bai-video/` đang làm (93 MB). Workflow Pages cần 
 | Đợt | Phạm vi | Đầu ra | Điều kiện xong |
 |---|---|---|---|
 | **0** | Kế hoạch | File này, [bảng chữ viết tắt](01-bang-chu-viet-tat.md), kiểm phát âm | **Xong 07/10/2026** |
-| 1 | Công cụ + 2 video mẫu | `tools/lesson_video/` (mục 6.1), Ep00, Ep01 | Người dùng duyệt giọng, tốc độ, bố cục slide trước khi làm hàng loạt |
-| 2 | Tuần 1 | Ep02–Ep06 | 5 video, mỗi video qua bước 3–7 |
-| 3 | Tuần 2 | Ep07–Ep12 | 6 video |
-| 4 | Tuần 3 | Ep13–Ep18 | 6 video |
-| 5 | Tuần 4 | Ep19–Ep26 | 8 video |
-| 6 | Ôn tập + gắn vào web | Ep27–Ep29; trang video trong app algorithms-prep; workflow Pages copy mp4; lệnh `coverage` cho thấy mọi mục ở mục 4 đã có video | Cả 30 video chạy được trên GitHub Pages |
+| **1** | Công cụ + **cả tuần 1** + tab Video | `tools/lesson_video/` (mục 6.1); Ep00–Ep06; [độ phủ tuần 1](02-do-phu-tuan-1.md); tab **Video** trong app; workflow Pages copy mp4 | **Đã dựng 07/10/2026, chờ duyệt**: giọng, tốc độ, bố cục slide, độ dài |
+| 2 | Tuần 2 | Ep07–Ep12 | Sau khi duyệt tuần 1 và sửa theo góp ý |
+| 3 | Tuần 3 | Ep13–Ep18 | 6 video |
+| 4 | Tuần 4 | Ep19–Ep26 | 8 video |
+| 5 | Ôn tập | Ep27–Ep29; `coverage --strict` cho cả 4 tuần | Cả 30 video chạy được trên GitHub Pages |
 
-Mỗi đợt dựng 10–20 phút/video, tức 1–2 giờ cho một tuần học. Commit sau mỗi video để cây git luôn
-sạch nếu phiên làm việc bị ngắt.
+Kế hoạch ở đợt 0 là đợt 1 chỉ làm Ep00, Ep01 để duyệt rồi mới làm tiếp. Người dùng yêu cầu dựng **cả
+tuần 1** để duyệt một lần và xem được ngay trong app, nên đợt 1 gộp luôn phần tuần 1 và phần gắn vào web
+(trước là đợt 2 và đợt 6).
+
+Thời gian dựng thật: Kokoro trên CPU 4 nhân đọc khoảng 20–26 phút cho một video (hai video song song).
+Dựng lại khi chỉ sửa slide mất khoảng 1–3 phút một video vì tiếng đã có trong bộ nhớ.
 
 ---
 
 ## 8. Bảng trạng thái
 
-Trạng thái: **—** chưa làm · **Kịch bản** đã viết YAML · **Dựng thử** đã dựng `silent` · **Xong**
-đã dựng Kokoro và xem lại.
+Trạng thái: **—** chưa làm · **Kịch bản** đã viết YAML · **Dựng thử** đã dựng `silent` · **Chờ duyệt**
+đã dựng Kokoro và qua các lệnh kiểm (mục 6.2), chờ người dùng xem · **Xong** người dùng đã duyệt.
 
 | Mã | Tuần | Trạng thái | Dài thật | MB | Chương | Đợt | Ghi chú |
 |---|:---:|:---:|---:|---:|---:|:---:|---|
-| Ep00 | — | — | | | | | |
-| Ep01 | 1 | — | | | | | |
-| Ep02 | 1 | — | | | | | |
-| Ep03 | 1 | — | | | | | |
-| Ep04 | 1 | — | | | | | |
-| Ep05 | 1 | — | | | | | |
-| Ep06 | 1 | — | | | | | |
+| Ep00 | — | **Chờ duyệt** | 8:08 | 6,9 | 10 | 1 | 18 ý chính · 10 chữ viết tắt |
+| Ep01 | 1 | **Chờ duyệt** | 9:01 | 7,7 | 7 | 1 | 15 ý chính · 19 chữ viết tắt |
+| Ep02 | 1 | **Chờ duyệt** | 10:14 | 8,7 | 11 | 1 | 16 ý chính · 9 chữ viết tắt |
+| Ep03 | 1 | **Chờ duyệt** | 10:23 | 8,7 | 8 | 1 | 8 ý chính · 12 chữ viết tắt |
+| Ep04 | 1 | **Chờ duyệt** | 10:44 | 9,5 | 6 | 1 | 13 ý chính · 17 chữ viết tắt |
+| Ep05 | 1 | **Chờ duyệt** | 11:03 | 9,7 | 10 | 1 | 11 ý chính · 16 chữ viết tắt |
+| Ep06 | 1 | **Chờ duyệt** | 9:55 | 8,9 | 9 | 1 | 10 ý chính · 20 chữ viết tắt |
 | Ep07 | 2 | — | | | | | |
 | Ep08 | 2 | — | | | | | |
 | Ep09 | 2 | — | | | | | |
@@ -427,7 +431,7 @@ Trạng thái: **—** chưa làm · **Kịch bản** đã viết YAML · **Dự
 | Ep28 | — | — | | | | | |
 | Ep29 | — | — | | | | | |
 
-**Tổng đã xong: 0/30 video, 0 phút.**
+**Đã dựng 7/30 video, 69:27 (≈ 69 phút), 60 MB — chờ duyệt. Đã duyệt 0/30.**
 
 ---
 
@@ -458,16 +462,60 @@ Mỗi đợt thêm một mục ở **cuối** danh sách: ngày, làm gì, số 
 - Commit trên nhánh `claude/wizardly-pascal-9yhum5`: hai file của thư mục này, link ở README của
   `java-system-design/` và trang chủ bản nhiều trang; dựng lại `web/index.html`.
 
+### Đợt 1 — 07/10/2026: công cụ, 7 video tuần 1, tab Video
+
+Yêu cầu: dựng video tuần 1 để duyệt trước, xem được ngay trong app, video phải phủ hết nội dung chính
+của bài học; xong thì tạo PR.
+
+- **Công cụ** [`tools/lesson_video/`](../../tools/lesson_video/README.md) (mục 6.1): khoảng 2.000 dòng
+  Python, 18 test chạy bằng bộ đọc `silent` (không cần model).
+- **Model** lấy từ npm vì Hugging Face bị chặn: `kokoro-q8-shards@1.0.0` ghép 6 mảnh, sha256 khớp
+  `fbae9257…a1478`; giọng `am_michael` từ `kokoro-js@1.2.1`. Tốc độ 0,9.
+- **Kịch bản**: 7 file YAML ở [`lessons/`](lessons/), 351 câu, 8.608 từ.
+- **Ý chính**: đọc lại nguồn của tuần 1 (file 10 phần §0 và tuần 1; file 00 phần định hướng; file 01
+  §0–2, §6, §8; file 02 §0–6) và ghi **91 ý chính** vào [`lessons/points.yaml`](lessons/points.yaml),
+  mỗi ý có chữ bắt buộc (`expect`, thường là con số hay thuật ngữ) và mục nguồn. Phạm vi của tuần là
+  **48 mục** (heading) của bốn file đó.
+- **Kết quả kiểm** (`check --glossary`, `coverage --strict`): 91/91 ý chính có cảnh dạy và chữ bắt
+  buộc nằm đúng trong cảnh đó; 48/48 mục nguồn có video; mọi chữ viết tắt trên slide và trong lời đọc
+  có trong bảng và trên thẻ của video (7 thẻ, 103 dòng). Chi tiết: [02 — Độ phủ tuần 1](02-do-phu-tuan-1.md).
+  Sửa cột *Video* của 15 dòng trong [bảng chữ viết tắt](01-bang-chu-viet-tat.md) cho khớp thẻ thật.
+- **Phát âm**: quét phiên âm mọi câu bằng lệnh `phon`. Sửa trong lúc làm: "A:" đầu câu và chữ viết tắt
+  đánh vần có chữ A (`D A U`, `multi A Z`) bị đọc thành mạo từ; `Mbit/s` đọc thành *Mbit per second*
+  (đổi thứ tự quy tắc, thêm test); `say` cũng phải đi qua `speak.py` (trước đó `SaaS` trong `say` vẫn
+  đọc sai). Còn `text/csv` đọc *text slash CSV*: giữ nguyên.
+- **Bố cục**: soát ảnh cuối mỗi cảnh của cả 7 video (lệnh `frames`). Sửa: bảng nhiều cột tràn chữ (bảng
+  tự chọn cỡ chữ 13–26 theo chỗ trống, tiêu đề cột được xuống dòng), code dài quá khung (giãn dòng hẹp
+  lại khi quá 14 dòng), chữ nhỏ ở cảnh số liệu, nhãn mũi tên bị cắt ở sơ đồ Ep06, vài slide quá nhiều chữ.
+- **Lỗi lúc dựng**: Ep00 dài hơn tiếng 1,2 giây vì thời lượng từng khung được làm tròn về 1/15 giây
+  riêng lẻ nên lệch dồn → làm tròn theo thời điểm cộng dồn và cắt bằng `-t`; dựng lại thì khớp.
+- **Thời lượng thật**: 69 phút cho 7 video (dự kiến 57), 60 MB. Dài hơn dự kiến vì phải
+  nói đủ 91 ý chính; app có nút tốc độ 1,25× và 1,5×.
+- **App**: tab **Video** mới gồm danh sách theo tuần có ảnh bìa; player có nút chương; danh sách ý chính,
+  bấm thời điểm để tua tới, bấm "↳ mục" để mở đúng mục nguồn; tốc độ 1×/1,25×/1,5×; đánh dấu đã xem
+  (lưu trong trình duyệt như các tab khác). Tab lộ trình có nút "▶ Video GĐ1". Workflow Pages copy
+  `ep*.mp4`, `ep*.jpg` vào `media/jsd/` và báo lỗi nếu `lessons.json` nhắc tới file không có.
+- **Kiểm app** bằng Playwright: tab hiện đủ 7 video; tua theo chương và theo ý chính đúng giây; tốc độ
+  và đánh dấu được lưu; link mục nguồn mở đúng heading; màn hình điện thoại không tràn ngang; không có
+  lỗi JavaScript. Chromium của Playwright không có H.264 nên test thay mọi mp4 bằng một file WebM dài 680 giây.
+- **Chưa làm**: chưa có người nghe lại toàn bộ, đó là bước duyệt. Góp ý về giọng, tốc độ, độ dài, bố cục
+  sẽ áp vào tuần 1 (dựng lại nhanh vì tiếng đã có trong bộ nhớ) trước khi làm tuần 2.
+- Commit trên nhánh `claude/wizardly-pascal-9yhum5`.
+
 ---
 
-## 10. Quyết định đã chọn mặc định (đổi được trước đợt 1)
+## 10. Quyết định đã chọn mặc định (đổi được khi duyệt tuần 1)
+
+Đợt 1 dựng theo các mặc định dưới đây. Đổi phụ đề hay slide thì dựng lại tuần 1 mất vài phút mỗi video
+(tiếng đã có trong bộ nhớ); đổi giọng hay tốc độ thì Kokoro phải đọc lại từ đầu (khoảng 20–26 phút
+mỗi video).
 
 | # | Câu hỏi | Mặc định | Phương án khác |
 |---|---|---|---|
 | 1 | Phụ đề | Chỉ tiếng Anh; tiếng Việt chỉ trên thẻ chữ viết tắt | Thêm dòng `vi` dưới mỗi câu như repo IELTS (dễ hiểu hơn, nhưng làm chậm việc luyện nghe tiếng Anh) |
 | 2 | Số giọng | Chỉ Tom | Thêm Emma `af_heart` làm người phỏng vấn trong Ep26 và các bài nói mẫu |
-| 3 | Tốc độ | 0,9 | 1,0 cho gần tốc độ phỏng vấn thật |
-| 4 | Lưu video | Commit mp4 vào git (~190 MB) | Git LFS, hoặc chỉ commit kịch bản và dựng video trong workflow |
+| 3 | Tốc độ | 0,9; khi xem có nút 1,25× và 1,5× | 1,0 cho gần tốc độ phỏng vấn thật |
+| 4 | Lưu video | Commit mp4 vào git (tuần 1: 60 MB; cả bộ ≈ 250 MB) | Git LFS, hoặc chỉ commit kịch bản và dựng video trong workflow |
 
 ---
 
@@ -475,7 +523,8 @@ Mỗi đợt thêm một mục ở **cuối** danh sách: ngày, làm gì, số 
 
 | Nội dung | Trạng thái |
 |---|---|
-| Số video, thời lượng | **Ước tính** từ số từ của nguồn và độ dài video IELTS; thời lượng thật ghi vào bảng trạng thái sau khi dựng |
-| Phát âm ở mục 5 | **Đã kiểm** bằng bộ tách âm của Kokoro (cùng bước chuyển chữ → âm mà Kokoro dùng); **chưa nghe** tiếng thật, vì chưa tải model trong repo này |
-| Công cụ ở mục 6.1 | **Kế hoạch**: các cảnh `acronyms`, `code`, `table`, `calc`, `diagram`, `checklist` chưa viết |
-| Kích thước 190 MB | Suy từ tỉ lệ ~0,8 MB/phút của video IELTS (một video 6:52 nặng 5,47 MB) |
+| Số video, thời lượng | Tuần 1: **đo thật** (bảng trạng thái). Tuần 2–4: **ước tính** ở mục 3; nếu kịch bản dày như tuần 1 thì dài hơn ước tính khoảng 1,22 lần |
+| Phát âm | **Đã kiểm** bằng bộ tách âm của Kokoro (cùng bước chuyển chữ → âm mà Kokoro dùng) cho mọi câu của tuần 1, sau khi `speak.py` đổi chữ. Tiếng thật đã sinh nhưng **chưa có người nghe lại**: đó là việc của lần duyệt |
+| Độ phủ nội dung tuần 1 | **Kiểm bằng lệnh** (`check`, `coverage --strict`): 91 ý chính và 48 mục nguồn, chữ bắt buộc của mỗi ý nằm đúng trong cảnh dạy ý đó. Lệnh chỉ kiểm được nội dung có mặt, không kiểm được lời giảng có dễ hiểu không |
+| Tab Video | **Đã chạy thử** bằng Playwright trên Chromium có sẵn trong máy dựng. Chromium đó không có bộ giải mã H.264 nên test thay mọi mp4 bằng một file WebM dài 680 giây (dài hơn video dài nhất); Chrome, Edge, Firefox, Safari bản thường đều phát được H.264. Chưa xem trên GitHub Pages thật vì Pages chỉ deploy khi merge vào `main` |
+| Kích thước | Tuần 1: **đo thật**. Cả bộ: suy từ tỉ lệ MB/phút của tuần 1 |

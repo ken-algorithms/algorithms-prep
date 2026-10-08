@@ -172,7 +172,7 @@ def collect_jsd_videos() -> list[dict]:
         if not mp4.exists():
             print(f"⚠ lessons.json có {x['file']} nhưng không thấy file — bỏ qua")
             continue
-        x = dict(x, mb=round(mp4.stat().st_size / 1_048_576, 1))
+        x = dict(x, mb=round(mp4.stat().st_size / 1e6, 1))  # MB = 10⁶ byte, như công cụ dựng và bảng trạng thái
         if x.get("poster") and not (JSD_VIDEO_DIR / x["poster"]).exists():
             x["poster"] = ""
         out.append(x)

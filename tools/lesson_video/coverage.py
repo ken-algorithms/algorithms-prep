@@ -10,7 +10,7 @@ from . import script as sc
 
 
 def mmss(t: float) -> str:
-    t = int(round(t))
+    t = int(t + 0.5)  # làm tròn .5 lên như Math.round của app web (round() của Python làm tròn về số chẵn)
     return f"{t // 60}:{t % 60:02d}"
 
 
