@@ -18,4 +18,4 @@ leetcode-38-bai-video/**/*-preview.mp4
 .pytest_cache/
 
 # khoá file khi tools/lesson_video ghi lessons.json
-java-system-design/video-gd*/lessons/lessons.json.lock
+java-system-design/video-*/lessons/lessons.json.lock

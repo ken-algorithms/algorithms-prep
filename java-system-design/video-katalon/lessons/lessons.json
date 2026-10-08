@@ -1,0 +1,145 @@
+{
+ "schema": "jsd-lessons/1",
+ "note": "Sinh bởi tools/lesson_video từ các file .yaml cùng thư mục — sửa kịch bản rồi chạy lại `python -m lesson_video build`, không sửa tay file này hay file .mp4.",
+ "lessons": [
+  {
+   "id": "k02-ladder-x10-x100",
+   "ep": 2,
+   "code": "K02",
+   "week": 4,
+   "title": "Climbing the ladder: ten and a hundred times",
+   "subtitle": "Numbers for every rung, the read path that doesn't move, and the first two things that break",
+   "file": "k02-ladder-x10-x100.mp4",
+   "poster": "k02-ladder-x10-x100.jpg",
+   "source": "k02-ladder-x10-x100.yaml",
+   "duration": 397.0,
+   "bytes": 5739048,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 15.1,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 35.2,
+     "title": "Ask first"
+    },
+    {
+     "t": 71.2,
+     "title": "The ladder"
+    },
+    {
+     "t": 144.3,
+     "title": "What never changes"
+    },
+    {
+     "t": 175.6,
+     "title": "Cardinality, relatively"
+    },
+    {
+     "t": 213.3,
+     "title": "Five sentences"
+    },
+    {
+     "t": 230.9,
+     "title": "× 10: 100k a minute"
+    },
+    {
+     "t": 280.2,
+     "title": "× 100: 1 million a minute"
+    },
+    {
+     "t": 336.3,
+     "title": "The pattern"
+    },
+    {
+     "t": 360.3,
+     "title": "Built on"
+    },
+    {
+     "t": 381.1,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#1-đề-mở-rộng--hỏi-lại-gì-trước-khi-trả-lời",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#2-thang-ước-lượng-10k--100m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#3-điều-không-đổi-đường-đọc",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#4-cái-gì-vỡ-trước--đi-từng-bước--10"
+   ],
+   "points": [
+    {
+     "id": "l-ask",
+     "t": 35.2,
+     "text": "Chốt cách hiểu rồi hỏi: vẫn 20 item/request (20 → 3,3M; 200 → 33M event/s); bao nhiêu client, gửi dày hay thưa (gộp ở client được không); một region hay toàn cầu (cell, luật dữ liệu); dashboard hay billing (billing chỉ dùng số đã đối soát)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#1-đề-mở-rộng--hỏi-lại-gì-trước-khi-trả-lời",
+     "section": "07 · Hỏi lại gì ở 10M–100M"
+    },
+    {
+     "id": "l-ladder",
+     "t": 93.3,
+     "text": "Thang: 10k → 167 req/s, 3.333 event/s, 288 triệu/ngày, 17 GB; 100k → 33.333 event/s, 173 GB; 1M → 333.333 event/s, 1,7 TB; 10M → 166.667 req/s, 3,3 triệu event/s, 288 tỷ/ngày, 17 TB, ~1,3 Gbit/s; 100M → 1,67 triệu req/s, 33 triệu event/s, 2.880 tỷ/ngày, 173 TB, ~13 Gbit/s; đỉnh × 3",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#2-thang-ước-lượng-10k--100m-requestphút",
+     "section": "07 · Thang ước lượng"
+    },
+    {
+     "id": "l-read-constant",
+     "t": 144.3,
+     "text": "Số dòng rollup = tenant × outcome × bucket, không có event/s trong công thức: 1 tenant tầng phút 5.760 dòng/ngày ở mọi mức tải; 10.000 tenant 57,6 triệu; truy vấn 1 năm vẫn ~530 dòng — đường đọc không đổi, mọi thay đổi ở đường ghi",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#31-rollup-lớn-theo-số-nhóm-không-theo-số-event",
+     "section": "07 · Rollup lớn theo số nhóm"
+    },
+    {
+     "id": "l-cardinality",
+     "t": 175.6,
+     "text": "Hệ số gộp = event mỗi bucket ÷ số nhóm; 100.000 key × 4 outcome = 400.000 nhóm: ở 10k/phút ≤ 0,5 (vô ích), ở 10M/phút = 500 (đáng làm); nhưng 576 triệu dòng/ngày/tenant → việc của kho OLAP, không phải Postgres",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#32-cardinality-nổ-hay-không-là-tương-đối",
+     "section": "07 · Cardinality là tương đối"
+    },
+    {
+     "id": "l-five",
+     "t": 213.3,
+     "text": "Năm câu của câu hỏi × 10: số mới; vỡ trước (có số); sửa và đánh đổi; vỡ tiếp; chưa làm gì (và vì sao còn dư)",
+     "src": "02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời",
+     "section": "02 · Năm câu trả lời × 10 (giai đoạn 1)"
+    },
+    {
+     "id": "l-x10",
+     "t": 230.9,
+     "text": "× 10 (100k/phút, 33.333 event/s): vỡ trước là một Postgres primary (dòng + index unique + WAL mỗi event, ngưỡng ~30–50k dòng/s); sửa: gộp trong API, mỗi request một dòng có 4 bộ đếm, ghi giảm 20 lần; đánh đổi: khử trùng theo batch_id, breakdown theo key phải giải nén; chưa làm Kafka",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#41--10--100k-requestphút",
+     "section": "07 · × 10: 100k/phút"
+    },
+    {
+     "id": "l-x100",
+     "t": 280.2,
+     "text": "× 100 (1M/phút, 333.333 event/s): vỡ trước là API ghi DB đồng bộ (DB chậm/failover → giữ request, lỗi, bão retry); sửa: Kafka làm bộ đệm bền (acks=all, 3 bản, min.insync.replicas=2), 202 sau khi Kafka xác nhận, stream processor làm rollup, raw sang object storage; đánh đổi: thêm 2–3 hệ thống, số trễ vài giây; chưa cần kho cột",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#42--100--1m-requestphút",
+     "section": "07 · × 100: 1M/phút"
+    },
+    {
+     "id": "l-pattern",
+     "t": 336.3,
+     "text": "Mỗi × 10 đẩy chỗ gộp về gần nguồn: database (10k) → API (100k) → stream processor (1M) → collector và partition (10M) → region, đôi khi client (100M)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#4-cái-gì-vỡ-trước--đi-từng-bước--10",
+     "section": "07 · Quy luật của bốn bước"
+    },
+    {
+     "id": "l-built-on",
+     "t": 360.3,
+     "text": "K02 dựa trên giai đoạn 1: quy đổi (Ep01), thang L0–L4 và năm câu (Ep06), storage engine và index (tuần 3); xem trước giai đoạn 2: Kafka acks, bản sao (Ep12)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  }
+ ]
+}
