@@ -1,0 +1,180 @@
+id: ep06-v6-core-transfer-l2
+ep: 6
+week: 5
+tag: "EP06 · WEEKS 5–6"
+title: "V6: Mini Core Transfer at 1M users"
+subtitle: "Track S: redraw the bank at level L2, defend each box with a number, and answer “× 10”"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-56--v6-mini-core-transfer-ở-l2-chủ-nhật-tuần-6-30-phút
+  - 20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-56
+  - 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-10
+  - 02-ve-he-thong-100k-1m-10m.md#33-l2--1m-users-tách-đọc-tách-việc-chậm
+  - 02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · Track S weeks 5–6 (V6), Track P weeks 5–6, Track S week 10; 02 · §3.3 (level L2), §5 (the × 10 question)"}
+      - {t: "Weeks 5–6 · Sunday of week 6, 30 minutes"}
+    lines:
+      - emma: "Episode six is Track S. In phase one you drew V2, the bank at a hundred thousand users. Now you redraw it for one million users: drawing V6, level L2."
+        say: "Episode six is Track S. In phase one you drew V2, the bank at a hundred thousand users. Now you redraw it for one million users: drawing V6, level L two."
+      - emma: "Every box must be defended by a number, and the drawing ends with a five-sentence answer to the question every interviewer asks: what if the load grows ten times?"
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: CCU, full: "concurrent users", vi: "số user đang dùng cùng một lúc"}
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: CDN, full: "content delivery network", vi: "mạng máy chủ đặt gần người dùng để phát file tĩnh"}
+      - {abbr: WAF, full: "web application firewall", vi: "tường lửa lọc request web độc hại"}
+      - {abbr: ALB, full: "application load balancer", vi: "load balancer tầng 7 của AWS"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: BFF, full: "backend for frontend", vi: "lớp API riêng cho từng loại client"}
+      - {abbr: OIDC, full: "OpenID Connect", vi: "chuẩn đăng nhập trên nền OAuth 2"}
+      - {abbr: SQS, full: "Amazon Simple Queue Service", vi: "hàng đợi message của AWS"}
+      - {abbr: SMS, full: "short message service", vi: "tin nhắn điện thoại"}
+      - {abbr: FCM · APNs, full: "Firebase Cloud Messaging · Apple Push Notification service", vi: "dịch vụ push của Google và Apple"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: CQRS, full: "command query responsibility segregation", vi: "tách mô hình ghi và mô hình đọc"}
+      - {abbr: CDC, full: "change data capture", vi: "đọc thay đổi từ log của DB để phát sự kiện"}
+      - {abbr: HA, full: "high availability", vi: "chạy nhiều bản để không có điểm chết"}
+      - {abbr: GB, full: "gigabyte", vi: "đơn vị dung lượng"}
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý"}
+    lines:
+      - emma: "This drawing has many boxes, so many short forms. CCU and RPS: concurrent users and requests per second. A CDN is a content delivery network. A WAF is a web application firewall, and an ALB is Amazon's application load balancer."
+        focus: 4
+      - emma: "API is an application programming interface, and a BFF is a backend for frontend. OIDC is OpenID Connect, the login standard. SQS is Amazon's Simple Queue Service. SMS is a text message, and FCM and APNs are Google's and Apple's push services."
+        say: "API is an application programming interface, and a BFF is a backend for frontend. O I D C is OpenID Connect, the login standard. SQS is Amazon's Simple Queue Service. SMS is a text message, and F C M and APNs are Google's and Apple's push services."
+        focus: 10
+      - emma: "DB is the database. CQRS separates the write model from the read model, and CDC is change data capture. HA means high availability, GB is gigabytes, and CPU is the processor."
+        say: "DB is the database. C Q R S separates the write model from the read model, and CDC is change data capture. HA means high availability, GB is gigabytes, and CPU is the processor."
+        focus: 16
+
+  - kind: stats
+    chapter: "The numbers"
+    heading: "V6 starts from three numbers (profile A, salary day)"
+    points: [v6-numbers]
+    items:
+      - {v: "~12,000", l: "concurrent users", s: "1M registered, salary day × 3"}
+      - {v: "~2,000", l: "requests per second", s: "~90% of them are reads"}
+      - {v: "~150", l: "writes per second", s: "transfers, ledger entries, outbox rows"}
+    lines:
+      - emma: "Start from the numbers of profile A, the bank, on salary day. One million registered users gives about twelve thousand concurrent users."
+        focus: 0
+      - emma: "About two thousand requests per second, and around ninety percent of them are reads: balances and history."
+        focus: 1
+      - emma: "And only about a hundred and fifty writes per second. Remember that ratio: it decides almost every box."
+        focus: 2
+
+  - kind: diagram
+    chapter: "The drawing"
+    heading: "V6 · Level L2: split the reads, move the slow work out"
+    points: [v6-diagram]
+    nodes:
+      - {id: u, label: "Clients", sub: "CCU 4k–12k", x: 80, y: 195, w: 150, h: 80, shape: user}
+      - {id: cdn, label: "CDN", x: 80, y: 40, w: 150, h: 56, at: 1}
+      - {id: waf, label: "WAF + ALB", x: 270, y: 195, w: 150, h: 64, at: 1}
+      - {id: gw, label: "API gateway / BFF", sub: "auth, rate limit, route", x: 470, y: 195, w: 190, h: 76, at: 1}
+      - {id: idp, label: "Identity", sub: "Keycloak / OIDC", x: 470, y: 50, w: 190, h: 64, at: 1}
+      - {id: core, label: "Core app", sub: "modular monolith, 3–10 pods, autoscale", x: 700, y: 195, w: 200, h: 86}
+      - {id: rc, label: "Redis cluster", sub: "cache-aside: balance, profile", x: 700, y: 50, w: 200, h: 70, shape: db, at: 2}
+      - {id: pg, label: "Postgres primary", sub: "ledger, transfers", x: 930, y: 195, w: 190, h: 76, shape: db}
+      - {id: rr, label: "Read replica × 2", sub: "history, reports", x: 930, y: 50, w: 190, h: 70, shape: db, at: 3}
+      - {id: k, label: "Kafka / SQS", sub: "transfer.completed", x: 930, y: 340, w: 190, h: 70, shape: queue, at: 4}
+      - {id: n, label: "Notification service", sub: "push, SMS, email", x: 700, y: 340, w: 200, h: 70, at: 4}
+      - {id: ext, label: "FCM, APNs, SMS gateway", x: 450, y: 340, w: 210, h: 60, at: 4}
+    edges:
+      - {a: u, b: cdn, at: 1}
+      - {a: u, b: waf, at: 1}
+      - {a: waf, b: gw, at: 1}
+      - {a: gw, b: idp, at: 1}
+      - {a: gw, b: core, at: 1}
+      - {a: core, b: rc, at: 2}
+      - {a: core, b: pg}
+      - {a: pg, b: rr, label: "async replication", dashed: true, at: 3}
+      - {a: core, b: rr, at: 3}
+      - {a: pg, b: k, label: "outbox relay", dashed: true, at: 4}
+      - {a: k, b: n, dashed: true, at: 4}
+      - {a: n, b: ext, at: 4}
+    lines:
+      - emma: "Here's V6. In the middle is still one core application, a modular monolith, now running three to ten pods with autoscaling, in front of one Postgres primary with the ledger and transfers."
+        focus: 0
+      - emma: "In front: a CDN for static files, a web application firewall and load balancer, then an API gateway that handles authentication, rate limits and routing, backed by an identity service, Keycloak with OpenID Connect."
+        say: "In front: a CDN for static files, a web application firewall and load balancer, then an API gateway that handles authentication, rate limits and routing, backed by an identity service, Keycloak with OpenID Connect."
+        focus: 1
+      - emma: "A Redis cluster with cache-aside for balances and profiles."
+        focus: 2
+      - emma: "Two read replicas, fed by asynchronous replication, for history and reports."
+        focus: 3
+      - emma: "And the slow work leaves the request: the outbox relay publishes transfer completed events to Kafka or SQS, and a separate notification service sends push messages, texts and emails."
+        focus: 4
+
+  - kind: table
+    heading: "Defend every box with a number (02 §3.3)"
+    columns: ["Decision", "The number behind it", "The trade-off is…"]
+    widths: [1.8, 2.8, 3.1]
+    build: true
+    points: [v6-decisions]
+    rows:
+      - ["Read replicas for history", "reads are ~90% of 2,000 RPS", "lag → read-your-writes: read the primary for N seconds after a write, or by version"]
+      - ["Cache-aside for balance and profile", "90% hit ratio → the DB sees 1/10 of the reads", "a stale cache shows a wrong balance; the balance used to approve a transfer is still read from the DB, with a lock"]
+      - ["Outbox → broker, no SMS in the request", "an SMS takes 200–2,000 ms; a transfer has 300 ms at p99", "notifications arrive seconds later; consumers must be idempotent"]
+      - ["Notification is the first service split out", "different load (campaign bursts), different failures (third parties), few data ties", "one more thing to deploy, monitor, and be on call for"]
+      - ["API gateway", "rate limits and auth before the app", "an extra hop (~1–3 ms), and a single point of failure without HA"]
+    lines:
+      - emma: "Now defend each box with a number. Read replicas: because reads are about ninety percent of two thousand requests per second. The trade-off is lag, so you need read-your-writes: read the primary for a few seconds after a write, or read by version."
+        focus: 0
+      - emma: "Cache-aside: with a ninety percent hit ratio, the database sees one tenth of the reads. But a stale cache shows a wrong balance, so the balance that approves a transfer is still read from the database, under a lock."
+        focus: 1
+      - emma: "The outbox: an SMS takes two hundred to two thousand milliseconds, while a transfer has three hundred at p99. So the text arrives a few seconds later, and consumers must be idempotent."
+        say: "The outbox: an SMS takes two hundred to two thousand milliseconds, while a transfer has three hundred at p ninety-nine. So the text arrives a few seconds later, and consumers must be idempotent."
+        focus: 2
+      - emma: "Notification is the first service you split out, because its load and its failures are different and it shares little data with the core. The cost: one more thing to deploy and be on call for."
+        focus: 3
+      - emma: "And the gateway centralises rate limits and auth, for one extra hop of one to three milliseconds. Without high availability, it's a single point of failure."
+        focus: 4
+
+  - kind: flow
+    chapter: "The × 10 answer"
+    heading: "The “× 10” answer: five sentences, in this order (02 §5)"
+    points: [x10-frame, x10-five]
+    items:
+      - {t: "1 · New numbers", s: "2,000 → 20,000 RPS; writes 150 → 1,500/s; 12k → 120k CCU"}
+      - {t: "2 · Breaks first", s: "connections to the primary: 80 pods × 10 = 800"}
+      - {t: "3 · Fix", s: "PgBouncer transaction pooling; history to a CQRS read model via CDC"}
+      - {t: "4 · Breaks next", s: "1,500 writes/s still fit, but the ledger grows 650 GB a year → partition by month"}
+      - {t: "5 · Not yet", s: "no sharding by account_id: writes still have room; sharding turns transfers into sagas"}
+    lines:
+      - emma: "The five-sentence answer. One, the new numbers: twenty thousand requests per second, one thousand five hundred writes, a hundred and twenty thousand concurrent users."
+        focus: 0
+      - emma: "Two, what breaks first: connections to the Postgres primary. Eighty pods with ten connections each is eight hundred, far more than the primary can handle. Right after that, primary CPU, because history reads that need read-your-writes still hit it."
+        focus: 1
+      - emma: "Three, the fix: PgBouncer in transaction pooling mode, and move history to a read model, CQRS, fed by change data capture. The trade-off: the read model lags by a few hundred milliseconds, and it's one more system to run."
+        say: "Three, the fix: PgBouncer in transaction pooling mode, and move history to a read model, C Q R S, fed by change data capture. The trade-off: the read model lags by a few hundred milliseconds, and it's one more system to run."
+        focus: 2
+      - emma: "Four, what breaks next: fifteen hundred writes per second still fit one primary, but the ledger table grows by six hundred fifty gigabytes a year, so vacuum and indexes slow down. Partition it by month."
+        focus: 3
+      - emma: "Five, what you don't do yet: no sharding by account, because writes still have plenty of room, and sharding turns every transfer between two shards into a saga, which is far more expensive. Saying why you don't need something is where the senior points are."
+        focus: 4
+
+  - kind: bullets
+    chapter: "Track P and week 10"
+    heading: "Two more jobs for this block"
+    style: num
+    points: [w56-trackp, v6-update]
+    items:
+      - {t: "Track P, weeks 5–6: no new anti-pattern", s: "30 minutes on Friday: run checklist 01 §6 over your own phase-1 labs (rate limiter, db-lab, cache-lab); every “yes” goes into the error log with its fix"}
+      - {t: "It's a rehearsal", s: "for the capstone code review in weeks 15–16"}
+      - {t: "Week 10: reopen V6", s: "replace assumed numbers with lab-8 measurements: commit-to-consumer delay (the relay poll dominates), duplicates per relay restart"}
+      - {t: "Mark every number", s: "“measured” or “assumed”, right next to it on the drawing"}
+    lines:
+      - emma: "Two more jobs in this block. Track P has no new anti-pattern in weeks five and six. Instead, spend thirty minutes on Friday running the review checklist from file one, section six, over your own phase-one labs: the rate limiter, the database lab, the cache lab. Every yes goes into your error log with its fix."
+        focus: 0
+      - emma: "It's a rehearsal for the capstone code review in weeks fifteen and sixteen."
+        focus: 1
+      - emma: "And in week ten you'll come back to V6. Replace the assumed numbers with the ones you measure in lab 8: the delay from commit to consumer, which is mostly the relay's polling interval, and the duplicates after a relay restart."
+        focus: 2
+      - emma: "Next to every number on the drawing, write measured or assumed. Next episode: why we don't use two-phase commit between services."
+        focus: 3

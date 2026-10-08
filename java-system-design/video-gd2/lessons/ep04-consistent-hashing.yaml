@@ -1,0 +1,203 @@
+id: ep04-consistent-hashing
+ep: 4
+week: 5
+tag: "EP04 · WEEKS 5–6"
+title: "Consistent hashing: lab 5A and the 2-minute talk"
+subtitle: "A hash ring in 20 lines of Java, what the measurements say about virtual nodes, and fixed partitions"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · lab 5A (hash ring with virtual nodes), exercise 5.6, the weeks 5–6 2-minute talk; dist-lab ConsistentHash"}
+      - {t: "Weeks 5–6 · lab 5A is the Saturday of week 5"}
+    lines:
+      - emma: "Episode four is hands-on. In lab 5A you build a consistent hash ring with virtual nodes, measure how many keys move when you add a node, and then turn it into a two-minute talk."
+      - emma: "The numbers in this episode were measured with the reference code in dist-lab, on a million keys."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: MD5, full: "Message Digest 5", vi: "hàm băm 128 bit; ở đây chỉ dùng để rải khoá, không dùng cho bảo mật"}
+      - {abbr: vnode, full: "virtual node", vi: "một node vật lý đặt nhiều điểm trên vòng băm"}
+      - {abbr: JDK, full: "Java Development Kit", vi: "bộ công cụ để biên dịch và chạy Java"}
+    lines:
+      - emma: "Just three short forms. MD5 is Message Digest 5, a hash function we use only to spread keys, never for security. A vnode is a virtual node: one physical node placed at many points on the ring. And JDK is the Java Development Kit."
+        focus: 2
+
+  - kind: code
+    chapter: "Build the ring"
+    heading: "Lab 5A, step 1: a hash ring with TreeMap"
+    sub: "dist-lab · ConsistentHash.java (run it after you write your own)"
+    points: [lab5a-ring]
+    code: |
+      private final TreeMap<Long, String> ring = new TreeMap<>();
+      public void add(String node) {
+          for (int i = 0; i < vnodes; i++) ring.put(hash(node + "#" + i), node);
+      }
+      public void remove(String node) {
+          for (int i = 0; i < vnodes; i++) ring.remove(hash(node + "#" + i));
+      }
+      public String nodeFor(String key) {
+          SortedMap<Long, String> tail = ring.tailMap(hash(key));
+          return tail.isEmpty() ? ring.firstEntry().getValue() : tail.get(tail.firstKey());
+      }
+      // hash() = first 8 bytes of MD5: the same keys land in the same place on every run
+    items:
+      - {lines: [1, 1], t: "The ring: a sorted map from position to node"}
+      - {lines: [2, 4], t: "Each node is placed at vnodes points: “node-2#0”, “node-2#1”…"}
+      - {lines: [8, 11], t: "A key belongs to the first node clockwise; past the end, wrap to the start"}
+      - {lines: [12, 12], t: "MD5 makes the measurements repeatable"}
+    lines:
+      - emma: "Step one, the ring. It's just a TreeMap from a position on the ring to a node name."
+        focus: 0
+      - emma: "Adding a node puts it at many points: node two hash zero, node two hash one, and so on, once per virtual node."
+        focus: 1
+      - emma: "To find a key's owner, hash the key and take the first node clockwise. TailMap gives everything from that position onward; if it's empty, you wrap around to the start. CeilingEntry does the same in one call."
+        focus: 2
+      - emma: "The reference uses the first eight bytes of MD5, so every run puts every key in the same place and the numbers repeat exactly."
+        focus: 3
+
+  - kind: table
+    chapter: "Measure it"
+    heading: "Lab 5A, step 2: 1 million keys, 4 nodes → 5 (measured)"
+    columns: ["Method", "Load max / min (4 nodes)", "Busiest node (ideal 25%)", "Keys moved (ideal 20%)"]
+    widths: [1.8, 2.0, 2.0, 2.0]
+    mono: [1, 2, 3]
+    accent: [3]
+    build: true
+    points: [lab5a-numbers]
+    rows:
+      - ["hash mod N", "—", "—", "80.0%"]
+      - ["ring, 1 vnode", "6.77", "40.7%", "9.1%"]
+      - ["ring, 10 vnodes", "2.20", "35.9%", "16.4%"]
+      - ["ring, 100 vnodes", "1.11", "26.7%", "18.9%"]
+      - ["ring, 200 vnodes", "1.19", "27.9%", "19.8%"]
+    note: "Keys acct-0 … acct-999999. dist-lab, JDK 21, 07/10/2026."
+    lines:
+      - emma: "Step two: measure. A million keys, four nodes, then add a fifth. Modulo moves 80% of the keys."
+        focus: 0
+      - emma: "A ring with a single virtual node per node is badly skewed. The busiest node carries 40.7% instead of 25, the load ratio between busiest and quietest is 6.77, and the new node gets only 9.1% of the keys instead of 20."
+        say: "A ring with a single virtual node per node is badly skewed. The busiest node carries forty point seven percent instead of twenty-five, the load ratio between busiest and quietest is six point seven seven, and the new node gets only nine point one percent of the keys instead of twenty."
+        focus: 1
+      - emma: "Ten virtual nodes: better. A hundred: the ratio drops to 1.11, and adding a node moves 18.9%, almost exactly the ideal share."
+        say: "Ten virtual nodes: better. A hundred: the ratio drops to one point one one, and adding a node moves eighteen point nine percent, almost exactly the ideal share."
+        focus: 3
+      - emma: "And two hundred? Slightly worse than a hundred on spread, 1.19. Hold that thought."
+        say: "And two hundred? Slightly worse than a hundred on spread, one point one nine. Hold that thought."
+        focus: 4
+
+  - kind: bullets
+    heading: "Two things the numbers say"
+    style: num
+    points: [lab5a-lessons]
+    items:
+      - {t: "Virtual nodes exist to even out the load", s: "1 vnode: one node carries 40.7% (1.6 × ideal), and a new node takes only 9.1% instead of 20%"}
+      - {t: "More vnodes is not automatically better in one configuration", s: "200 vnodes spread worse than 100 here (1.19 vs 1.11): with a fixed hash, more vnodes is more even only on average"}
+    lines:
+      - emma: "Two lessons. First, virtual nodes exist to even out the load. With one point per node, one machine carries one point six times its fair share, and a new machine barely helps."
+        focus: 0
+      - emma: "Second, more virtual nodes isn't automatically better in one specific configuration. Two hundred spread worse than a hundred here. With a fixed hash function, more points make the spread more even on average, in expectation, not in every single setup. So measure your own."
+        focus: 1
+
+  - kind: code
+    chapter: "Three replicas"
+    heading: "Lab 5A, step 3: replication factor 3"
+    points: [lab5a-rf3]
+    code: |
+      // walk clockwise from the key; collect 3 DIFFERENT physical nodes
+      List<String> nodesFor(String key, int n) {
+          List<String> out = new ArrayList<>();
+          for (String node : clockwiseFrom(hash(key))) {   // wraps around the ring once
+              if (!out.contains(node)) out.add(node);      // skip vnodes of a node already chosen
+              if (out.size() == n) break;
+          }
+          return out;
+      }
+      // test: removing a node changes the replica set ONLY for keys that node held
+    items:
+      - {lines: [1, 1], t: "Replicas = the next distinct physical nodes clockwise"}
+      - {lines: [5, 5], t: "Skip vnodes that belong to a node you already picked"}
+      - {lines: [10, 10], t: "The test that proves it"}
+    lines:
+      - emma: "Step three: three replicas per key. Walk clockwise from the key's position and collect three different physical nodes."
+        focus: 0
+      - emma: "The trap: the next point on the ring may be another virtual node of a machine you already picked. Skip it, or two of your three replicas live on the same machine."
+        focus: 1
+      - emma: "And the test that proves it works: removing a node must change the replica set only for keys that node was holding."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 5.6"
+    n: "5.6"
+    q: "A cluster of 4 nodes holds 1 million keys. You add a fifth node. How many keys move with each method?"
+    items:
+      - {t: "(a) hash mod N"}
+      - {t: "(b) a hash ring with 100 vnodes"}
+      - {t: "(c) 256 fixed partitions, spread evenly over the nodes"}
+    lines:
+      - emma: "Exercise 5.6. Four nodes, a million keys, and you add a fifth. How many keys move with modulo, with a ring of a hundred virtual nodes, and with 256 fixed partitions spread evenly over the nodes?"
+        say: "Exercise five point six. Four nodes, a million keys, and you add a fifth. How many keys move with modulo, with a ring of a hundred virtual nodes, and with two hundred fifty-six fixed partitions spread evenly over the nodes?"
+      - wait: 5
+
+  - kind: table
+    heading: "Answer 5.6"
+    columns: ["Method", "Keys moved", "How they move"]
+    widths: [1.9, 1.9, 3.8]
+    build: true
+    points: [ex56]
+    rows:
+      - ["hash mod N", "~80% (measured 80.0%)", "Almost everything, all at once"]
+      - ["Ring, 100 vnodes", "~20% (measured 18.9%)", "Key by key, from every node"]
+      - ["256 fixed partitions", "~20%: the new node takes ~51 partitions (256 ÷ 5)", "Whole partitions: easy to track, to throttle, to resume"]
+    note: "Kafka, Redis Cluster and Elasticsearch all choose fixed partitions. The price: pick a big enough count on day one."
+    lines:
+      - emma: "Modulo: about 80%, measured 80.0. The ring with a hundred virtual nodes: about 20%, measured 18.9."
+        say: "Modulo: about eighty percent, measured eighty point zero. The ring with a hundred virtual nodes: about twenty percent, measured eighteen point nine."
+        focus: 1
+      - emma: "With 256 fixed partitions, the new node takes about 51 of them, 256 divided by five, so again about 20% of the keys. But they move as whole partitions, which makes the move easy to track, to throttle, and to resume."
+        say: "With two hundred fifty-six fixed partitions, the new node takes about fifty-one of them, two hundred fifty-six divided by five, so again about twenty percent of the keys. But they move as whole partitions, which makes the move easy to track, to throttle, and to resume."
+        focus: 2
+      - emma: "That's why Kafka, Redis Cluster and Elasticsearch all use fixed partitions. The price: the number of partitions must be large enough from day one."
+
+  - kind: speech
+    chapter: "Your 2-minute talk"
+    heading: "Model answer — “How does consistent hashing reduce data movement when you add a node?”"
+    points: [talk-w56]
+    items:
+      - {t: "With hash mod N, the owner of a key depends on N, so adding one node reshuffles almost everything: I measured 80% of a million keys moving from four nodes to five."}
+      - {t: "Consistent hashing puts nodes and keys on the same ring; a key belongs to the first node clockwise."}
+      - {t: "A new node only takes over the arcs just before its own positions, so only its fair share moves, about one over N plus one: 18.9% in my test, against an ideal 20.", say: "A new node only takes over the arcs just before its own positions, so only its fair share moves, about one over N plus one: eighteen point nine percent in my test, against an ideal twenty."}
+      - {t: "Each node is placed at many points, virtual nodes, because with a single point the busiest node held 6.8 times the load of the quietest.", say: "Each node is placed at many points, virtual nodes, because with a single point the busiest node held six point eight times the load of the quietest."}
+      - {t: "The trade-off: you lose range queries over keys, and someone has to manage the ring map, which is why many systems use a fixed number of partitions instead."}
+    lines:
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+      - read: emma
+        focus: 3
+      - read: emma
+        focus: 4
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "A ring is a sorted map; a key belongs to the first node clockwise"}
+      - {t: "Adding a node moves ~1/(N+1) of keys instead of ~80%", s: "measured 18.9% vs 80.0%"}
+      - {t: "Virtual nodes even out the load — measure your own configuration"}
+      - {t: "Replicas = the next distinct physical nodes"}
+    lines:
+      - emma: "To recap. A ring is a sorted map, and a key belongs to the first node clockwise. Adding a node moves about one over N plus one of the keys instead of 80%."
+        say: "To recap. A ring is a sorted map, and a key belongs to the first node clockwise. Adding a node moves about one over N plus one of the keys instead of eighty percent."
+        focus: 1
+      - emma: "Virtual nodes even out the load, but measure your own configuration. And replicas are the next distinct physical nodes. Next episode: two timed designs, a key-value store and a distributed cache."
+        focus: 3

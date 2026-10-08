@@ -1,0 +1,199 @@
+# Ý chính của tài liệu nguồn mà bộ video giai đoạn 2 phải dạy. `src` tính từ thư mục java-system-design/.
+# Mỗi ý có `expect`: các chữ (regex, không phân biệt hoa thường) bắt buộc phải có trong cảnh nhận ý đó
+# (`points:` trong kịch bản). `python -m lesson_video check` kiểm, `coverage` in bảng độ phủ có thời điểm.
+# Phạm vi theo mục, khoá là tuần đầu của khối (0 = định hướng, 5 = tuần 5–6, 7, 8 = tuần 8–9, 10): mọi heading
+# dưới đây phải nằm trong `covers` của ít nhất một video (hoặc là `src` của một ý chính đã có video).
+scope:
+  0:
+    - 20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu
+    - 00-lo-trinh-6-thang.md#giai-đoạn-2--dữ-liệu-và-hệ-phân-tán-tuần-510
+  5:
+    - 20-implement-gd2-du-lieu-phan-tan.md#tuần-56--replication-partitioning-consistent-hashing
+    - 20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-6
+    - 20-implement-gd2-du-lieu-phan-tan.md#đọc
+    - 20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm
+    - 20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication
+    - 20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r
+    - 20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing
+    - 20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5
+    - 20-implement-gd2-du-lieu-phan-tan.md#lab-5b--mô-phỏng-quorum-thứ-bảy-tuần-6
+    - 20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-56
+    - 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-56--v6-mini-core-transfer-ở-l2-chủ-nhật-tuần-6-30-phút
+    - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+    - 20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút
+    - 02-ve-he-thong-100k-1m-10m.md#33-l2--1m-users-tách-đọc-tách-việc-chậm
+    - 02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời
+  7:
+    - 20-implement-gd2-du-lieu-phan-tan.md#tuần-7--transaction-phân-tán-saga-outbox-idempotency-sổ-cái-kép
+    - 20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần
+    - 20-implement-gd2-du-lieu-phan-tan.md#đọc-1
+    - 20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-1
+    - 20-implement-gd2-du-lieu-phan-tan.md#71-vì-sao-không-2pc-giữa-microservices
+    - 20-implement-gd2-du-lieu-phan-tan.md#72-orchestration-hay-choreography
+    - 20-implement-gd2-du-lieu-phan-tan.md#73-ba-loại-bước-và-thứ-tự
+    - 20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox
+    - 20-implement-gd2-du-lieu-phan-tan.md#75-idempotency-ở-ba-tầng
+    - 20-implement-gd2-du-lieu-phan-tan.md#76-sổ-cái-kép-double-entry
+    - 20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ
+    - 20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-7--p09-nhìn-qua-ranh-giới-saga
+    - 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-7
+    - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7
+    - 20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-1
+  8:
+    - 20-implement-gd2-du-lieu-phan-tan.md#tuần-89--kafka-sâu-lab-outbox--consumer-idempotent-p20
+    - 20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-9
+    - 20-implement-gd2-du-lieu-phan-tan.md#đọc-2
+    - 20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-2
+    - 20-implement-gd2-du-lieu-phan-tan.md#81-thứ-tự-chỉ-tồn-tại-trong-một-partition
+    - 20-implement-gd2-du-lieu-phan-tan.md#82-độ-bền-ghi
+    - 20-implement-gd2-du-lieu-phan-tan.md#83-ba-mức-giao-nhận
+    - 20-implement-gd2-du-lieu-phan-tan.md#84-consumer-group-rebalance-maxpollintervalms
+    - 20-implement-gd2-du-lieu-phan-tan.md#85-retry-dlt-backpressure
+    - 20-implement-gd2-du-lieu-phan-tan.md#86-stream-processing--đủ-để-nói-chuyện
+    - 20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9
+    - 20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-89--p20-consumer-chậm-và-rebalance-storm
+    - 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-89--v7-paymentwallet-có-kafka--saga-chủ-nhật-tuần-9-40-phút
+    - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89
+    - 20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-2
+    - 01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-
+    - 01-java-code-cham-duoi-tai-cao.md#7-bắt-chúng-trên-production--metric-nào-công-cụ-nào
+  10:
+    - 20-implement-gd2-du-lieu-phan-tan.md#tuần-10--đồng-thuận-khoá-phân-tán-đồng-hồ
+    - 20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-1
+    - 20-implement-gd2-du-lieu-phan-tan.md#đọc-3
+    - 20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-3
+    - 20-implement-gd2-du-lieu-phan-tan.md#101-đồng-hồ-nói-dối
+    - 20-implement-gd2-du-lieu-phan-tan.md#102-raft-trong-năm-dòng
+    - 20-implement-gd2-du-lieu-phan-tan.md#103-khoá-phân-tán-cho-hiệu-năng-hay-cho-đúng-đắn
+    - 20-implement-gd2-du-lieu-phan-tan.md#lab-10a--fencing-token-thứ-bảy-15-giờ
+    - 20-implement-gd2-du-lieu-phan-tan.md#lab-10b--job-scheduler-phân-tán-tùy-chọn-thứ-bảy-2-giờ
+    - 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-10
+    - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10
+    - 20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-3
+    - 20-implement-gd2-du-lieu-phan-tan.md#capstone-khởi-động--tuần-910
+    - 20-implement-gd2-du-lieu-phan-tan.md#mẫu-design-doc-my-workcapstonedesign-docmd
+    - 20-implement-gd2-du-lieu-phan-tan.md#phạm-vi-mvp-gợi-ý
+    - 20-implement-gd2-du-lieu-phan-tan.md#mốc-tuần-10--tiêu-chí-qua-giai-đoạn
+    - 20-implement-gd2-du-lieu-phan-tan.md#ranh-giới-trung-thực
+    - 00-lo-trinh-6-thang.md#dự-án-thực-hành-capstone
+
+sections:
+  # ---------- Ep00 · định hướng ----------
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu
+    title: "20 §0 · Trước khi bắt đầu"
+    points:
+      - {id: p2-why, text: "Giai đoạn 2 phân biệt senior với mid-level: dữ liệu chạy thế nào khi có nhiều node, nhiều service và mạng chập chờn", expect: ["senior", "network"]}
+      - {id: p2-entry, text: "Điều kiện vào: đã qua mốc tuần 4; lab 3A (lost update) và lab 2 (Lua nguyên tử) là nền bắt buộc vì giai đoạn 2 lặp lại hai ý đó ở quy mô nhiều service", expect: ["week-4 milestone", "3A", "lost update", "Lua"]}
+      - {id: p2-rhythm, text: "Nhịp tuần giữ như giai đoạn 1; hai khối hai tuần (5–6 và 8–9): tuần đầu dùng Thứ Bảy để dựng, tuần sau để đo và thử phá", expect: ["5–6", "8–9", "measure", "break"]}
+      - {id: p2-map, text: "Bản đồ 6 tuần: 5–6 replication, partitioning, consistent hashing (lab 5A, 5B, V6, đề KV + cache); 7 saga, outbox, idempotency, sổ cái kép (lab 7, payment + wallet); 8–9 Kafka (lab 8, P20, V7, ad click); 10 đồng thuận, khoá, đồng hồ (lab 10A, 10B, hotel + scheduler); capstone tuần 9–10", expect: ["Saga", "Kafka", "consensus", "V6", "V7", "Capstone"]}
+      - {id: p2-folders, text: "Thư mục bài làm my-work/: w5-6-hashing, w7-saga, w8-9-kafka-lab, w10-coordination, capstone/design-doc.md và adr/, drawings V6, V7", expect: ["w7-saga", "design-doc", "adr"]}
+      - {id: p2-kafka-nodocker, text: "Chạy Kafka không Docker: tải bản 4.1.2, kiểm sha512, format storage một lần; Kafka 4.x chỉ còn KRaft, không ZooKeeper; Postgres nhúng (embedded-postgres); có Docker thì Testcontainers", expect: ["KRaft", "ZooKeeper", "embedded", "Testcontainers"]}
+      - {id: p2-milestone-preview, text: "Xem trước mốc tuần 10: giải thích 6 chủ đề không cần tài liệu, lab 8 bảy test xanh, lab 7 có recovery, D20 trước/sau, V6 V7, 6 đề bấm giờ ≥ 7/10, design doc v1 + khung MVP", expect: ["seven", "D20", "design doc"]}
+      - {id: p2-videos, text: "Cách dùng bộ video: mỗi video một ý lớn kèm bài tập theo thứ tự file 20; dừng ở đếm ngược; thẻ chữ viết tắt; 'measured' là số đã chạy (Postgres 16.4, Kafka 4.1.2 thật), 'assumption' là đoán; tab Video có thời điểm và link mục nguồn", expect: ["measured", "assumption", "Video tab"]}
+  - src: 00-lo-trinh-6-thang.md#giai-đoạn-2--dữ-liệu-và-hệ-phân-tán-tuần-510
+    title: "00 · Giai đoạn 2"
+    points:
+      - {id: p2-roadmap, text: "Lộ trình 00: tuần 5–10 cùng chủ đề, đọc DDIA các chương replication, partitioning, the trouble with distributed systems, consistency and consensus; xem bài giảng Distributed Systems của Martin Kleppmann", expect: ["DDIA", "Kleppmann"]}
+
+  # ---------- Ep01 · replication ----------
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-6
+    title: "20 · Tuần 5–6: đầu ra"
+    points:
+      - {id: w56-outputs, text: "Cuối tuần 6: lab 5A vòng băm có vnode và hệ số nhân bản 3; lab 5B mô phỏng quorum, tái hiện đọc cũ khi R + W ≤ N; đề KV store và distributed cache; V6 ở L2 có đoạn × 10; bài nói 2 phút về consistent hashing", expect: ["5A", "5B", "V6", "key-value store", "distributed cache", "consistent hashing"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#đọc
+    title: "20 · Tuần 5–6: đọc"
+    points:
+      - {id: w56-reading, text: "Đọc: DDIA chương 5 (replication) và 6 (partitioning); Alex Xu Vol 1 chương 5, 6; bài báo Dynamo (2007) phần 4 — nguồn gốc sloppy quorum, hinted handoff; tuỳ chọn bài giảng của Kleppmann", expect: ["DDIA", "Alex Xu", "Dynamo", "Kleppmann"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication
+    title: "20 §5.1 · Ba mô hình replication"
+    points:
+      - {id: repl-models, text: "Ba mô hình: single-leader (không xung đột; Postgres, MySQL, Kafka partition; hợp sổ cái), multi-leader (xung đột, giải bằng LWW, merge, CRDT; offline-first, active-active), leaderless (version + read repair; Cassandra, DynamoDB; LWW làm mất một lệnh ghi)", expect: ["Single-leader", "Multi-leader", "Leaderless", "CRDT", "Cassandra", "ledger"]}
+      - {id: repl-sync, text: "Đồng bộ: commit chờ replica xác nhận, +1–2 ms cùng region, ~90 ms nếu replica ở Singapore còn leader ở Sydney, không mất dữ liệu đã commit; bất đồng bộ: nhanh nhưng failover có thể mất vài giây ghi cuối", expect: ["1–2 ms", "90 ms", "last few seconds"]}
+      - {id: repl-lag, text: "Ba dị thường khi đọc từ follower trễ: read-your-writes, monotonic reads (dữ liệu lùi về cũ), consistent prefix (câu trả lời trước câu hỏi); chữa read-your-writes như bài tập 3.4 giai đoạn 1", expect: ["Read-your-writes", "Monotonic", "Consistent prefix", "3.4"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+    title: "20 · Bài tập tuần 5–6"
+    points:
+      - {id: ex51, text: "BT 5.1: (a) đồng bộ Melbourne +12 ms, RPO = 0; (b) Singapore +90 ms, mất 1/3 ngân sách p99 300 ms; (c) đồng bộ khác AZ +1–2 ms + bất đồng bộ sang Melbourne: mất region thì mất vài giây ghi cuối, cần đối soát; ngân hàng chọn (c), (a) cho dữ liệu không được mất dòng nào", expect: ["RPO", "12 ms", "300 ms", "reconcile"]}
+      - {id: ex53, text: "BT 5.3: follower trễ 2 s được đẩy lên, sequence bigserial cấp lại ID đã dùng → hai giao dịch cùng ID, có thể lộ dữ liệu khách này cho khách khác (sự cố GitHub ở DDIA ch. 5); chống: ID không phụ thuộc DB (Snowflake, UUID), không tự failover sang replica trễ cho dữ liệu tiền, đối soát sau failover", expect: ["bigserial|big serial", "GitHub", "Snowflake", "reconcile"]}
+
+  # ---------- Ep02 · quorum ----------
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r
+    title: "20 §5.2 · Quorum N, W, R"
+    points:
+      - {id: quorum-formula, text: "N bản sao, W bản xác nhận ghi, R bản trả lời đọc; R + W > N thì tập đọc và tập ghi luôn giao nhau nên đọc thấy ít nhất một bản mới nhất; N=3, W=2, R=2 chịu được 1 node chết cho cả đọc lẫn ghi", expect: ["R \\+ W > N|R plus W greater than N", "overlap", "one dead node"]}
+      - {id: quorum-tuning, text: "Chọn W, R theo từng request (khung đề KV store): mặc định W=2, R=2, chậm hơn W=1; công thức R + W > N cho biết đánh đổi giữa độ trễ, độ mới và số node được chết", expect: ["W = 2, R = 2", "per request|each request", "stale"]}
+      - {id: quorum-not-linear, text: "Quorum không cho linearizability: hai lệnh ghi đồng thời giải bằng LWW theo đồng hồ thì một lệnh mất im lặng; ghi thất bại ở bước W vẫn để lại bản ghi trên 1 replica, không rollback; sloppy quorum + hinted handoff (Dynamo) tăng availability nhưng phá đảm bảo R + W > N", expect: ["linearizab", "silently", "no rollback", "hinted handoff"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#lab-5b--mô-phỏng-quorum-thứ-bảy-tuần-6
+    title: "20 · Lab 5B — Mô phỏng quorum"
+    points:
+      - {id: lab5b, text: "Lab 5B tự viết, không có lời giải: 3 replica (value, version); ghi tăng version, đủ W xác nhận; đọc R bản lấy version lớn nhất; bơm lỗi một replica chết, một replica chậm; test R=2,W=2 luôn mới nhất, R=1,W=1 đọc cũ, LWW đồng hồ lệch 20 ms mất một lệnh; read repair đo sau 1.000 lần đọc", expect: ["version", "dead|20 ms", "read repair|1,000"]}
+      - {id: lab5b-lww, text: "Lab 5B: hai lệnh ghi đồng thời, LWW theo đồng hồ lệch 20 ms → lệnh xảy ra sau bị mất, không báo lỗi; test phải chỉ ra lệnh nào", expect: ["20 ms", "lost", "which"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+    title: "20 · Bài tập tuần 5–6"
+    points:
+      - {id: ex52, text: "BT 5.2: (a) N=3,W=2,R=2 chịu 1 node chết cho ghi và đọc; (b) N=5,W=3,R=3 chịu 2; (c) W=1,R=1: R + W = 2 ≤ 3 có thể đọc cũ — chấp nhận cho lượt xem, trạng thái online, giỏ hàng; không chấp nhận cho số dư, tồn kho, hạn mức", expect: ["stale", "online status", "cart", "balance"]}
+
+  # ---------- Ep03 · partitioning ----------
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing
+    title: "20 §5.3 · Partitioning và rebalancing"
+    points:
+      - {id: part-methods, text: "Bốn cách chia: theo khoảng khoá (đọc theo khoảng tốt, dễ lệch khi khoá theo thời gian), hash mod N (đều, rebalance thảm hoạ: đo được 80% key chuyển khi 4 → 5 node), vòng băm + vnode (chỉ ~1/(N+1) key chuyển: 18,9% với 100 vnode), số partition cố định (Kafka, Redis Cluster 16.384 slot, Elasticsearch; chuyển nguyên partition, số partition chọn trước)", expect: ["Key range", "80%", "18.9%", "16,384"]}
+      - {id: part-modn, text: "Vì sao hash mod N chuyển ~80% key khi 4 → 5 node: key chỉ ở yên khi hash mod 4 = hash mod 5, xảy ra với 1/5 số key; vòng băm chỉ chuyển phần của node mới", expect: ["mod 4", "mod 5", "80%"]}
+      - {id: part-secondary, text: "Index phụ khi đã shard: local (mỗi shard index dữ liệu của mình, truy vấn phải hỏi mọi shard rồi gộp: scatter-gather) hoặc global (index tự shard theo giá trị; đọc nhanh nhưng cập nhật thường bất đồng bộ)", expect: ["scatter-gather", "Global index", "asynchronously"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+    title: "20 · Bài tập tuần 5–6"
+    points:
+      - {id: ex54, text: "BT 5.4: merchant chiếm 30% giao dịch → shard của nó gánh 30% tải ghi và tranh khoá một dòng số dư; sửa theo thứ tự: sổ cái append-only (số dư tính từ bút toán), salting thành N tài khoản con (phải ≥ 16 lần số partition mới đều), gom bút toán theo lô vài trăm ms; đánh đổi: số dư không còn là một con số đọc trực tiếp", expect: ["30%", "Append-only", "16", "batches"]}
+      - {id: ex55, text: "BT 5.5: tìm theo mã tham chiếu trên mọi tài khoản: index local + scatter-gather (latency bằng shard chậm nhất, tải nhân số shard, chấp nhận nếu hiếm) hoặc index global (bảng reference → account, txn shard theo reference, hoặc OpenSearch qua CDC; cập nhật bất đồng bộ); tổng đài ngân hàng: global qua CDC + thông báo giao dịch dưới 1 phút có thể chưa hiện", expect: ["scatter-gather", "CDC", "1 minute"]}
+
+  # ---------- Ep04 · consistent hashing ----------
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5
+    title: "20 · Lab 5A — Vòng băm có virtual node"
+    points:
+      - {id: lab5a-ring, text: "Lab 5A bước 1: ConsistentHash với add, remove, nodeFor, tham số số vnode; TreeMap<Long, String> và tailMap (hoặc ceilingEntry); hash = MD5 nên chạy lại ra đúng số", expect: ["TreeMap", "tailMap", "ceilingEntry|CeilingEntry", "MD5"]}
+      - {id: lab5a-numbers, text: "Lab 5A đo 1 triệu key, 4 → 5 node: mod N 80%; vòng 1 vnode lệch 6,77 lần, node bận nhất 40,7%, chỉ 9,1% key chuyển; 10 vnode 2,20 / 16,4%; 100 vnode 1,11 / 18,9%; 200 vnode 1,19 / 19,8%", expect: ["80.0%", "6.77", "40.7%", "18.9%", "1.19"]}
+      - {id: lab5a-lessons, text: "Hai điều đọc ra: vnode tồn tại để làm đều (1 vnode: 40,7%, gấp 1,6 lần lý tưởng, node mới chỉ nhận 9,1%); 200 vnode lệch hơn 100 — với hàm băm cố định, nhiều vnode hơn chỉ đều hơn về kỳ vọng", expect: ["40.7%", "9.1%", "on average|expectation"]}
+      - {id: lab5a-rf3, text: "Lab 5A bước 3: hệ số nhân bản 3, nodesFor(key, 3) đi theo chiều kim đồng hồ lấy 3 node vật lý khác nhau (bỏ vnode trùng node); test: xoá một node chỉ đổi tập replica của các key node đó đang giữ", expect: ["nodesFor", "DIFFERENT physical|different physical", "removing a node"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+    title: "20 · Bài tập tuần 5–6"
+    points:
+      - {id: ex56, text: "BT 5.6: mod N ~80% (đo 80,0%); vòng 100 vnode ~20% (đo 18,9%); 256 partition cố định: node mới nhận ~51 partition (256 ÷ 5) ≈ 20% key nhưng chuyển nguyên partition nên dễ quản lý, theo dõi, giới hạn băng thông; Kafka, Redis Cluster, Elasticsearch chọn cách này; đánh đổi: số partition phải đủ lớn từ đầu", expect: ["80.0%", "18.9%", "51", "Kafka", "day one"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút
+    title: "20 · Bài nói 2 phút tuần 5–6"
+    points:
+      - {id: talk-w56, text: "Bài nói 'How does consistent hashing reduce data movement when you add a node?': mod N chuyển ~80% (số đo), vòng băm chỉ chuyển phần của node mới (~1/(N+1)), vnode để chia đều (1 vnode lệch 6,8 lần), đánh đổi: mất truy vấn theo khoảng, phải quản lý bản đồ vòng", expect: ["80%", "one over N plus one", "6.8", "range queries"]}
+
+  # ---------- Ep05 · đề KV store, distributed cache ----------
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+    title: "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    points:
+      - {id: timed-framework, text: "Khung 45 phút (file 00): làm rõ yêu cầu 5–7 phút, ước lượng 3–5, API + data 5–8, tổng thể ~10, đào sâu 15–20 (2–3 điểm, mỗi điểm 2 phương án), tổng kết 3–5 kèm × 10", expect: ["5–7", "15–20", "two or three|2–3"]}
+      - {id: kv-frame, text: "BT 5.7 KV store (1/2): vòng băm + vnode (mất truy vấn theo khoảng); N=3 mỗi bản một AZ, gấp 3 dung lượng; quorum W/R chỉnh theo request (mặc định 2/2 chậm hơn W=1); xung đột bằng vector clock trả mọi bản cho client hoặc LWW nếu chấp nhận mất", expect: ["virtual nodes", "N = 3", "per request", "vector clocks"]}
+      - {id: kv-frame-2, text: "BT 5.7 KV store (2/2): sloppy quorum + hinted handoff (phá R + W > N lúc sự cố); read repair + anti-entropy bằng Merkle tree; gossip + heartbeat hội tụ vài giây; LSM commit log → memtable → SSTable + bloom filter, compaction tốn I/O", expect: ["hinted handoff", "Merkle", "Gossip", "memtable", "compaction"]}
+      - {id: cache-frame, text: "BT 5.8 distributed cache: Redis Cluster 16.384 hash slot chia cho các master, mỗi master một replica khác AZ; client biết bản đồ slot, gọi thẳng node, redirect MOVED khi bản đồ đổi; resharding = chuyển slot", expect: ["16,384", "MOVED", "slot"]}
+      - {id: cache-size, text: "Ước lượng cache trước khi vẽ (giả định nói to): 300k GET/s, một node Redis ~100k thao tác/s (con số nhẩm giai đoạn 1, một core) → 3 master ở 100%, chạy ≤ 50% → 6 master + replica = 12 node; 10 triệu key × 1 KB ≈ 10 GB", expect: ["300,000", "100k", "6 masters", "10 GB"]}
+      - {id: cache-deep, text: "BT 5.8 ba câu đào sâu: hot key (L1 Caffeine trước Redis hoặc nhân bản key), stampede (lab 4 giai đoạn 1), failover mất ghi (Redis nhân bản bất đồng bộ nên cache không bao giờ là nơi lưu chính dữ liệu tiền); thao tác nhiều khoá cần cùng slot: hash tag {account:42}", expect: ["Hot key", "Stampede", "asynchronous", "hash tag"]}
+
+  # ---------- Ep06 · V6 ----------
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-56--v6-mini-core-transfer-ở-l2-chủ-nhật-tuần-6-30-phút
+    title: "20 · Track S tuần 5–6 — V6"
+    points:
+      - {id: v6-numbers, text: "V6 = vẽ lại V2 cho 1M users: ~12.000 CCU, ~2.000 RPS ngày lương, ghi ~150/giây", expect: ["12,000", "2,000", "150"]}
+      - {id: x10-frame, text: "Đáp án × 10 của V6: số mới 20.000 RPS, ghi 1.500/s, 120k CCU; vỡ trước: connection tới primary 80 pod × 10 = 800, rồi CPU primary; sửa: PgBouncer transaction pooling, lịch sử sang read model CQRS qua CDC (trễ vài trăm ms, thêm hệ thống); vỡ tiếp: sổ cái 650 GB/năm → partition theo tháng; chưa shard theo account_id vì ghi còn dư, shard làm chuyển tiền thành saga", expect: ["20,000", "800", "PgBouncer", "650 GB", "saga"]}
+  - src: 02-ve-he-thong-100k-1m-10m.md#33-l2--1m-users-tách-đọc-tách-việc-chậm
+    title: "02 §3.3 · L2 — 1M users"
+    points:
+      - {id: v6-diagram, text: "Sơ đồ L2: CDN, WAF + ALB, API gateway/BFF (auth, rate limit), Identity (Keycloak/OIDC), core app monolith tách module 3–10 pod autoscale, Redis cluster cache-aside, Postgres primary + 2 read replica bất đồng bộ, outbox relay → Kafka/SQS → Notification service → FCM, APNs, SMS", expect: ["Redis cluster", "Read replica", "outbox relay", "Notification service"]}
+      - {id: v6-decisions, text: "Mỗi hộp một con số: read replica vì đọc ~90% của 2.000 RPS (đánh đổi lag → read-your-writes); cache-aside hit 90% → DB thấy 1/10 (số dư dùng để quyết định vẫn đọc DB có khoá); outbox vì SMS 200–2.000 ms so với 300 ms p99; tách Notification trước (tải, lỗi khác, ít ràng buộc); API gateway thêm 1–3 ms, cần HA", expect: ["90%", "read-your-writes", "200–2,000 ms", "Notification", "1–3 ms"]}
+  - src: 02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời
+    title: "02 §5 · Câu hỏi × 10"
+    points:
+      - {id: x10-five, text: "Khung 5 câu trả lời × 10: số mới, vỡ trước (vì con số nào), sửa và đánh đổi, vỡ tiếp, chưa làm gì và vì sao (chỗ ghi điểm senior)", expect: ["New numbers", "Breaks first", "Not yet", "senior"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-56
+    title: "20 · Track P tuần 5–6"
+    points:
+      - {id: w56-trackp, text: "Track P tuần 5–6: không có anti-pattern mới; 30 phút Thứ Sáu chạy checklist 01 §6 trên code lab giai đoạn 1 của chính mình (rate limiter, db-lab, cache-lab), mỗi dòng 'có' ghi vào sổ lỗi kèm cách sửa; tập dượt cho review capstone tuần 15–16", expect: ["checklist", "error log", "15"]}
+  - src: 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-10
+    title: "20 · Track S tuần 10"
+    points:
+      - {id: v6-update, text: "Tuần 10 mở lại V6, thay số giả định bằng số đo lab 8: độ trễ commit → consumer (chu kỳ poll của relay chiếm phần lớn), số message trùng mỗi lần relay restart; ghi 'đã đo / còn giả định' cạnh mỗi con số", expect: ["lab-8|lab 8", "measured", "assumed"]}

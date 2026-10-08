@@ -1,0 +1,4 @@
+# Giá trị chung cho mọi kịch bản của bộ video giai đoạn 2 (tools/lesson_video gộp vào từng kịch bản).
+series: "Java System Design · Phase 2"
+speakers:
+  emma: {name: Emma, role: narrator, color: "#A23B72", voice: {kokoro: af_heart}}

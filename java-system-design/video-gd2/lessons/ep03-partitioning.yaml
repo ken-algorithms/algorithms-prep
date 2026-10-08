@@ -1,0 +1,168 @@
+id: ep03-partitioning
+ep: 3
+week: 5
+tag: "EP03 · WEEKS 5–6"
+title: "Partitioning: ranges, hashes, hot spots, secondary indexes"
+subtitle: "Four ways to split data, what a secondary index costs, a hot merchant, and a lookup across shards"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · §5.3 partitioning and rebalancing; exercises 5.4 (hot account) and 5.5 (lookup by reference)"}
+      - {t: "Weeks 5–6 · Monday of week 6: DDIA ch. 6"}
+    lines:
+      - emma: "Episode three: partitioning, also called sharding. Replication copies the same data to several machines. Partitioning splits the data, so each machine holds only a part of it."
+      - emma: "We'll compare four ways to split, see what a secondary index costs once data is split, and solve two problems from a real bank: a merchant that is too hot, and a lookup that crosses every shard."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: CDC, full: "change data capture", vi: "đọc thay đổi từ log của DB để phát sự kiện"}
+      - {abbr: DDIA, full: "Designing Data-Intensive Applications", vi: "sách của Martin Kleppmann"}
+    lines:
+      - emma: "DB is the database and ID an identifier. CDC is change data capture: reading changes from the database log and publishing them as events."
+        focus: 2
+      - emma: "And DDIA is Kleppmann's book, where chapter six is this episode."
+        focus: 3
+
+  - kind: table
+    chapter: "Four ways to split"
+    heading: "5.3 · Four ways to split data"
+    columns: ["Split by", "Range queries", "Spread", "Rebalancing"]
+    widths: [2.2, 1.4, 2.4, 3.2]
+    build: true
+    points: [part-methods]
+    rows:
+      - ["Key range", "Good", "Skews easily: time-based keys pile into the newest partition", "Split or merge partitions"]
+      - ["hash(key) mod N", "Lost", "Even", "A disaster: measured 80% of keys move when 4 nodes become 5"]
+      - ["Hash ring + virtual nodes", "Lost", "Even with enough vnodes", "Only ~1/(N+1) of keys move: measured 18.9% with 100 vnodes"]
+      - ["Fixed number of partitions", "Lost", "Even", "Whole partitions move between nodes; the count is chosen up front"]
+    note: "Fixed partitions: Kafka partitions, Redis Cluster's 16,384 slots, Elasticsearch shards."
+    lines:
+      - emma: "Four ways to split. By key range: account numbers 1 to 1 million on one node, the next million on the next. Range queries stay fast, but the spread skews. Keys based on time all pile into the newest partition."
+        focus: 0
+      - emma: "Hash the key, modulo the number of nodes. The spread is even, but range queries are gone, and rebalancing is a disaster: going from four nodes to five moved 80% of the keys, measured on a million keys."
+        focus: 1
+      - emma: "A hash ring with virtual nodes. Also even, also no ranges, but adding a node moves only about one over N plus one of the keys. With a hundred virtual nodes, 18.9% moved, close to the ideal 20."
+        say: "A hash ring with virtual nodes. Also even, also no ranges, but adding a node moves only about one over N plus one of the keys. With a hundred virtual nodes, eighteen point nine percent moved, close to the ideal twenty."
+        focus: 2
+      - emma: "And a fixed number of partitions, as in Kafka, Redis Cluster with its 16,384 slots, or Elasticsearch. You move whole partitions between nodes, which is easy to manage, but the number of partitions must be chosen up front."
+        focus: 3
+
+  - kind: table
+    heading: "Why hash mod N moves 80% of the keys"
+    sub: "A key stays only if hash mod 4 equals hash mod 5 — that happens for 1 key in 5"
+    columns: ["hash(key)", "mod 4 (4 nodes)", "mod 5 (5 nodes)", "Moves?"]
+    widths: [1.6, 2.0, 2.0, 1.6]
+    mono: [0, 1, 2]
+    build: true
+    points: [part-modn]
+    rows:
+      - ["12", "node 0", "node 2", "yes"]
+      - ["13", "node 1", "node 3", "yes"]
+      - ["17", "node 1", "node 2", "yes"]
+      - ["20", "node 0", "node 0", "no"]
+      - ["21", "node 1", "node 1", "no"]
+    note: "Over many keys: 4 of every 20 hash values agree → 20% stay, 80% move. A ring moves only the new node's share."
+    lines:
+      - emma: "Why does modulo move so much? Take a few hash values. Twelve is on node zero with four nodes, but on node two with five. Thirteen moves too, and so does seventeen."
+        focus: 2
+      - emma: "Twenty and twenty-one stay, because their remainders happen to agree. Over many keys, only four hash values in every twenty agree, so 20% stay and 80% move."
+        focus: 4
+      - emma: "A hash ring avoids this. The new node takes over only the arcs just before its own positions on the ring, so only its fair share of keys moves, about one fifth here. That's the next episode's lab."
+        say: "A hash ring avoids this. The new node takes over only the arcs just before its own positions on the ring, so only its fair share of keys moves, about one fifth here. That's the next episode's lab."
+
+  - kind: compare
+    chapter: "Secondary indexes"
+    heading: "A secondary index after sharding: local or global?"
+    sub: "Example: transactions are sharded by account, but you search by another column"
+    points: [part-secondary]
+    items:
+      - {title: "Local index", lines: ["Each shard indexes only its own data", "A query by the index asks every shard and merges: scatter-gather", "Writes stay simple: one shard"]}
+      - {title: "Global index", lines: ["The index is sharded by the indexed value", "A read goes to one place: fast", "But the index is usually updated asynchronously"]}
+    lines:
+      - emma: "Once data is sharded, secondary indexes get expensive. Say transactions are sharded by account, and you want to search by another column."
+      - emma: "With a local index, each shard indexes only its own data. Writes stay simple, but a query by that column must ask every shard and merge the results. That's called scatter-gather."
+        focus: 0
+      - emma: "With a global index, the index itself is sharded by the value being indexed. A read goes to exactly one place, but keeping the index up to date usually happens asynchronously, so it lags behind."
+        focus: 1
+
+  - kind: exercise
+    chapter: "Exercise 5.4: a hot merchant"
+    n: "5.4"
+    q: "The transaction table is sharded by hash(account_id). One large merchant accounts for 30% of all transactions. What goes wrong, and how do you fix it?"
+    items:
+      - {t: "Think about the shard that holds the merchant"}
+      - {t: "Think about the merchant's balance row"}
+    lines:
+      - emma: "Exercise 5.4. The transaction table is sharded by a hash of the account ID. One large merchant accounts for 30% of all transactions. What goes wrong, and how do you fix it?"
+        say: "Exercise five point four. The transaction table is sharded by a hash of the account ID. One large merchant accounts for thirty percent of all transactions. What goes wrong, and how do you fix it?"
+      - wait: 6
+
+  - kind: flow
+    heading: "Answer 5.4 — three fixes, in this order"
+    sub: "The problem: one shard takes 30% of the writes, and every transfer fights for one balance row"
+    points: [ex54]
+    items:
+      - {t: "1 · Append-only ledger", s: "the balance is the sum of entries: no balance row to fight over", f: "doc 06, part 2"}
+      - {t: "2 · Salting", s: "split the merchant into N sub-accounts; balance = sum", f: "salt ≥ 16 × partitions"}
+      - {t: "3 · Short batches", s: "group the hot account's entries every few hundred ms"}
+    note: "The price of 2 and 3: the merchant's balance is no longer one number you can read directly."
+    lines:
+      - emma: "The shard holding that merchant takes 30% of the write load, and every transfer competes for the lock on one balance row."
+        focus: 0
+      - emma: "Fix one: an append-only ledger. The balance is computed from the entries, so there is no single balance row to fight over. That's the redesign in document six, part two."
+        focus: 0
+      - emma: "Fix two: salting. Split the merchant into N sub-accounts, spread the writes across them, and make the balance their sum. The measurements in the Katalon system design notes show you need at least sixteen times as many salts as partitions before it spreads evenly."
+        focus: 1
+      - emma: "Fix three: collect the hot account's entries into short batches, every few hundred milliseconds. The price of fixes two and three: the merchant's balance is no longer a single number you can read directly."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 5.5: lookup by reference"
+    n: "5.5"
+    q: "Data is sharded by account_id. The call center needs “find the transaction by the partner bank's reference number”, across all accounts. Give two options and their trade-offs."
+    items:
+      - {t: "The reference is not the shard key"}
+      - {t: "Searches are rare, but the answer must be correct"}
+    lines:
+      - emma: "Exercise 5.5. Data is sharded by account ID. The call center needs to find a transaction by the partner bank's reference number, across all accounts. Give two options and their trade-offs."
+        say: "Exercise five point five. Data is sharded by account ID. The call center needs to find a transaction by the partner bank's reference number, across all accounts. Give two options and their trade-offs."
+      - wait: 6
+
+  - kind: compare
+    heading: "Answer 5.5"
+    points: [ex55]
+    items:
+      - {title: "Local index + scatter-gather", lines: ["Ask every shard", "Latency = the slowest shard", "Load multiplies by the number of shards", "Fine if it's rare, like a call center"]}
+      - {title: "Global index", tone: ok, lines: ["Table reference → (account_id, txn_id), sharded by reference — or OpenSearch fed by CDC", "One place to read", "Updated asynchronously: a new transaction may not be findable for a few seconds"]}
+    note: "For a bank's call center: a global index via CDC, plus the notice “transactions under 1 minute old may not show yet”."
+    lines:
+      - emma: "Option one: a local index and scatter-gather. Ask every shard. The latency is the slowest shard, and the load multiplies by the number of shards. For something rare, like a call center, that can be acceptable."
+        focus: 0
+      - emma: "Option two: a global index. A table from reference to account and transaction, sharded by the reference, or a search engine like OpenSearch fed by change data capture. You read from one place, but updates are asynchronous, so a brand-new transaction may not be findable for a few seconds."
+        focus: 1
+      - emma: "For a bank's call center, I'd pick the global index via CDC, and show a notice that transactions under one minute old may not appear yet."
+        focus: 1
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    items:
+      - {t: "“I'd shard by account_id, because almost every query is per account.”"}
+      - {t: "“Lookups by other fields go through a global index fed by CDC, and we accept a few seconds of lag.”"}
+      - {t: "“For a hot merchant I'd salt the account, and I'd say upfront that its balance becomes a sum.”"}
+    lines:
+      - emma: "In an interview: I'd shard by account ID, because almost every query is per account."
+        focus: 0
+      - emma: "Lookups by other fields go through a global index fed by change data capture, and we accept a few seconds of lag."
+        focus: 1
+      - emma: "And for a hot merchant, I'd salt the account, and say upfront that its balance becomes a sum. Next episode: consistent hashing, hands on."
+        focus: 2
