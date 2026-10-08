@@ -61,7 +61,7 @@ những câu **đổi kiến trúc** ở quy mô này (khác bộ 6 câu của [
 | 3 | Client ở một region hay khắp thế giới? | Khắp thế giới → **cell theo region**, luật dữ liệu theo vùng (khách EU ở EU) |
 | 4 | Số liệu để làm dashboard hay để tính tiền? | Dashboard: số tạm từ stream là đủ. Tính tiền: chỉ dùng số **đã đối soát** từ batch |
 | 5 | Có cần breakdown theo từng key không, bao nhiêu key? | Có → cần OLAP cột (ClickHouse); xem [§3.2](#32-cardinality-nổ-hay-không-là-tương-đối) |
-| 6 | Giữ raw bao lâu, có phải audit từng event không? | Ở 100M, raw là khoản tiền lớn nhất; định dạng và thời gian giữ quyết định chi phí |
+| 6 | Giữ raw bao lâu, có phải audit từng event không? | Ở 100M, lưu và chép raw là một trong ba khoản tiền lớn nhất (cùng CPU mỗi request, [§6.3](#63-ba-thứ-phải-tính-tiền-ra-được)); định dạng và thời gian giữ quyết định chi phí |
 
 > **Câu nên nói:** *"Ở 10 triệu request/phút, tôi vẫn hỏi đơn vị tải trước, vì 20 item hay 200 item mỗi
 > request là chênh nhau một bậc độ lớn. Và tôi hỏi số này để làm dashboard hay để tính tiền, vì hai mục
