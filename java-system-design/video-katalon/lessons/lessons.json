@@ -3,6 +3,158 @@
  "note": "Sinh bởi tools/lesson_video từ các file .yaml cùng thư mục — sửa kịch bản rồi chạy lại `python -m lesson_video build`, không sửa tay file này hay file .mp4.",
  "lessons": [
   {
+   "id": "k01-baseline-10k",
+   "ep": 1,
+   "code": "K01",
+   "week": 4,
+   "title": "The 10k baseline in three minutes",
+   "subtitle": "Problem 04 as a mock answer: clarify, estimate, three principles, and right-sizing",
+   "file": "k01-baseline-10k.mp4",
+   "poster": "k01-baseline-10k.jpg",
+   "source": "k01-baseline-10k.yaml",
+   "duration": 332.1,
+   "bytes": 4692352,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 14.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 24.7,
+     "title": "Clarify"
+    },
+    {
+     "t": 56.6,
+     "title": "Four holes"
+    },
+    {
+     "t": 91.2,
+     "title": "Estimate"
+    },
+    {
+     "t": 120.7,
+     "title": "Design"
+    },
+    {
+     "t": 152.6,
+     "title": "Three principles"
+    },
+    {
+     "t": 193.8,
+     "title": "Any range"
+    },
+    {
+     "t": 226.3,
+     "title": "Right-sizing"
+    },
+    {
+     "t": 269.1,
+     "title": "Four sentences"
+    },
+    {
+     "t": 293.4,
+     "title": "Built on"
+    },
+    {
+     "t": 320.4,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#0-đề-bài-và-những-gì-đề-bài-không-nói",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#1-vì-sao-câu-trả-lời-cũ-bị-bác--4-lỗ-hổng",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#2-trước-khi-vẽ-6-câu-hỏi-phải-hỏi-interviewer",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#3-ước-lượng-tải--con-số-quyết-định-kiến-trúc",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#65-late-arriving-data-và-watermark",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#7-chọn-tech-stack--3-phương-án-và-ngưỡng-chuyển",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút"
+   ],
+   "points": [
+    {
+     "id": "b-clarify",
+     "t": 24.7,
+     "text": "Hỏi trước khi vẽ: bao nhiêu cặp/request (10 → 1,7k event/s; 1.000 → 167k event/s); tổng hay theo từng key (cardinality explosion); dashboard hay billing (billing cần chính xác, raw, idempotent, đối soát)",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#2-trước-khi-vẽ-6-câu-hỏi-phải-hỏi-interviewer",
+     "section": "04 · Câu hỏi trước khi vẽ"
+    },
+    {
+     "id": "b-holes",
+     "t": 56.6,
+     "text": "4 lỗ hổng: counter lũy kế không trả lời được khoảng bất kỳ; lock ở write path serialize mọi ghi trên một hot row; counter là nguồn sự thật duy nhất nên retry đếm trùng, không backfill/đối soát; bucket theo thời điểm insert làm lệch khung giờ",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#1-vì-sao-câu-trả-lời-cũ-bị-bác--4-lỗ-hổng",
+     "section": "04 · 4 lỗ hổng"
+    },
+    {
+     "id": "b-estimate",
+     "t": 91.2,
+     "text": "167 req/s × 20 = 3.333 event/s; 288 triệu event/ngày, ~17 GB raw/ngày → không bao giờ quét raw; '24h qua' chỉ đọc 96 dòng (24 bucket giờ × 4 outcome)",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#3-ước-lượng-tải--con-số-quyết-định-kiến-trúc",
+     "section": "04 · Ước lượng tải"
+    },
+    {
+     "id": "b-design",
+     "t": 120.7,
+     "text": "Tầng 1: API validate, phân loại, append raw theo lô không lock, trả 202; raw_events là nguồn sự thật 7 ngày; rollup bất đồng bộ theo event time agg_1m → agg_1h → agg_1d; query phân rã khoảng, cộng bucket, không chạm raw",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng",
+     "section": "04 · Design tầng 1"
+    },
+    {
+     "id": "b-principles",
+     "t": 152.6,
+     "text": "Ba nguyên tắc: ghi tách khỏi tính; đếm theo bucket thời gian chứ không một counter tổng; raw là sự thật, rollup là dẫn xuất (tính lại, backfill, đối soát)",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng",
+     "section": "04 · Design tầng 1"
+    },
+    {
+     "id": "b-details",
+     "t": 152.6,
+     "text": "Chi tiết ghi điểm: event time + cửa sổ tính lại 30 phút cho event trễ; lưu count không lưu tỉ lệ; idempotency ở raw bằng event_id + ON CONFLICT DO NOTHING; job đối soát mỗi giờ so với COUNT(*) trên raw",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật",
+     "section": "04 · Idempotency ở tầng raw"
+    },
+    {
+     "id": "b-decompose",
+     "t": 193.8,
+     "text": "Phân rã tham lam (khối thô nhất còn vừa): 03:17:30 → 11:42:10 ba ngày sau = 2 lần đọc raw + 84 dòng phút + 31 dòng giờ + 2 dòng ngày ≈ 120 dòng, thay vì quét 864 triệu dòng raw; truy vấn 1 năm tối đa ~530 dòng, chi phí bị chặn",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ",
+     "section": "04 · Phân rã khoảng"
+    },
+    {
+     "id": "b-rightsize",
+     "t": 226.3,
+     "text": "3,3k event/s: một node Postgres + TimescaleDB đủ (~1/10 khả năng); không Kafka (gấp 4 hệ thống phải vận hành). Ngưỡng: cache khi p99 đọc 24h > 50 ms hoặc > 1.000 đọc/s; Kafka + stream + kho cột khi > 50k event/s, cardinality theo key > 10k, replay > 7 ngày, hoặc nhiều consumer",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#7-chọn-tech-stack--3-phương-án-và-ngưỡng-chuyển",
+     "section": "04 · Ngưỡng chuyển stack"
+    },
+    {
+     "id": "b-four",
+     "t": 269.1,
+     "text": "Bốn câu: ghi tách khỏi tính (append, 202, async); đếm theo bucket thời gian; raw là sự thật, rollup là dẫn xuất; tải này chưa cần Kafka và đây là ngưỡng chuyển",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút",
+     "section": "04 · Bốn câu nếu chỉ nhớ bốn câu"
+    },
+    {
+     "id": "b-built-on",
+     "t": 293.4,
+     "text": "K01 dựa trên giai đoạn 1: ước lượng (Ep01–Ep03), luật của thang (Ep06), quy tắc idempotency key (tuần 2), cache version-bump và single-flight (tuần 4)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  },
+  {
    "id": "k02-ladder-x10-x100",
    "ep": 2,
    "code": "K02",
