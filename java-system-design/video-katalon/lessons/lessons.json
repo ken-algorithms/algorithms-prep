@@ -3,6 +3,118 @@
  "note": "Sinh bởi tools/lesson_video từ các file .yaml cùng thư mục — sửa kịch bản rồi chạy lại `python -m lesson_video build`, không sửa tay file này hay file .mp4.",
  "lessons": [
   {
+   "id": "k00-interlude-orientation",
+   "ep": 0,
+   "code": "K00",
+   "week": 4,
+   "title": "Katalon interlude: the question after 10k a minute",
+   "subtitle": "Families A and C, the follow-up “what if it's 10 million? 100 million?”, and how to practice",
+   "file": "k00-interlude-orientation.mp4",
+   "poster": "k00-interlude-orientation.jpg",
+   "source": "k00-interlude-orientation.yaml",
+   "duration": 284.1,
+   "bytes": 4051608,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 25.5,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 38.6,
+     "title": "The question"
+    },
+    {
+     "t": 81.5,
+     "title": "Five axes"
+    },
+    {
+     "t": 129.6,
+     "title": "Families A and C"
+    },
+    {
+     "t": 180.6,
+     "title": "Three loads"
+    },
+    {
+     "t": 209.1,
+     "title": "Eight videos"
+    },
+    {
+     "t": 231.8,
+     "title": "How to practice"
+    },
+    {
+     "t": 269.4,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/README.md#1-nhận-họ-bài-trong-30-giây--5-trục-phân-loại",
+    "../katalon-prep/katalon-system-design/README.md#2-bảy-họ-bài--chữ-ký-nhận-dạng-lõi-giải-pháp-bẫy-kinh-điển",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#0-đọc-trong-60-giây"
+   ],
+   "points": [
+    {
+     "id": "k-question",
+     "t": 38.6,
+     "text": "Đề hỏi thật ở vòng Principal: ~10.000 request/phút, mỗi request một list key-value true/false, có fake key; bất kỳ lúc nào hỏi được số true/false/fake trong 24 giờ hoặc khoảng bất kỳ. Câu trả lời tại chỗ (một counter, lock, đọc bản ghi cuối) bị bác; follow-up: 10M? 100M?",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#0-đề-bài-và-những-gì-đề-bài-không-nói",
+     "section": "04 · Đề bài"
+    },
+    {
+     "id": "k-axes",
+     "t": 81.5,
+     "text": "5 trục nhận họ bài chạy trên đề 10k/phút: ghi ≫ đọc (ghi bất đồng bộ, 202); đọc theo khoảng (bucket + rollup); không tranh tài nguyên; chính xác (raw, idempotent, đối soát); không đọc–tính–ghi (không khoá)",
+     "src": "../katalon-prep/katalon-system-design/README.md#1-nhận-họ-bài-trong-30-giây--5-trục-phân-loại",
+     "section": "README · 5 trục phân loại"
+    },
+    {
+     "id": "k-family-a",
+     "t": 129.6,
+     "text": "Họ A (đếm & tổng hợp theo thời gian): ghi nặng, đọc theo khoảng bất kỳ; bucket thời gian + rollup phút → giờ → ngày + phân rã khoảng; bẫy: cardinality explosion, lưu tỉ lệ, bucket theo ingest time",
+     "src": "../katalon-prep/katalon-system-design/README.md#2-bảy-họ-bài--chữ-ký-nhận-dạng-lõi-giải-pháp-bẫy-kinh-điển",
+     "section": "README · Bảy họ bài"
+    },
+    {
+     "id": "k-family-c",
+     "t": 129.6,
+     "text": "Họ C (thu thập luồng sự kiện): nguồn không kiểm soát; backpressure + at-least-once + sink idempotent + partition key giữ thứ tự đúng phạm vi; bẫy: hàng đợi vô hạn, partition nóng, PII rời client trước khi redact",
+     "src": "../katalon-prep/katalon-system-design/README.md#2-bảy-họ-bài--chữ-ký-nhận-dạng-lõi-giải-pháp-bẫy-kinh-điển",
+     "section": "README · Bảy họ bài"
+    },
+    {
+     "id": "k-ladder-preview",
+     "t": 180.6,
+     "text": "Cùng hợp đồng, ba mức tải (20 cặp/request): 10k/phút = 3.333 event/s; 10M/phút = 3,3 triệu event/s (× 1.000, 166.667 req/s); 100M/phút = 33 triệu event/s (× 10.000, 1,67 triệu req/s); bảng trả lời truy vấn không lớn thêm",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#0-đọc-trong-60-giây",
+     "section": "07 · Đọc trong 60 giây"
+    },
+    {
+     "id": "k-plan",
+     "t": 209.1,
+     "text": "Thứ tự xem: K00–K02 sau giai đoạn 1 (ước lượng, × 10, Postgres); K03–K07 sau giai đoạn 2 (Kafka, stream window, fencing)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "k-practice",
+     "t": 231.8,
+     "text": "Cách luyện: Tom hỏi thì dừng và trả lời thành tiếng 2 phút có số; nói giả định trước con số; trả lời × 10 bằng năm câu; gọi tên bài học gốc (slide Built on)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#0-đọc-trong-60-giây",
+     "section": "07 · Đọc trong 60 giây"
+    }
+   ]
+  },
+  {
    "id": "k01-baseline-10k",
    "ep": 1,
    "code": "K01",
