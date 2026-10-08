@@ -200,6 +200,169 @@
    ]
   },
   {
+   "id": "ep01-estimation-toolkit",
+   "ep": 1,
+   "week": 1,
+   "title": "The estimation toolkit",
+   "subtitle": "Conversions, availability nines, latency numbers, and Little's Law",
+   "file": "ep01-estimation-toolkit.mp4",
+   "poster": "ep01-estimation-toolkit.jpg",
+   "source": "ep01-estimation-toolkit.yaml",
+   "duration": 540.9,
+   "bytes": 7743376,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (narrator) — Kokoro am_michael"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 18.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 98.3,
+     "title": "This week"
+    },
+    {
+     "t": 160.7,
+     "title": "Conversions"
+    },
+    {
+     "t": 260.8,
+     "title": "Latency numbers"
+    },
+    {
+     "t": 385.7,
+     "title": "Little's Law"
+    },
+    {
+     "t": 487.9,
+     "title": "Interview line and recap"
+    }
+   ],
+   "covers": [
+    "10-implement-gd1-nen-tang.md#tuần-1--khung-tư-duy-ước-lượng-và-chi-phí-của-một-request",
+    "10-implement-gd1-nen-tang.md#đầu-ra-phải-có-cuối-tuần",
+    "10-implement-gd1-nen-tang.md#đọc",
+    "10-implement-gd1-nen-tang.md#ghi-chú-khái-niệm",
+    "10-implement-gd1-nen-tang.md#11-quy-đổi-phải-nhẩm-được",
+    "10-implement-gd1-nen-tang.md#12-bảng-latency-bậc-độ-lớn-là-thứ-cần-nhớ-không-phải-chữ-số",
+    "10-implement-gd1-nen-tang.md#13-littles-law--công-thức-dùng-nhiều-nhất-cả-lộ-trình",
+    "01-java-code-cham-duoi-tai-cao.md#1-ba-cơ-chế-biến-code-xấu-thành-sự-cố-hệ-thống"
+   ],
+   "points": [
+    {
+     "id": "w1-outputs",
+     "t": 98.3,
+     "text": "5 đầu ra cuối tuần 1: bảng ước lượng 3 hệ thống; số JMH của máy mình + bảng nhân với QPS; bản vẽ V1, V2; thuộc bảng latency; bài nói 2 phút",
+     "src": "10-implement-gd1-nen-tang.md#tuần-1--khung-tư-duy-ước-lượng-và-chi-phí-của-một-request",
+     "section": "10 · Tuần 1: đầu ra và tài liệu đọc"
+    },
+    {
+     "id": "w1-reading",
+     "t": 133.2,
+     "text": "Đọc: Alex Xu Vol 1 chương 1–3; blog Discord 'How Discord Stores Trillions of Messages'; 01 §1–2 và 02 §1",
+     "src": "10-implement-gd1-nen-tang.md#tuần-1--khung-tư-duy-ước-lượng-và-chi-phí-của-một-request",
+     "section": "10 · Tuần 1: đầu ra và tài liệu đọc"
+    },
+    {
+     "id": "conv-day",
+     "t": 160.7,
+     "text": "1 ngày = 86.400 s ≈ 10^5 s (sai 16%, đủ cho ước lượng); 1 tháng ≈ 2,5×10^6 s; 1 năm ≈ 3,15×10^7 s",
+     "src": "10-implement-gd1-nen-tang.md#11-quy-đổi-phải-nhẩm-được",
+     "section": "10 §1.1 · Quy đổi phải nhẩm được"
+    },
+    {
+     "id": "conv-rps",
+     "t": 183.2,
+     "text": "1 triệu request/ngày ≈ 12 RPS trung bình; 1 tỷ/ngày ≈ 12.000 RPS",
+     "src": "10-implement-gd1-nen-tang.md#11-quy-đổi-phải-nhẩm-được",
+     "section": "10 §1.1 · Quy đổi phải nhẩm được"
+    },
+    {
+     "id": "conv-peak",
+     "t": 183.2,
+     "text": "Đỉnh = trung bình × 2–3, hoặc theo tỉ trọng giờ cao điểm 10%/giờ → × 2,4",
+     "src": "10-implement-gd1-nen-tang.md#11-quy-đổi-phải-nhẩm-được",
+     "section": "10 §1.1 · Quy đổi phải nhẩm được"
+    },
+    {
+     "id": "conv-storage",
+     "t": 211.6,
+     "text": "Storage/năm = ghi/giây × byte/bản ghi × 3,15×10^7 × hệ số nhân bản (× 2–3); băng thông = RPS × kích thước response",
+     "src": "10-implement-gd1-nen-tang.md#11-quy-đổi-phải-nhẩm-được",
+     "section": "10 §1.1 · Quy đổi phải nhẩm được"
+    },
+    {
+     "id": "conv-nines",
+     "t": 234.5,
+     "text": "99,9% = 8,8 giờ chết/năm = 43 phút/tháng; 99,99% = 53 phút/năm = 4,3 phút/tháng",
+     "src": "10-implement-gd1-nen-tang.md#11-quy-đổi-phải-nhẩm-được",
+     "section": "10 §1.1 · Quy đổi phải nhẩm được"
+    },
+    {
+     "id": "lat-memory",
+     "t": 260.8,
+     "text": "L1 cache ~1 ns; RAM ~100 ns (100 lần L1); hàm Java nhỏ, cấp phát object 10–100 ns (P01–P06 nằm quanh đây); SSD đọc ngẫu nhiên ~100 µs",
+     "src": "10-implement-gd1-nen-tang.md#12-bảng-latency-bậc-độ-lớn-là-thứ-cần-nhớ-không-phải-chữ-số",
+     "section": "10 §1.2 · Bảng latency"
+    },
+    {
+     "id": "lat-network",
+     "t": 296.0,
+     "text": "Round trip cùng AZ 0,5–1 ms (mỗi query trả ít nhất chừng này, P15); khác AZ 1–2 ms (giá của Multi-AZ synchronous commit); bắt tay TCP + TLS 1.3 = 2 × RTT (lý do giữ keep-alive, P08)",
+     "src": "10-implement-gd1-nen-tang.md#12-bảng-latency-bậc-độ-lớn-là-thứ-cần-nhớ-không-phải-chữ-số",
+     "section": "10 §1.2 · Bảng latency"
+    },
+    {
+     "id": "lat-geo",
+     "t": 296.0,
+     "text": "TP.HCM ↔ Singapore ~30–40 ms; TP.HCM ↔ Sydney ~100–150 ms (NAB: app ở VN gọi hệ thống ở Úc)",
+     "src": "10-implement-gd1-nen-tang.md#12-bảng-latency-bậc-độ-lớn-là-thứ-cần-nhớ-không-phải-chữ-số",
+     "section": "10 §1.2 · Bảng latency"
+    },
+    {
+     "id": "lat-gc",
+     "t": 296.0,
+     "text": "Một lần dừng GC thế hệ trẻ (G1, heap vài GB): vài ms tới vài chục ms, rơi vào p99",
+     "src": "10-implement-gd1-nen-tang.md#12-bảng-latency-bậc-độ-lớn-là-thứ-cần-nhớ-không-phải-chữ-số",
+     "section": "10 §1.2 · Bảng latency"
+    },
+    {
+     "id": "lat-caveat",
+     "t": 363.5,
+     "text": "Số mạng và GC là giá trị điển hình, đo lại bằng ping / log GC; dùng để ra quyết định trên bảng, không ghi vào SLA",
+     "src": "10-implement-gd1-nen-tang.md#12-bảng-latency-bậc-độ-lớn-là-thứ-cần-nhớ-không-phải-chữ-số",
+     "section": "10 §1.2 · Bảng latency"
+    },
+    {
+     "id": "little-def",
+     "t": 385.7,
+     "text": "L = λ × W: L số thứ đang ở trong hệ thống (request, connection, test), λ throughput mỗi giây, W thời gian mỗi thứ ở lại",
+     "src": "10-implement-gd1-nen-tang.md#13-littles-law--công-thức-dùng-nhiều-nhất-cả-lộ-trình",
+     "section": "10 §1.3 · Little's Law"
+    },
+    {
+     "id": "little-uses",
+     "t": 405.9,
+     "text": "Ba cách dùng: (1) biết λ, W → số worker/connection/pod cần; (2) biết L tối đa (pool) và W → trần throughput; (3) L tăng mà λ không đổi → W tăng, có thứ chậm đi; P09 là cách (2)",
+     "src": "10-implement-gd1-nen-tang.md#13-littles-law--công-thức-dùng-nhiều-nhất-cả-lộ-trình",
+     "section": "10 §1.3 · Little's Law"
+    },
+    {
+     "id": "little-p09",
+     "t": 434.2,
+     "text": "Ví dụ P09 (01 §1): pool 10, giữ 60 ms → trần 166 req/s, đo 162,7; giữ 10 ms → 1.000 req/s, đo 928–935; sai số dưới 7%",
+     "src": "10-implement-gd1-nen-tang.md#13-littles-law--công-thức-dùng-nhiều-nhất-cả-lộ-trình",
+     "section": "10 §1.3 · Little's Law"
+    }
+   ]
+  },
+  {
    "id": "ep02-users-to-load",
    "ep": 2,
    "week": 1,
@@ -381,6 +544,548 @@
      "text": "BT 1.8: 50k CCU đặt vé → DAU 3 triệu → ~10 triệu đăng ký, nhưng vô nghĩa vì không có giờ cao điểm 10%; hỏi 'bao nhiêu người vào trong 60 giây đầu, có bao nhiêu vé'; tranh tài nguyên hữu hạn + hấp thụ burst (waiting room)",
      "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
      "section": "10 · Bài tập 1.4 và 1.8"
+    }
+   ]
+  },
+  {
+   "id": "ep03-estimation-workout",
+   "ep": 3,
+   "week": 1,
+   "title": "Estimation workout",
+   "subtitle": "A bank, a test platform, and a chat app — plus your first 2-minute talk",
+   "file": "ep03-estimation-workout.mp4",
+   "poster": "ep03-estimation-workout.jpg",
+   "source": "ep03-estimation-workout.yaml",
+   "duration": 622.5,
+   "bytes": 8740777,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (narrator) — Kokoro am_michael"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 15.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 63.1,
+     "title": "The format"
+    },
+    {
+     "t": 92.3,
+     "title": "Exercise 1.1: a bank"
+    },
+    {
+     "t": 232.8,
+     "title": "Exercise 1.2: a test platform"
+    },
+    {
+     "t": 372.1,
+     "title": "Exercise 1.3: a chat app"
+    },
+    {
+     "t": 503.8,
+     "title": "Your 2-minute talk"
+    },
+    {
+     "t": 588.0,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "10-implement-gd1-nen-tang.md#lab-1a--sổ-ước-lượng-thứ-bảy-15-giờ",
+    "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+    "10-implement-gd1-nen-tang.md#bài-nói-2-phút-chủ-nhật",
+    "10-implement-gd1-nen-tang.md#ranh-giới-trung-thực"
+   ],
+   "points": [
+    {
+     "id": "lab1a-format",
+     "t": 63.1,
+     "text": "Format: giả định (đánh dấu cái đoán) → bước 1–4 → ghi/giây, storage 5 năm, băng thông → con số nào làm đổi thiết kế; mỗi bài ≤ 10 phút, mọi số truy ngược được về giả định",
+     "src": "10-implement-gd1-nen-tang.md#lab-1a--sổ-ước-lượng-thứ-bảy-15-giờ",
+     "section": "10 · Lab 1A: sổ ước lượng"
+    },
+    {
+     "id": "ex11-numbers",
+     "t": 116.2,
+     "text": "BT 1.1 ngân hàng 5M: DAU 1,5M; CCU 20.000 (ngày lương 60.000); RPS ~3.400 (~10.200); 125 TPS; 750 ghi/s; 1,6 TB/5 năm; 160 Mbit/s",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.1–1.3"
+    },
+    {
+     "id": "ex11-design",
+     "t": 199.7,
+     "text": "Con số đổi thiết kế: 10k RPS đọc → cache + read replica; 750 ghi/s vẫn vừa một primary, chưa shard; 1,6 TB → partition theo tháng",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.1–1.3"
+    },
+    {
+     "id": "ex12-numbers",
+     "t": 264.7,
+     "text": "BT 1.2: 24 test/s, Little's Law ~2.900 test đồng thời, nightly 14.400 → xếp hàng; ~720 node; 1,15 TB/ngày; giữ 90 ngày ~104 TB",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.1–1.3"
+    },
+    {
+     "id": "ex12-design",
+     "t": 337.3,
+     "text": "Là bài lập lịch tài nguyên hữu hạn (họ B), không phải bài throughput; ảnh + video chiếm 95% → object storage + pre-signed URL từ worker; DB chỉ giữ metadata",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.1–1.3"
+    },
+    {
+     "id": "ex13-numbers",
+     "t": 401.9,
+     "text": "BT 1.3 chat 10M: 500.000 kết nối WebSocket; ~5.600 tin/s; ~11.000 lần đẩy/s; heartbeat ~16.700/s lớn hơn tin nhắn; 73 TB/5 năm; ~15 gateway node",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.1–1.3"
+    },
+    {
+     "id": "ex13-design",
+     "t": 464.8,
+     "text": "Gateway có trạng thái + registry user ở node nào; chu kỳ heartbeat là tham số chi phí; LSM-tree (Cassandra/ScyllaDB), partition key conversation_id (bài Discord)",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.1–1.3"
+    },
+    {
+     "id": "talk-w1",
+     "t": 503.8,
+     "text": "Bài nói 'estimate the load for a banking app with 5 million users': ghi âm, ghi 3 chỗ vấp, bản mẫu đi 4 bước và nói to giả định",
+     "src": "10-implement-gd1-nen-tang.md#bài-nói-2-phút-chủ-nhật",
+     "section": "10 · Bài nói 2 phút tuần 1"
+    }
+   ]
+  },
+  {
+   "id": "ep04-trackp-group1",
+   "ep": 4,
+   "week": 1,
+   "title": "Track P, group 1: per-request waste",
+   "subtitle": "Four mechanisms, and anti-patterns P01 to P07 with measured numbers",
+   "file": "ep04-trackp-group1.mp4",
+   "poster": "ep04-trackp-group1.jpg",
+   "source": "ep04-trackp-group1.yaml",
+   "duration": 644.0,
+   "bytes": 9452615,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (narrator) — Kokoro am_michael"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 22.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 88.3,
+     "title": "Four mechanisms"
+    },
+    {
+     "t": 188.9,
+     "title": "P01 to P07"
+    },
+    {
+     "t": 505.7,
+     "title": "Reading the numbers"
+    },
+    {
+     "t": 605.1,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "01-java-code-cham-duoi-tai-cao.md#0-đọc-file-này-trong-60-giây",
+    "01-java-code-cham-duoi-tai-cao.md#1-ba-cơ-chế-biến-code-xấu-thành-sự-cố-hệ-thống",
+    "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+    "01-java-code-cham-duoi-tai-cao.md#p01--tạo-lại-object-đắt-mỗi-request",
+    "01-java-code-cham-duoi-tai-cao.md#p02--biên-dịch-regex-trên-đường-nóng",
+    "01-java-code-cham-duoi-tai-cao.md#p03--nối-chuỗi-trong-vòng-lặp",
+    "01-java-code-cham-duoi-tai-cao.md#p04--exception-làm-luồng-điều-khiển",
+    "01-java-code-cham-duoi-tai-cao.md#p05--autoboxing-trên-đường-nóng",
+    "01-java-code-cham-duoi-tai-cao.md#p06--dựng-chuỗi-log-khi-level-đang-tắt",
+    "01-java-code-cham-duoi-tai-cao.md#p07--on²-ẩn",
+    "01-java-code-cham-duoi-tai-cao.md#7-bắt-chúng-trên-production--metric-nào-công-cụ-nào"
+   ],
+   "points": [
+    {
+     "id": "tp-mechanisms",
+     "t": 88.3,
+     "text": "Bốn cơ chế: nhân với QPS (CPU, GC), Little's Law (pool, thread, khoá), round trip (latency, CPU của DB), heap sống (GC, OOM); thêm pod chỉ cứu cơ chế đầu",
+     "src": "01-java-code-cham-duoi-tai-cao.md#1-ba-cơ-chế-biến-code-xấu-thành-sự-cố-hệ-thống",
+     "section": "01 §0–1 · Cơ chế và ba bài học"
+    },
+    {
+     "id": "tp-lessons",
+     "t": 141.2,
+     "text": "Ba bài học: code giữ tài nguyên khan hiếm mới làm sập hệ thống; lãng phí CPU mỗi lần gọi thường vài µs; round trip là thuế cố định (N+1: 200 req/s → 20.200 query/s)",
+     "src": "01-java-code-cham-duoi-tai-cao.md#1-ba-cơ-chế-biến-code-xấu-thành-sự-cố-hệ-thống",
+     "section": "01 §0–1 · Cơ chế và ba bài học"
+    },
+    {
+     "id": "p-measure",
+     "t": 188.9,
+     "text": "Đo bằng JMH -prof gc, 3 vòng warm-up + 5 vòng đo, 1 fork; B/op là byte cấp phát mỗi lần gọi",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p01",
+     "t": 217.1,
+     "text": "P01 tạo lại object đắt: new ObjectMapper() 14,6 µs → 0,48 µs (30×), 19,6 KB → 688 B; cùng họ DateTimeFormatter, Pattern, HTTP client; thread-safe thì dùng chung",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p02",
+     "t": 264.0,
+     "text": "P02 String.matches compile regex mỗi lần: 429 → 116 ns; precompile Pattern; ReDoS phải sửa regex hoặc giới hạn input",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p03",
+     "t": 299.6,
+     "text": "P03 += trong vòng lặp O(n²): 10.000 dòng 639 ms → 0,35 ms, 2,23 GB rác; StringBuilder hoặc ghi thẳng ra stream",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p04",
+     "t": 341.6,
+     "text": "P04 exception làm luồng điều khiển: 942 → 8,8 ns; chi phí theo độ sâu stack (stack Spring 100–200 frame); kiểm tra trước",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p05",
+     "t": 387.5,
+     "text": "P05 autoboxing: Map<Integer,Integer>.merge 213 → 6,5 µs; Long total 50 → 3,1 µs, 240 KB rác; escape analysis không gỡ",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p06",
+     "t": 427.0,
+     "text": "P06 dựng chuỗi log khi level tắt: 1.023 ns → ~1 ns; placeholder vẫn gọi describe(); guard isDebugEnabled hoặc Supplier",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p07",
+     "t": 465.5,
+     "text": "P07 O(n²) ẩn: list.contains 10.000 phần tử 117 ms → 0,46 ms (255×); LinkedHashSet; hỏi 'n tối đa là bao nhiêu'",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p-read-table",
+     "t": 505.7,
+     "text": "Đọc bảng đúng: P01, P02, P04, P06 vài µs (P01 ở 10k RPS = 0,14 core, dưới 0,2%; rác ~500 MB/s cả cụm) → sửa khi tiện; P03, P05, P07 tăng theo dữ liệu (export 10.000 dòng 0,64 s, 2,2 GB)",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p-blind",
+     "t": 559.2,
+     "text": "Không tối ưu mù: sửa nhóm 1 khi profiler (async-profiler, JFR) chỉ ra hoặc khi nằm trong vòng lặp theo dữ liệu; sửa P01–P07 mà bỏ P09 là sai thứ tự",
+     "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
+     "section": "01 §2 · Nhóm 1: P01–P07"
+    },
+    {
+     "id": "p-catch",
+     "t": 559.2,
+     "text": "Nhóm 1 trên production: CPU cao bất thường so với RPS, jvm.gc.memory.allocated cao; xác nhận bằng async-profiler chế độ cpu và alloc (flame graph)",
+     "src": "01-java-code-cham-duoi-tai-cao.md#7-bắt-chúng-trên-production--metric-nào-công-cụ-nào",
+     "section": "01 §7 · Bắt trên production (nhóm 1)"
+    }
+   ]
+  },
+  {
+   "id": "ep05-measure-before-fix",
+   "ep": 5,
+   "week": 1,
+   "title": "Measure before you fix",
+   "subtitle": "Lab 1B with JMH, multiplying by RPS, and a code-review drill",
+   "file": "ep05-measure-before-fix.mp4",
+   "poster": "ep05-measure-before-fix.jpg",
+   "source": "ep05-measure-before-fix.yaml",
+   "duration": 662.5,
+   "bytes": 9655341,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (narrator) — Kokoro am_michael"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 20.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 80.2,
+     "title": "Lab 1B: run it"
+    },
+    {
+     "t": 152.8,
+     "title": "Exercise 1.5"
+    },
+    {
+     "t": 230.8,
+     "title": "Benchmark your code"
+    },
+    {
+     "t": 269.1,
+     "title": "Exercise 1.6"
+    },
+    {
+     "t": 387.0,
+     "title": "Bad code × machines"
+    },
+    {
+     "t": 445.8,
+     "title": "Code review drill"
+    },
+    {
+     "t": 580.6,
+     "title": "Review checklist"
+    },
+    {
+     "t": 613.1,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "10-implement-gd1-nen-tang.md#lab-1b--đo-chi-phí-một-request-bằng-jmh-thứ-bảy-2-giờ",
+    "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+    "01-java-code-cham-duoi-tai-cao.md#6-checklist-review-code-trước-khi-lên-tải",
+    "01-java-code-cham-duoi-tai-cao.md#8-chạy-lab",
+    "01-java-code-cham-duoi-tai-cao.md#9-kể-trong-phỏng-vấn",
+    "02-ve-he-thong-100k-1m-10m.md#6-code-xấu-nhân-với-số-máy--nối-sang-track-p"
+   ],
+   "points": [
+    {
+     "id": "lab-run",
+     "t": 80.2,
+     "text": "33 test (bản sửa cho cùng kết quả), RunAll ~40 giây, nhóm 1 ~6 phút; JDK 25 thì P12 hai bản ngang nhau; số tuyệt đối khác máy lab, tỉ lệ và hình dạng mới phải giống",
+     "src": "01-java-code-cham-duoi-tai-cao.md#8-chạy-lab",
+     "section": "01 §8 · Chạy lab"
+    },
+    {
+     "id": "lab1b-run",
+     "t": 107.0,
+     "text": "Chạy lại số trên máy mình (mvn test, package, benchmarks -prof gc); chép bảng, thêm cột 'máy tôi', ghi JDK; tỉ lệ phải cùng bậc, lệch hơn 3 lần thì tìm lý do",
+     "src": "10-implement-gd1-nen-tang.md#lab-1b--đo-chi-phí-một-request-bằng-jmh-thứ-bảy-2-giờ",
+     "section": "10 · Lab 1B: đo chi phí một request bằng JMH"
+    },
+    {
+     "id": "ex15",
+     "t": 187.1,
+     "text": "BT 1.5: field @State chống constant folding; trả về / Blackhole chống dead code elimination; warm-up (interpreter, C1 → C2) và fork JVM mới; nanoTime quanh vòng lặp dính hết + loop optimization + không đo allocation",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.5–1.7"
+    },
+    {
+     "id": "lab1b-own",
+     "t": 230.8,
+     "text": "Viết benchmark cho một hàm chạy ở mọi request trong dự án thật (DTO, validate, phí, cache key), cặp Bad/Good, test trong SameResultTest; điền bảng 1k/10k/50k RPS ra core và MB/s rác",
+     "src": "10-implement-gd1-nen-tang.md#lab-1b--đo-chi-phí-một-request-bằng-jmh-thứ-bảy-2-giờ",
+     "section": "10 · Lab 1B: đo chi phí một request bằng JMH"
+    },
+    {
+     "id": "ex16",
+     "t": 293.7,
+     "text": "BT 1.6: 50k RPS: P01 0,71 core + P06 1,0 core ≈ 1,7 core (~2 pod), rác ~2,5 GB/s; so với ~190 pod là dưới 1%; sửa P06 trước P01; đo jvm.gc.memory.allocated ÷ RPS trước khi tin",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.5–1.7"
+    },
+    {
+     "id": "ex16-lesson",
+     "t": 347.8,
+     "text": "Giá trị của việc đo: cho biết cái gì không cần tối ưu; hai lỗi này sửa khi review, không đáng một sprint, một P09 thì đáng",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.5–1.7"
+    },
+    {
+     "id": "code-times-machines",
+     "t": 387.0,
+     "text": "L3 20.000 RPS, pod 2 vCPU ở 60%: 4,5 ms → 75 pod; 6,5 ms → 108 pod (+33 pod, +44%); +2 ms thường từ vòng lặp O(n²) theo dữ liệu (~1.500 phần tử contains, ~600 dòng +=), không từ lỗi µs",
+     "src": "02-ve-he-thong-100k-1m-10m.md#6-code-xấu-nhân-với-số-máy--nối-sang-track-p",
+     "section": "02 §6 · Code xấu nhân với số máy"
+    },
+    {
+     "id": "ex17-issues",
+     "t": 468.7,
+     "text": "BT 1.7 StatementService: cache static không giới hạn, key có currentTimeMillis (P18); HTTP trong @Transactional (P09); new RestTemplate không timeout (P08, P10); findAll lọc trong Java (P16, P19); csv += (P03); log.debug nối chuỗi (P06); new ObjectMapper (P01); CSV bọc trong JSON (P19)",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.5–1.7"
+    },
+    {
+     "id": "ex17-order",
+     "t": 558.7,
+     "text": "Thứ tự sửa theo mức nguy hiểm: 2 → 3 → 4 → 1 (giữ tài nguyên, đọc cả bảng) rồi 5, 6, 7 (CPU và rác)",
+     "src": "10-implement-gd1-nen-tang.md#bài-tập-tuần-1",
+     "section": "10 · Bài tập 1.5–1.7"
+    },
+    {
+     "id": "checklist",
+     "t": 580.6,
+     "text": "Checklist 13 câu có/không khi review PR; tuần 1 dùng câu 3 (client, ObjectMapper, Pattern dùng chung), 11 (vòng lặp theo dữ liệu), 12 (tham số log debug)",
+     "src": "01-java-code-cham-duoi-tai-cao.md#6-checklist-review-code-trước-khi-lên-tải",
+     "section": "01 §6 · Checklist review code"
+    },
+    {
+     "id": "tp-interview",
+     "t": 613.1,
+     "text": "Câu hỏi 'đã có autoscale sao vẫn chậm': autoscale chỉ nhân năng lực một instance; pool ÷ thời gian giữ là trần; đo được 163 → 930 req/s",
+     "src": "01-java-code-cham-duoi-tai-cao.md#9-kể-trong-phỏng-vấn",
+     "section": "01 §9 · Kể trong phỏng vấn"
+    }
+   ]
+  },
+  {
+   "id": "ep06-tracks-v1-v2",
+   "ep": 6,
+   "week": 1,
+   "title": "Track S: drawing V1 and V2",
+   "subtitle": "The scale ladder, one machine and its SPOFs, and an L1 design for 100k users",
+   "file": "ep06-tracks-v1-v2.mp4",
+   "poster": "ep06-tracks-v1-v2.jpg",
+   "source": "ep06-tracks-v1-v2.yaml",
+   "duration": 595.3,
+   "bytes": 8893013,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (narrator) — Kokoro am_michael"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 19.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 94.9,
+     "title": "This Sunday's task"
+    },
+    {
+     "t": 133.1,
+     "title": "The scale ladder"
+    },
+    {
+     "t": 228.5,
+     "title": "V1: one machine"
+    },
+    {
+     "t": 286.2,
+     "title": "V2: 100k users"
+    },
+    {
+     "t": 445.8,
+     "title": "Ten drawings"
+    },
+    {
+     "t": 491.6,
+     "title": "How to draw"
+    },
+    {
+     "t": 573.1,
+     "title": "Week 1 wrap-up"
+    }
+   ],
+   "covers": [
+    "10-implement-gd1-nen-tang.md#track-s-tuần-1--v1-và-v2-chủ-nhật-45-phút",
+    "02-ve-he-thong-100k-1m-10m.md#2-thang-5-bậc--tóm-tắt-trên-một-trang",
+    "02-ve-he-thong-100k-1m-10m.md#31-l0--một-máy-điểm-xuất-phát-vẽ-trong-5-phút",
+    "02-ve-he-thong-100k-1m-10m.md#32-l1--100k-users-sẵn-sàng-trước-tải-sau",
+    "02-ve-he-thong-100k-1m-10m.md#4-lộ-trình-vẽ--10-bản-vẽ-từ-cơ-bản-tới-microservices",
+    "02-ve-he-thong-100k-1m-10m.md#41-quy-ước-vẽ--để-người-khác-đọc-được",
+    "02-ve-he-thong-100k-1m-10m.md#42-tự-chấm-một-bản-vẽ--6-câu"
+   ],
+   "points": [
+    {
+     "id": "v1v2-task",
+     "t": 94.9,
+     "text": "V1 (10 phút): L0 + mọi SPOF, mỗi SPOF một dòng 'nếu chết thì sao'; V2 (20 phút): L1 100k users, bảng ước lượng viết lên sơ đồ, mỗi hộp thêm vào xoá một SPOF; so với 02 §3 rồi tự chấm",
+     "src": "10-implement-gd1-nen-tang.md#track-s-tuần-1--v1-và-v2-chủ-nhật-45-phút",
+     "section": "10 · Track S tuần 1"
+    },
+    {
+     "id": "ladder",
+     "t": 133.1,
+     "text": "Thang L0–L4: L0 một VM; L1 100k modular monolith × 2; L2 1M replica, cache, outbox → Kafka; L3 10M microservices theo bounded context; L4 50M+ cell-based, multi-region",
+     "src": "02-ve-he-thong-100k-1m-10m.md#2-thang-5-bậc--tóm-tắt-trên-một-trang",
+     "section": "02 §2 · Thang 5 bậc"
+    },
+    {
+     "id": "ladder-rule",
+     "t": 208.4,
+     "text": "Chỉ lên bậc khi có một thứ cụ thể đang vỡ và nói được tên nó; vẽ L3 cho 100k users là over-engineer",
+     "src": "02-ve-he-thong-100k-1m-10m.md#2-thang-5-bậc--tóm-tắt-trên-một-trang",
+     "section": "02 §2 · Thang 5 bậc"
+    },
+    {
+     "id": "l0-spof",
+     "t": 228.5,
+     "text": "L0 vẽ để liệt kê SPOF: máy, ổ đĩa, process, deploy (restart là downtime); mỗi bậc sau trả lời một SPOF",
+     "src": "02-ve-he-thong-100k-1m-10m.md#31-l0--một-máy-điểm-xuất-phát-vẽ-trong-5-phút",
+     "section": "02 §3.1 · L0"
+    },
+    {
+     "id": "l1-diagram",
+     "t": 286.2,
+     "text": "L1: CDN, load balancer L7, app × 2 khác AZ, Redis, Postgres primary + standby Multi-AZ, job queue bằng bảng + SKIP LOCKED, worker, object storage",
+     "src": "02-ve-he-thong-100k-1m-10m.md#32-l1--100k-users-sẵn-sàng-trước-tải-sau",
+     "section": "02 §3.2 · L1"
+    },
+    {
+     "id": "l1-decisions",
+     "t": 352.2,
+     "text": "5 quyết định và đánh đổi: modular monolith (ArchUnit), 2 instance, stateless (Redis/JWT), Postgres Multi-AZ (+1–2 ms mỗi commit), job queue bằng bảng (không replay)",
+     "src": "02-ve-he-thong-100k-1m-10m.md#32-l1--100k-users-sẵn-sàng-trước-tải-sau",
+     "section": "02 §3.2 · L1"
+    },
+    {
+     "id": "l1-breaks",
+     "t": 409.7,
+     "text": "Cái vỡ trước khi lên 1M: đọc dồn vào primary; 10 pod × 10 connection = 100 = max_connections mặc định; việc chậm như SMS trong request; 15 người cùng deploy một artifact",
+     "src": "02-ve-he-thong-100k-1m-10m.md#32-l1--100k-users-sẵn-sàng-trước-tải-sau",
+     "section": "02 §3.2 · L1"
+    },
+    {
+     "id": "drawings-roadmap",
+     "t": 445.8,
+     "text": "V1–V10 theo tuần, bậc, giới hạn thời gian; drill 'một hệ thống, ba quy mô' tuần 17–24",
+     "src": "02-ve-he-thong-100k-1m-10m.md#4-lộ-trình-vẽ--10-bản-vẽ-từ-cơ-bản-tới-microservices",
+     "section": "02 §4 · Lộ trình 10 bản vẽ"
+    },
+    {
+     "id": "draw-conventions",
+     "t": 491.6,
+     "text": "Quy ước: C4 mức Container; mũi tên liền = đồng bộ, đứt = bất đồng bộ; ghi số trên mũi tên; AZ/region là hộp bao; cylinder cho thứ có trạng thái; Excalidraw / mermaid / draw.io",
+     "src": "02-ve-he-thong-100k-1m-10m.md#4-lộ-trình-vẽ--10-bản-vẽ-từ-cơ-bản-tới-microservices",
+     "section": "02 §4 · Lộ trình 10 bản vẽ"
+    },
+    {
+     "id": "self-grade",
+     "t": 536.3,
+     "text": "Tự chấm 6 câu: có số và giả định; bản sao ở AZ khác; chỗ nghẽn đầu tiên khi × 10; luồng tiền qua hộp nào; hộp thừa; ít nhất 3 câu 'đánh đổi là…'",
+     "src": "02-ve-he-thong-100k-1m-10m.md#4-lộ-trình-vẽ--10-bản-vẽ-từ-cơ-bản-tới-microservices",
+     "section": "02 §4 · Lộ trình 10 bản vẽ"
     }
    ]
   }
