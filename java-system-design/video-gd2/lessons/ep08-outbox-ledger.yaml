@@ -1,0 +1,223 @@
+id: ep08-outbox-ledger
+ep: 8
+week: 7
+tag: "EP08 · WEEK 7"
+title: "Outbox, idempotency at three layers, and the double-entry ledger"
+subtitle: "Why “save, then send” breaks, how an outbox fixes it, and the two queries that prove the ledger is right"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox
+  - 20-implement-gd2-du-lieu-phan-tan.md#75-idempotency-ở-ba-tầng
+  - 20-implement-gd2-du-lieu-phan-tan.md#76-sổ-cái-kép-double-entry
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · §7.4 dual write and outbox, §7.5 idempotency at three layers, §7.6 the double-entry ledger; exercise 7.6"}
+      - {t: "Week 7 · Wednesday theory"}
+    lines:
+      - emma: "Episode eight: three ideas that every saga depends on. The outbox, so an event is published if and only if the data was saved. Idempotency, so a message that arrives twice has one effect. And the double-entry ledger, so you can prove the money adds up."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: CDC, full: "change data capture", vi: "đọc thay đổi từ log của DB để phát sự kiện"}
+      - {abbr: WAL, full: "write-ahead log", vi: "nhật ký ghi trước của Postgres"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: PSP, full: "payment service provider", vi: "cổng thanh toán, trừ thẻ thay merchant"}
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn database quan hệ"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "DB is the database. CDC is change data capture, and WAL is Postgres's write-ahead log, which CDC reads."
+        focus: 2
+      - emma: "API is an application programming interface. A PSP is a payment service provider, the company that charges cards for you. SQL is the query language, and ID an identifier."
+        focus: 6
+
+  - kind: code
+    chapter: "Dual write"
+    heading: "7.4 · The dual write: two systems, one gap"
+    points: [dual-write]
+    code: |
+      @Transactional
+      public void transfer(TransferCommand cmd) {
+          Transfer t = repo.save(Transfer.from(cmd));      // system 1: Postgres
+          kafka.send("transfer.completed", t.toEvent());   // system 2: Kafka
+      }   // commit happens HERE, after the send
+
+      // crash between the two → DB committed, event lost
+      // DB rollback after the send → event says “done”, the transfer never happened
+    items:
+      - {lines: [3, 4], t: "db.save + kafka.send: two systems that can't commit together"}
+      - {lines: [7, 7], t: "Gap 1: the data is saved, the event is lost"}
+      - {lines: [8, 8], t: "Gap 2: the event is out, the data is rolled back"}
+    lines:
+      - emma: "Here's the bug that the outbox fixes. Save the transfer, then send an event to Kafka. These are two different systems, and they can't commit together."
+        focus: 0
+      - emma: "Crash between the two lines, and the database commits but the event is lost: the customer never gets a notification, and downstream systems never hear about it."
+        focus: 1
+      - emma: "Or the send succeeds and the database transaction rolls back afterwards. Now an event announces a transfer that never happened."
+        focus: 2
+
+  - kind: diagram
+    heading: "The outbox: write the event in the same transaction"
+    sub: "A relay publishes later; the business data and the event can no longer disagree"
+    points: [outbox-pattern]
+    nodes:
+      - {id: s, label: "Transfer service", sub: "one local transaction", x: 110, y: 195, w: 200, h: 90}
+      - {id: z, label: "Postgres", sub: "transfer + ledger rows + outbox row", x: 560, y: 195, w: 260, h: 110, shape: db}
+      - {id: r, label: "Relay", sub: "polls the outbox, or CDC reads the WAL", x: 870, y: 70, w: 230, h: 80, at: 1}
+      - {id: k, label: "Kafka", sub: "transfer.completed", x: 1060, y: 270, w: 180, h: 76, shape: queue, at: 1}
+    edges:
+      - {a: s, b: z, label: "one commit"}
+      - {a: z, b: r, label: "read pending rows", dashed: true, at: 1}
+      - {a: r, b: k, label: "send, then mark sent", at: 1}
+    lines:
+      - emma: "The outbox pattern: write the event into an outbox table, in the same local transaction as the business data. One commit, so the transfer and its event either both exist or neither does."
+        focus: 0
+      - emma: "Then a separate relay reads the pending outbox rows, sends them to Kafka, and marks them as sent."
+        focus: 1
+
+  - kind: table
+    heading: "Two ways to run the relay"
+    columns: ["", "Polling relay (lab 8)", "CDC (Debezium reads the WAL)"]
+    widths: [1.4, 3.0, 3.2]
+    build: true
+    points: [relay-vs-cdc]
+    rows:
+      - ["Infrastructure", "Nothing new", "Kafka Connect + Debezium, rights to a replication slot"]
+      - ["Latency", "The poll interval: 100–500 ms", "Tens of ms"]
+      - ["Load on the DB", "A query that polls all the time", "Reads the WAL: almost nothing extra"]
+      - ["Ordering", "Kept only with ONE relay (lab 8, step 7)", "Commit order"]
+    lines:
+      - emma: "Two ways to run the relay. A polling relay needs no new infrastructure. Change data capture with Debezium reads Postgres's write-ahead log, which needs Kafka Connect, Debezium, and access to a replication slot."
+        focus: 0
+      - emma: "Polling adds the poll interval, a hundred to five hundred milliseconds. CDC adds tens of milliseconds, and puts almost no extra load on the database, while polling runs a query all the time."
+        focus: 2
+      - emma: "And ordering: CDC follows commit order, but a polling relay keeps order only if there is exactly one relay. You'll break that on purpose in lab 8."
+        focus: 3
+
+  - kind: stats
+    heading: "Both are at-least-once"
+    points: [at-least-once]
+    items:
+      - {v: "send → crash", l: "before the row is marked sent", s: "the next run sends it again", tone: warn}
+      - {v: "≥ 1", l: "deliveries per event", s: "never “exactly one” on the wire"}
+      - {v: "always", l: "make consumers idempotent", s: "duplicates must have no second effect", tone: ok}
+    lines:
+      - emma: "Whichever relay you choose, delivery is at-least-once. The relay sends a batch, then crashes before marking it as sent, and the next run sends it again."
+        focus: 0
+      - emma: "So the consumer must always be idempotent: a duplicate must have no second effect."
+        focus: 2
+
+  - kind: flow
+    chapter: "Idempotency, three layers"
+    heading: "7.5 · Idempotency at three layers"
+    points: [idem-three]
+    items:
+      - {t: "1 · API", s: "the client sends an Idempotency-Key", f: "phase 1, exercise 2.4"}
+      - {t: "2 · Consumer", s: "processed_event(event_id primary key), inserted in the same transaction as the side effect", f: "lab 8"}
+      - {t: "3 · Calls out", s: "send an idempotency key to the partner bank or PSP", f: "ask “did you process it?”"}
+    lines:
+      - emma: "Idempotency has to exist at three layers. At the API, the client sends an idempotency key, as in phase one, exercise 2.4."
+        say: "Idempotency has to exist at three layers. At the API, the client sends an idempotency key, as in phase one, exercise two point four."
+        focus: 0
+      - emma: "In each consumer, a processed events table keyed by the event ID, inserted in the same transaction as the side effect. If the insert finds the ID already there, the message is a duplicate."
+        focus: 1
+      - emma: "And on calls out of your system: send an idempotency key to the partner bank or the PSP. Then, after a timeout, you can ask whether they processed it, instead of sending it a second time."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Double-entry ledger"
+    heading: "7.6 · The double-entry ledger"
+    style: num
+    points: [double-entry]
+    items:
+      - {t: "Every transaction writes at least two entries that sum to zero", s: "-500,000 from Alice, +500,000 to Bob"}
+      - {t: "Entries are append-only", s: "never updated, never deleted"}
+      - {t: "A mistake is fixed with reversing entries", s: "the history stays complete"}
+      - {t: "The balance is the sum of the entries", s: "or a column kept in the same transaction and reconciled against that sum"}
+    lines:
+      - emma: "The double-entry ledger. Every transaction writes at least two entries, and they sum to zero: five hundred thousand out of Alice's account, five hundred thousand into Bob's."
+        focus: 0
+      - emma: "Entries are append-only. You never update or delete one. A mistake is fixed by writing reversing entries, so the history stays complete."
+        focus: 2
+      - emma: "And the balance is the sum of the entries, or a column maintained in the same transaction and reconciled against that sum."
+        focus: 3
+
+  - kind: table
+    heading: "Fixing a mistake without deleting anything"
+    sub: "500,000 went to Bob by mistake; it should have gone to Carol"
+    columns: ["Entry", "Alice", "Bob", "Carol", "Sum"]
+    widths: [2.6, 1.3, 1.3, 1.3, 0.8]
+    mono: [1, 2, 3, 4]
+    build: true
+    points: [double-entry-example]
+    rows:
+      - ["Transfer T1 (wrong)", "−500,000", "+500,000", "", "0"]
+      - ["Reversal of T1", "+500,000", "−500,000", "", "0"]
+      - ["Transfer T2 (correct)", "−500,000", "", "+500,000", "0"]
+      - ["Net change = sum of entries", "−500,000", "0", "+500,000", "0"]
+    lines:
+      - emma: "Here's what append-only looks like when you make a mistake. Five hundred thousand went from Alice to Bob, but it should have gone to Carol. Every transfer's entries sum to zero."
+        focus: 0
+      - emma: "You don't delete that transfer. You write a reversal: the same entries with the opposite sign."
+        focus: 1
+      - emma: "Then the correct transfer to Carol."
+        focus: 2
+      - emma: "Each balance is still just the sum of its entries, every row sums to zero, and an auditor can see exactly what happened and when."
+        focus: 3
+
+  - kind: exercise
+    chapter: "Exercise 7.6"
+    n: "7.6"
+    q: "Write two SQL queries that must return nothing when the ledger is correct."
+    items:
+      - {t: "(a) every transfer's entries sum to zero"}
+      - {t: "(b) the balance stored in account matches its opening balance plus the sum of its entries"}
+      - {t: "Tables: ledger_entry(transfer_id, account_id, amount), account(id, balance, opening_balance)"}
+    lines:
+      - emma: "Exercise 7.6. Write two queries that return nothing when the ledger is correct. First, every transfer's entries sum to zero. Second, each account's stored balance equals its opening balance plus the sum of its entries."
+        say: "Exercise seven point six. Write two queries that return nothing when the ledger is correct. First, every transfer's entries sum to zero. Second, each account's stored balance equals its opening balance plus the sum of its entries."
+      - wait: 7
+
+  - kind: code
+    heading: "Answer 7.6 — run both every hour; alert if either returns a row"
+    points: [ex76]
+    code: |
+      -- (a) must return nothing
+      select transfer_id, sum(amount) from ledger_entry
+       group by transfer_id having sum(amount) <> 0;
+
+      -- (b) must return nothing (opening_balance = balance at opening or period close)
+      select a.id, a.balance, a.opening_balance + coalesce(sum(e.amount), 0) as from_ledger
+        from account a left join ledger_entry e on e.account_id = a.id
+       group by a.id, a.balance, a.opening_balance
+      having a.balance <> a.opening_balance + coalesce(sum(e.amount), 0);
+    items:
+      - {lines: [1, 3], t: "Group by transfer: any non-zero sum is a broken transfer"}
+      - {lines: [5, 9], t: "Stored balance vs opening balance + entries; left join keeps accounts with no entries"}
+    note: "Lab 8 prints exactly these two facts after its run: sum(ledger) = 0 and the total balance unchanged."
+    lines:
+      - emma: "Query a: group the entries by transfer, and keep only groups whose sum isn't zero. Any row is a broken transfer."
+        focus: 0
+      - emma: "Query b: compare each stored balance with the opening balance plus the sum of the entries. The left join keeps accounts that have no entries yet, and coalesce turns their empty sum into zero."
+        focus: 1
+      - emma: "Run both every hour as a reconciliation job, and alert when either one returns a row. Lab 8 prints exactly these two facts after its run."
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    items:
+      - {t: "“I never write to the database and Kafka separately: the event goes into an outbox table in the same transaction.”"}
+      - {t: "“Delivery is at-least-once, so every consumer dedups by event ID inside its own transaction.”"}
+      - {t: "“The ledger is append-only double entry, and an hourly job proves every transfer sums to zero.”"}
+    lines:
+      - emma: "In an interview: I never write to the database and to Kafka separately. The event goes into an outbox table in the same transaction."
+        focus: 0
+      - emma: "Delivery is at-least-once, so every consumer deduplicates by event ID inside its own transaction."
+        focus: 1
+      - emma: "And the ledger is append-only double entry, with an hourly job that proves every transfer sums to zero. Next episode: lab 7, a saga that survives crashes."
+        focus: 2

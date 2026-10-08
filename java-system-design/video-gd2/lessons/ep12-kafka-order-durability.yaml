@@ -1,0 +1,200 @@
+id: ep12-kafka-order-durability
+ep: 12
+week: 8
+tag: "EP12 · WEEKS 8–9"
+title: "Kafka: ordering, keys, and durable writes"
+subtitle: "Order lives in one partition, which key to choose, and the producer and topic settings for money"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#tuần-89--kafka-sâu-lab-outbox--consumer-idempotent-p20
+  - 20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-9
+  - 20-implement-gd2-du-lieu-phan-tan.md#đọc-2
+  - 20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-2
+  - 20-implement-gd2-du-lieu-phan-tan.md#81-thứ-tự-chỉ-tồn-tại-trong-một-partition
+  - 20-implement-gd2-du-lieu-phan-tan.md#82-độ-bền-ghi
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · weeks 8–9 (outputs, reading), §8.1 ordering, §8.2 durable writes; exercises 8.1 and 8.2"}
+      - {t: "Weeks 8–9 · Monday reading + Wednesday exercises"}
+    lines:
+      - emma: "Episode twelve opens weeks eight and nine: Kafka in depth. Two questions come first. In what order do events arrive? And when is a write really safe?"
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: ISR, full: "in-sync replicas", vi: "các replica đang theo kịp leader của một partition"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: DDIA, full: "Designing Data-Intensive Applications", vi: "sách của Martin Kleppmann"}
+    lines:
+      - emma: "ISR means in-sync replicas: the copies of a partition that are keeping up with its leader. DB is the database, ID an identifier, and DDIA is Kleppmann's book."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Weeks 8–9"
+    heading: "By the end of week 9 you must have"
+    style: check
+    points: [w89-outputs]
+    items:
+      - {t: "Lab 8: Spring Boot + Kafka + Postgres, 7 tests", s: "including one that reproduces duplicates after a relay crash and proves the consumer applies each event once"}
+      - {t: "D20 (P20) run, and one consumer in your lab fixed"}
+      - {t: "Drawing V7: payment/wallet with Kafka + a saga"}
+      - {t: "Timed design: Ad click aggregation"}
+      - {t: "Capstone: design doc v1"}
+      - {t: "A 2-minute talk: “How do you get exactly-once processing with Kafka and a database?”"}
+    lines:
+      - emma: "Weeks eight and nine are the biggest block. Lab 8 connects Spring Boot, Kafka and Postgres, with seven tests, including one that reproduces duplicate messages after a relay crash and proves the consumer applies each event once."
+        focus: 0
+      - emma: "You run D20, the slow consumer demo, and fix one consumer. You draw V7, and do the ad click aggregation design."
+        focus: 3
+      - emma: "The capstone design doc, version one, is due. And the talk: how do you get exactly-once processing with Kafka and a database?"
+        focus: 5
+
+  - kind: table
+    heading: "Reading for weeks 8–9"
+    columns: ["When", "What", "Focus on"]
+    widths: [1.2, 3.9, 2.7]
+    build: true
+    points: [w89-reading]
+    rows:
+      - ["Mon, week 8", "Kafka: The Definitive Guide (2nd ed.): ch. 3 Producers, ch. 4 Consumers", "partition key, consumer group, committing offsets"]
+      - ["Mon, week 9", "Same book: ch. 6 Internals, ch. 7 Reliable Data Delivery, ch. 8 Exactly-Once Semantics", "ISR, acks, idempotent producer, transactions"]
+      - ["Wed, week 8", "Alex Xu Vol 2, ch. 4 Distributed message queue", "redesign Kafka at the concept level"]
+      - ["Wed, week 9", "Alex Xu Vol 2, ch. 6 Ad click aggregation; DDIA ch. 11 Stream Processing", "windows and time"]
+      - ["Fri", "01 · P20, then run D20", ""]
+    lines:
+      - emma: "The reading. Kafka: The Definitive Guide, second edition. In week eight, the chapters on producers and consumers. In week nine, the internals, reliable delivery, and exactly-once semantics."
+        focus: 1
+      - emma: "Alex Xu volume two: the distributed message queue, and ad click aggregation, with DDIA chapter eleven on stream processing."
+        focus: 3
+      - emma: "And on Friday, P20 from the Track P file, then run the D20 demo."
+        focus: 4
+
+  - kind: diagram
+    chapter: "Ordering"
+    heading: "8.1 · Order exists only inside one partition"
+    sub: "Same key → same partition → same order. Choose the key = the thing that needs order"
+    points: [kafka-order]
+    nodes:
+      - {id: p, label: "Producer", sub: "key = account_id", x: 120, y: 160, w: 190, h: 80}
+      - {id: p1, label: "Partition 1", sub: "acct-42: opened, locked, txn rejected", x: 560, y: 80, w: 300, h: 70, shape: queue}
+      - {id: p3, label: "Partition 3", sub: "acct-7: opened, limit changed", x: 560, y: 230, w: 300, h: 70, shape: queue}
+      - {id: c1, label: "Consumer A", sub: "sees acct-42 in order", x: 1030, y: 80, w: 200, h: 70}
+      - {id: c3, label: "Consumer B", sub: "sees acct-7 in order", x: 1030, y: 230, w: 200, h: 70}
+      - {id: p5, label: "Partition 5 (added later)", sub: "the modulo changed: new acct-42 events land here", x: 380, y: 355, w: 400, h: 76, tone: bad, at: 1}
+    edges:
+      - {a: p, b: p1, label: "acct-42"}
+      - {a: p, b: p3, label: "acct-7"}
+      - {a: p1, b: c1}
+      - {a: p3, b: c3}
+      - {a: p, b: p5, label: "after the resize", dashed: true, at: 1}
+    lines:
+      - emma: "Kafka keeps order only inside one partition. Events with the same key go to the same partition, so they're read in the order they were written. So choose the key to be the thing that needs ordering: the account ID for account events."
+        focus: 0
+      - emma: "Now add partitions. The partition is the hash of the key modulo the number of partitions, so that number just changed. New events for account forty-two land in a new partition, while older ones are still waiting in the old one. During the move, order breaks."
+        focus: 1
+      - emma: "So choose enough partitions up front, based on the largest number of consumers you expect."
+        focus: 1
+
+  - kind: table
+    chapter: "Durable writes"
+    heading: "8.2 · When can a written message still be lost?"
+    columns: ["Setting", "You lose data when…"]
+    widths: [4.2, 3.4]
+    build: true
+    points: [kafka-durability]
+    rows:
+      - ["acks=1", "the leader writes, then dies before a follower copies it"]
+      - ["acks=all, replication.factor=3, min.insync.replicas=2", "2 of 3 brokers die at the same time — the standard setting for money"]
+      - ["… and unclean.leader.election.enable=false (default)", "never by electing a lagging replica: Kafka stops accepting writes rather than lose them"]
+    lines:
+      - emma: "When is a message safe? With acks equals one, the producer gets its answer as soon as the leader has written it. If the leader dies before a follower copies it, it's gone."
+        focus: 0
+      - emma: "With acks equals all, three replicas, and minimum in-sync replicas two, you lose data only if two of the three brokers die at the same time. That's the standard setting for money."
+        say: "With acks equals all, three replicas, and minimum in-sync replicas two, you lose data only if two of the three brokers die at the same time. That's the standard setting for money."
+        focus: 1
+      - emma: "And keep unclean leader election disabled, which is the default. Then a replica that has fallen behind is never made leader. Kafka would rather stop accepting writes than lose them."
+        focus: 2
+
+  - kind: compare
+    heading: "The idempotent producer: on by default since Kafka 3.0"
+    points: [idem-producer]
+    items:
+      - {title: "What it stops", tone: ok, lines: ["Duplicates from the producer's own retries", "The broker drops a resent batch it already has"]}
+      - {title: "What it does not stop", tone: warn, lines: ["An outbox relay that dies after sending and runs again", "That's a new send, from the broker's point of view", "→ consumers still need idempotency"]}
+    lines:
+      - emma: "Since Kafka 3.0 the idempotent producer is on by default. When the producer retries a batch, the broker recognises it and drops the duplicate."
+        say: "Since Kafka three point oh the idempotent producer is on by default. When the producer retries a batch, the broker recognises it and drops the duplicate."
+        focus: 0
+      - emma: "But it only covers the producer's own retries. If your outbox relay sends a batch, dies before marking it, and runs again, that's a brand new send. So consumers still need to be idempotent."
+        focus: 1
+
+  - kind: exercise
+    chapter: "Exercise 8.1"
+    n: "8.1"
+    q: "Which key for the topic account.events?"
+    items:
+      - {t: "Events: account opened, locked, limit updated, transaction"}
+      - {t: "Candidates: eventId, accountId, customerId"}
+      - {t: "One customer can have many accounts"}
+    lines:
+      - emma: "Exercise 8.1. A topic of account events: opened, locked, limit updated, transactions. Key by event ID, account ID, or customer ID? Remember that one customer can have many accounts."
+        say: "Exercise eight point one. A topic of account events: opened, locked, limit updated, transactions. Key by event ID, account ID, or customer ID? Remember that one customer can have many accounts."
+      - wait: 5
+
+  - kind: compare
+    heading: "Answer 8.1 — key by accountId"
+    points: [ex81]
+    items:
+      - {title: "accountId", tone: ok, lines: ["The order that matters is within one account", "A lock must arrive before the transaction it rejects"]}
+      - {title: "eventId", tone: bad, lines: ["Spreads perfectly", "But loses all ordering"]}
+      - {title: "customerId", tone: warn, lines: ["Keeps more order than you need", "Hot partitions: a business customer can have thousands of accounts"]}
+    lines:
+      - emma: "Account ID. The order that matters is inside one account: a lock event must arrive before the transaction it rejects."
+        focus: 0
+      - emma: "Event ID spreads perfectly, but you lose all ordering."
+        focus: 1
+      - emma: "And customer ID keeps more order than you need, and creates a hot partition for a business customer with thousands of accounts."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 8.2"
+    n: "8.2"
+    q: "Settings for money: data may be lost only if 2 brokers die at once."
+    items:
+      - {t: "List the topic, producer and broker settings"}
+      - {t: "Explain why acks=all on its own is not enough"}
+    lines:
+      - emma: "Exercise 8.2. Which producer and topic settings make data loss require two brokers dying at once? And why isn't acks equals all enough on its own?"
+        say: "Exercise eight point two. Which producer and topic settings make data loss require two brokers dying at once? And why isn't acks equals all enough on its own?"
+      - wait: 6
+
+  - kind: code
+    heading: "Answer 8.2 — the settings for money"
+    points: [ex82]
+    code: |
+      # topic
+      replication.factor=3
+      min.insync.replicas=2
+      # producer
+      acks=all
+      enable.idempotence=true          # the default
+      delivery.timeout.ms=120000       # finite, and handle the send error
+      # broker
+      unclean.leader.election.enable=false
+    items:
+      - {lines: [2, 3], t: "Three copies; a write needs at least two in the ISR"}
+      - {lines: [5, 7], t: "Wait for the ISR; a send that can't succeed fails within a bound time"}
+      - {lines: [9, 9], t: "Never elect a replica that fell behind"}
+    lines:
+      - emma: "On the topic: three replicas, and minimum in-sync replicas two."
+        focus: 0
+      - emma: "On the producer: acks equals all, idempotence on, which is the default, and a finite delivery timeout, with code that handles the send error."
+        focus: 1
+      - emma: "On the broker: unclean leader election disabled."
+        focus: 2
+      - emma: "Why isn't acks equals all enough? It means every replica in the ISR, the in-sync set. If the ISR shrinks to just the leader, acks equals all behaves exactly like acks equals one."
+      - emma: "Minimum in-sync replicas two makes the producer get an error instead of writing a single copy. Next episode: delivery guarantees, consumer groups, and dead letters."

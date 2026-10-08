@@ -1,0 +1,204 @@
+id: ep07-why-not-2pc
+ep: 7
+week: 7
+tag: "EP07 · WEEK 7"
+title: "Why not two-phase commit: sagas instead"
+subtitle: "What 2PC costs between services, orchestration or choreography, the three kinds of steps, and the 2-minute talk"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#tuần-7--transaction-phân-tán-saga-outbox-idempotency-sổ-cái-kép
+  - 20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần
+  - 20-implement-gd2-du-lieu-phan-tan.md#đọc-1
+  - 20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-1
+  - 20-implement-gd2-du-lieu-phan-tan.md#71-vì-sao-không-2pc-giữa-microservices
+  - 20-implement-gd2-du-lieu-phan-tan.md#72-orchestration-hay-choreography
+  - 20-implement-gd2-du-lieu-phan-tan.md#73-ba-loại-bước-và-thứ-tự
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-1
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · week 7 (outputs, reading), §7.1 why not 2PC, §7.2 orchestration or choreography, §7.3 the three kinds of steps, the week-7 2-minute talk"}
+      - {t: "Week 7 · Monday reading + Sunday talk"}
+    lines:
+      - emma: "Episode seven starts week seven: distributed transactions. A transfer to another bank touches your ledger, a fraud check, and the partner bank. There is no single database that can wrap all of that in one transaction."
+      - emma: "So why not use two-phase commit across the services? We'll see what it costs, what replaces it, and how to say it in two minutes."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: 2PC, full: "two-phase commit", vi: "commit hai pha: hỏi mọi bên prepare rồi mới commit"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: REST, full: "representational state transfer", vi: "kiểu API theo tài nguyên qua HTTP"}
+      - {abbr: NoSQL, full: "not only SQL", vi: "nhóm database không theo mô hình bảng quan hệ"}
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn database quan hệ"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: NAB, full: "National Australia Bank", vi: "ngân hàng Úc, một công ty mục tiêu của lộ trình"}
+      - {abbr: EM, full: "engineering manager", vi: "quản lý kỹ thuật; vòng phỏng vấn system design ở NAB"}
+    lines:
+      - emma: "2PC is two-phase commit, the protocol this episode argues against. API is an application programming interface, and REST is the usual style of HTTP API."
+        focus: 2
+      - emma: "NoSQL means not only SQL, the family of non-relational stores, SQL being the Structured Query Language. DB is the database."
+        focus: 5
+      - emma: "NAB is National Australia Bank, one of the target companies, and EM is an engineering manager, the person who runs NAB's system design round."
+        focus: 7
+
+  - kind: bullets
+    chapter: "Week 7"
+    heading: "By the end of week 7 you must have"
+    style: check
+    points: [w7-outputs]
+    items:
+      - {t: "Lab 7: a saga orchestrator with its state in Postgres", s: "compensates in the right order, resumes after a crash, every step idempotent"}
+      - {t: "Two timed designs: Payment system and Digital wallet"}
+      - {t: "The ledger invariant queries of exercise 7.6, running on your lab data"}
+      - {t: "A 2-minute talk: “Why wouldn't you use two-phase commit between microservices?”"}
+    lines:
+      - emma: "By the end of week seven: lab 7, a saga orchestrator that keeps its state in Postgres, compensates in the right order, and picks up again after a crash."
+        focus: 0
+      - emma: "Two timed designs, a payment system and a digital wallet, and the ledger invariant queries from exercise 7.6 running on your lab data."
+        say: "Two timed designs, a payment system and a digital wallet, and the ledger invariant queries from exercise seven point six running on your lab data."
+        focus: 2
+      - emma: "And a two-minute talk: why wouldn't you use two-phase commit between microservices? That's the end of this episode."
+        focus: 3
+
+  - kind: table
+    heading: "Reading for week 7"
+    columns: ["When", "What", "Why"]
+    widths: [1.0, 3.6, 3.1]
+    build: true
+    points: [w7-reading]
+    rows:
+      - ["Mon", "Chris Richardson, Microservices Patterns: ch. 4 Managing transactions with sagas; the transactional outbox in ch. 3", "orchestration vs choreography, kinds of steps, countermeasures for missing isolation"]
+      - ["Wed", "Alex Xu Vol 2: ch. 11 Payment system, ch. 12 Digital wallet", "this week's two timed designs"]
+      - ["Fri", "nab-prep/04 — Kafka, event-driven, saga", "the exact questions of NAB's EM round"]
+      - ["Sun", "doc 06, part 2 — redesigning the ledger", "change the definition so the race disappears"]
+    lines:
+      - emma: "The reading. On Monday, Chris Richardson's Microservices Patterns: chapter four on sagas, and the transactional outbox in chapter three."
+        focus: 0
+      - emma: "On Wednesday, Alex Xu volume two, the payment system and the digital wallet."
+        focus: 1
+      - emma: "On Friday, the NAB notes on Kafka, events and sagas, because NAB's engineering manager round asks exactly these questions. On Sunday, the ledger redesign in document six, part two."
+        focus: 3
+
+  - kind: diagram
+    chapter: "What 2PC costs"
+    heading: "Two-phase commit, in one picture"
+    sub: "Phase 1: everyone prepares and holds locks · phase 2: commit only if all said yes"
+    nodes:
+      - {id: co, label: "Coordinator", sub: "the transfer service", x: 150, y: 160, w: 210, h: 90}
+      - {id: a, label: "Ledger DB", sub: "prepared, row locked", x: 640, y: 60, w: 230, h: 70, shape: db}
+      - {id: b, label: "Fraud service", sub: "prepared, row locked", x: 640, y: 195, w: 230, h: 70, shape: db}
+      - {id: c, label: "Partner bank API", sub: "can't prepare at all", x: 640, y: 330, w: 230, h: 70, tone: bad, at: 2}
+      - {id: x, label: "Coordinator dies here", sub: "everyone waits, locks held", x: 150, y: 345, w: 230, h: 80, tone: bad, at: 1}
+    edges:
+      - {a: co, b: a, label: "prepare? yes"}
+      - {a: co, b: b, label: "prepare? yes"}
+      - {a: co, b: x, dashed: true, at: 1}
+      - {a: co, b: c, label: "prepare?", dashed: true, at: 2}
+    lines:
+      - emma: "Here's two-phase commit. In phase one, the coordinator asks every participant to prepare. Each one locks the rows it touched and answers yes. In phase two, if everyone said yes, the coordinator tells them all to commit."
+        focus: 0
+      - emma: "The locks are held on every service, across the network, for both phases. And if the coordinator dies between the phases, the participants are stuck: they can't commit and they can't roll back, so they wait, holding their locks."
+        focus: 1
+      - emma: "And many of the systems you need can't take part at all. A partner bank's REST API has no prepare step."
+        focus: 2
+
+  - kind: stats
+    heading: "Why not 2PC between microservices — in numbers"
+    points: [no-2pc, saga-tradeoff]
+    items:
+      - {v: "99.5%", l: "availability of the whole transaction", s: "5 services at 99.9%: availability multiplies", tone: bad}
+      - {v: "2 phases", l: "locks held across the network", s: "a dead coordinator leaves participants hanging"}
+      - {v: "0", l: "Kafka, most NoSQL, partners' REST APIs", s: "systems that can't join 2PC", tone: warn}
+    note: "A saga trades immediate consistency for eventual consistency + compensation — and you must handle the missing isolation yourself."
+    lines:
+      - emma: "Put a number on it. The transaction succeeds only if every participant is up, so availabilities multiply. Five services at 99.9% each give 99.5% for the whole thing."
+        say: "Put a number on it. The transaction succeeds only if every participant is up, so availabilities multiply. Five services at ninety-nine point nine percent each give ninety-nine point five percent for the whole thing."
+        focus: 0
+      - emma: "Locks are held over the network for two phases, and a dead coordinator leaves everyone hanging."
+        focus: 1
+      - emma: "And Kafka, most NoSQL stores and partners' REST APIs can't join two-phase commit at all."
+        focus: 2
+      - emma: "So we use a saga instead. A saga trades immediate consistency for eventual consistency plus compensation, undoing completed steps when a later one fails. The catch: there's no isolation between sagas, so you have to handle that yourself."
+
+  - kind: table
+    chapter: "Orchestration or choreography"
+    heading: "7.2 · Orchestration or choreography?"
+    columns: ["", "Orchestration", "Choreography"]
+    widths: [1.6, 3.1, 3.1]
+    build: true
+    points: [orch-chor]
+    rows:
+      - ["Who's in control", "One orchestrator sends commands, receives replies, stores the state", "Each service listens to events and does its own step"]
+      - ["Where you see the flow", "In one place: the saga state table", "Spread over all services; rebuilt from logs and traces"]
+      - ["Good for", "Money flows with many steps and exact compensation (interbank transfer)", "Simple fan-out with little compensation (notifications, read models)"]
+      - ["Risk", "The orchestrator becomes a “god service”", "Event loops; hard to tell where a saga is"]
+    lines:
+      - emma: "Two ways to run a saga. With orchestration, one orchestrator sends commands, receives replies, and stores the saga's state. With choreography, each service listens for events and does its own step."
+        focus: 0
+      - emma: "With an orchestrator you see the whole flow in one place, the saga state table. With choreography it's spread across services, and you rebuild it from logs and traces."
+        focus: 1
+      - emma: "So orchestration fits money flows with many steps and exact compensation, like an interbank transfer. Choreography fits simple fan-out with little to undo, like notifications and read models."
+        focus: 2
+      - emma: "The risks: an orchestrator can grow into a god service, and choreography can create loops of events where nobody knows where a saga is."
+        focus: 3
+
+  - kind: flow
+    chapter: "Three kinds of steps"
+    heading: "7.3 · Three kinds of steps — and the only safe order"
+    points: [step-types]
+    items:
+      - {t: "Compensatable", s: "has an undo: hold money ↔ release it", f: "first"}
+      - {t: "Pivot", s: "the point of no return: send to the partner bank, charge a card", f: "exactly one"}
+      - {t: "Retriable", s: "after the pivot; guaranteed to succeed if retried: final ledger entries, notification", f: "last"}
+    note: "Put a step that can fail after the pivot, and you have built a state you can't compensate."
+    lines:
+      - emma: "Every saga step is one of three kinds. A compensatable step has an undo: holding money, and releasing it."
+        focus: 0
+      - emma: "The pivot is the point of no return. Once the instruction has gone to the partner bank, or the card has been charged, the saga must go all the way to the end."
+        focus: 1
+      - emma: "And retriable steps come after the pivot. They're guaranteed to succeed if you retry them enough: writing the final ledger entries, sending the notification."
+        focus: 2
+      - emma: "So the only safe order is compensatable, then the pivot, then retriable. Put a step that can fail after the pivot, and you've built a state you can't undo."
+
+  - kind: bullets
+    heading: "Sagas have no isolation — three countermeasures"
+    style: num
+    points: [isolation-counter]
+    items:
+      - {t: "Semantic lock", s: "a PENDING state or a hold on the money tells other flows a saga is running"}
+      - {t: "Commutative updates", s: "add and subtract instead of overwriting a value"}
+      - {t: "Reread before you write", s: "check the value again before the step that depends on it"}
+    lines:
+      - emma: "Because there's no isolation, other requests can see a saga half-way through. Three countermeasures. A semantic lock: a pending state, or money on hold, that tells other flows a saga is running."
+        focus: 0
+      - emma: "Commutative updates: add and subtract instead of overwriting, so the order of two sagas doesn't matter."
+        focus: 1
+      - emma: "And reread the value right before the step that depends on it."
+        focus: 2
+
+  - kind: speech
+    chapter: "Your 2-minute talk"
+    heading: "Model answer — “Why wouldn't you use two-phase commit between microservices?”"
+    points: [talk-w7]
+    items:
+      - {t: "Two-phase commit holds locks on every participant for both phases, across the network."}
+      - {t: "If the coordinator dies between the phases, participants hang with their locks held until it comes back."}
+      - {t: "Availability multiplies: five services at 99.9% give 99.5% for the transaction.", say: "Availability multiplies: five services at ninety-nine point nine percent give ninety-nine point five percent for the transaction."}
+      - {t: "And Kafka, most NoSQL stores and partners' REST APIs can't take part in it anyway."}
+      - {t: "So I use a saga: short local transactions, an outbox to publish events reliably, and idempotency at every step so retries are safe."}
+      - {t: "The trade-off is isolation: other requests can see a saga in progress, so I keep a PENDING state on the money, and I reconcile with the partner every day."}
+    lines:
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+      - read: emma
+        focus: 3
+      - read: emma
+        focus: 4
+      - read: emma
+        focus: 5

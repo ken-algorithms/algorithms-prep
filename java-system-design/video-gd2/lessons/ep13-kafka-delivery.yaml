@@ -1,0 +1,122 @@
+id: ep13-kafka-delivery
+ep: 13
+week: 8
+tag: "EP13 · WEEKS 8–9"
+title: "Kafka: delivery guarantees, consumer groups, and dead letters"
+subtitle: "At-most-once, at-least-once, “exactly-once” with a database; rebalancing; poison messages and backpressure"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#83-ba-mức-giao-nhận
+  - 20-implement-gd2-du-lieu-phan-tan.md#84-consumer-group-rebalance-maxpollintervalms
+  - 20-implement-gd2-du-lieu-phan-tan.md#85-retry-dlt-backpressure
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · §8.3 three delivery levels, §8.4 consumer group and rebalance, §8.5 retry, DLT, backpressure"}
+      - {t: "Weeks 8–9 · Monday reading: Kafka: The Definitive Guide, ch. 4, 7, 8"}
+    lines:
+      - emma: "Episode thirteen is about the consumer side of Kafka. When do you commit the offset? What happens when a consumer is too slow? And what do you do with a message that will never succeed?"
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: DLT, full: "dead-letter topic", vi: "topic chứa message xử lý lỗi, kèm header lỗi"}
+      - {abbr: KIP, full: "Kafka Improvement Proposal", vi: "đề xuất thay đổi Kafka, đánh số"}
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức của web và API"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu dạng văn bản"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "DB is the database. A DLT is a dead-letter topic, where messages go when processing keeps failing. A KIP is a Kafka Improvement Proposal."
+        focus: 2
+      - emma: "HTTP is the web's protocol, JSON the usual text format for messages, and ID an identifier."
+        focus: 5
+
+  - kind: table
+    chapter: "Three delivery levels"
+    heading: "8.3 · Three delivery levels — it's all about when you commit the offset"
+    columns: ["Level", "How", "If it crashes half-way"]
+    widths: [2.0, 3.3, 2.5]
+    build: true
+    points: [delivery-levels]
+    rows:
+      - ["At-most-once", "commit the offset before processing", "the message is lost"]
+      - ["At-least-once", "commit the offset after processing", "the message is processed again"]
+      - ["“Exactly-once” with a DB", "at-least-once + an idempotent consumer: dedup in the same transaction as the side effect", "processed again, but the effect happens once"]
+    lines:
+      - emma: "Three delivery levels, and they all come down to when the consumer commits its offset. Commit before processing, and a crash half-way loses the message. That's at-most-once."
+        focus: 0
+      - emma: "Commit after processing, and a crash means the message is processed again. That's at-least-once."
+        focus: 1
+      - emma: "And exactly-once, when a database is involved, is at-least-once plus an idempotent consumer: the deduplication happens in the same transaction as the side effect. The message may be processed twice, but its effect happens exactly once."
+        focus: 2
+
+  - kind: compare
+    heading: "Kafka transactions: exactly-once, but only inside Kafka"
+    points: [kafka-tx]
+    items:
+      - {title: "Covered by a Kafka transaction", tone: ok, lines: ["read topic A, write topic B, commit the offsets — atomically", "readers use isolation.level=read_committed"]}
+      - {title: "Not covered", tone: warn, lines: ["a row written to Postgres", "an HTTP call to a partner", "→ those still need idempotency on their side"]}
+    lines:
+      - emma: "Kafka does have transactions. Read from topic A, write to topic B, and commit the offsets, all atomically, with readers set to read committed. That's exactly-once inside Kafka."
+        focus: 0
+      - emma: "But the moment your consumer writes to Postgres or calls a partner, that part is outside the Kafka transaction, and it still needs idempotency in the database."
+        focus: 1
+
+  - kind: flow
+    chapter: "Consumer groups"
+    heading: "8.4 · Too slow between two polls → thrown out of the group"
+    points: [consumer-group]
+    items:
+      - {t: "poll()", s: "returns up to max.poll.records (default 500)"}
+      - {t: "Process the batch", s: "a slow downstream makes it take longer"}
+      - {t: "Too slow → rebalance", s: "past max.poll.interval.ms (default 300 s): its partitions move away, its commit fails"}
+      - {t: "Same batch again", s: "on another consumer, from the last committed offset"}
+    note: "Kafka 4.0: the new group protocol (KIP-848) is generally available; rebalances no longer stop the whole group, but the poll limit stays."
+    lines:
+      - emma: "A consumer must call poll again before max poll interval passes, five minutes by default. Each poll returns up to five hundred records."
+        focus: 0
+      - emma: "If processing the batch takes too long, say because a downstream service is slow, the broker decides the consumer is dead."
+        focus: 1
+      - emma: "It rebalances: the partitions go to another consumer, and the slow consumer's offset commit fails."
+        focus: 2
+      - emma: "So the same batch is processed again somewhere else. That's exactly P20, with real numbers, three episodes from now."
+        focus: 3
+      - emma: "Kafka 4.0 made the new consumer group protocol, KIP-848, generally available. Rebalances are coordinated by the broker and no longer stop the whole group. But the limit between two polls is still there."
+        say: "Kafka four point oh made the new consumer group protocol, KIP eight forty-eight, generally available. Rebalances are coordinated by the broker and no longer stop the whole group. But the limit between two polls is still there."
+
+  - kind: table
+    chapter: "Retry, DLT, backpressure"
+    heading: "8.5 · Three kinds of trouble, three different answers"
+    columns: ["Trouble", "Do this", "Not this"]
+    widths: [2.0, 3.6, 2.2]
+    build: true
+    points: [retry-dlt]
+    rows:
+      - ["Poison message (will never succeed: broken JSON)", "retry a few times with backoff, then the dead-letter topic with error headers", "retry forever: the partition is stuck at one offset"]
+      - ["Temporary error (downstream is down)", "pause() the partition, wait, resume() — or a delayed retry topic", "send it to the DLT at once"]
+      - ["Backpressure", "limit with max.poll.records and a bounded executor (P13)", "an unbounded BlockingQueue"]
+    lines:
+      - emma: "Three kinds of trouble need three different answers. A poison message, like broken JSON, will never succeed. Retry a few times with backoff, then move it to the dead-letter topic with headers describing the error, so the partition doesn't stay stuck at one offset."
+        focus: 0
+      - emma: "A temporary error is different: the downstream service is down. Don't dead-letter those messages. Pause the partition, wait, and resume, or use a retry topic with a delay."
+        focus: 1
+      - emma: "And backpressure: the consumer must not take messages faster than downstream can handle. Limit it with max poll records and a bounded executor, the fix for P13. Never with an unbounded blocking queue."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    items:
+      - {t: "“We commit offsets after processing, so it's at-least-once, and every consumer dedups by event ID in its own transaction.”"}
+      - {t: "“Kafka transactions help between topics; they don't cover our Postgres writes.”"}
+      - {t: "“Poison messages go to a DLT after three tries; when a downstream is down we pause the partition instead.”"}
+    lines:
+      - emma: "In an interview: we commit offsets after processing, so it's at-least-once, and every consumer deduplicates by event ID in its own transaction."
+        focus: 0
+      - emma: "Kafka transactions help between topics; they don't cover our Postgres writes."
+        focus: 1
+      - emma: "And poison messages go to a dead-letter topic after three tries, while for a downstream outage we pause the partition instead. Next episode: lab 8, the outbox on real Kafka."
+        focus: 2

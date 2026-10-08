@@ -36,6 +36,7 @@
 | **PSP** | Payment service provider | Cổng thanh toán (trừ thẻ thay merchant), ví dụ Stripe, Adyen | ✓ | Ep11 |
 | **PCI DSS** | Payment Card Industry Data Security Standard | Chuẩn bảo mật dữ liệu thẻ; lưu số thẻ là phải gánh toàn bộ phạm vi của chuẩn | ✓ | Ep11 |
 | **eKYC** | Electronic know your customer | Định danh khách hàng điện tử (ảnh giấy tờ, khuôn mặt) khi mở tài khoản | `e K Y C` | Ep10 |
+| EM | Engineering manager | Quản lý kỹ thuật; ở NAB là người phỏng vấn vòng system design (saga, event-driven) | ✓ | Ep07 |
 
 ## 3. Kafka, stream processing
 

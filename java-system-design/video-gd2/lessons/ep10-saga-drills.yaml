@@ -1,0 +1,168 @@
+id: ep10-saga-drills
+ep: 10
+week: 7
+tag: "EP10 · WEEK 7"
+title: "Saga drills: step order, isolation, and the pivot timeout"
+subtitle: "Exercises 7.1–7.4: a wallet top-up, a balance mid-saga, a timeout at the point of no return, and picking a style"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · exercises 7.1 (order the steps), 7.2 (missing isolation), 7.3 (pivot timeout), 7.4 (orchestration or choreography)"}
+      - {t: "Week 7 · Wednesday exercises"}
+    lines:
+      - emma: "Episode ten: four saga drills. Each one is a question you can get in a bank interview. Pause at every countdown and answer out loud before you look."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: PSP, full: "payment service provider", vi: "cổng thanh toán, trừ thẻ thay merchant"}
+      - {abbr: eKYC, full: "electronic know your customer", vi: "định danh khách hàng điện tử khi mở tài khoản"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "A PSP is a payment service provider, the company that charges a card. eKYC is electronic know-your-customer, identity checks when opening an account. And ID is an identifier."
+        focus: 2
+
+  - kind: exercise
+    chapter: "7.1 Order the steps"
+    n: "7.1"
+    q: "A customer tops up a wallet with a card. Which step is the pivot, and in what order do the steps run?"
+    items:
+      - {t: "(a) create a top-up record, PENDING"}
+      - {t: "(b) charge the card through the PSP"}
+      - {t: "(c) credit the wallet"}
+      - {t: "(d) email the receipt"}
+      - {t: "(e) check the daily top-up limit"}
+    lines:
+      - emma: "Exercise 7.1. A wallet top-up by card, in five steps: create a pending top-up record, charge the card through the PSP, credit the wallet, email the receipt, and check the daily top-up limit. Which step is the pivot, and what's the order?"
+        say: "Exercise seven point one. A wallet top-up by card, in five steps: create a pending top-up record, charge the card through the PSP, credit the wallet, email the receipt, and check the daily top-up limit. Which step is the pivot, and what's the order?"
+      - wait: 7
+
+  - kind: flow
+    heading: "Answer 7.1 — (a) → (e) → (b) pivot → (c) → (d)"
+    points: [ex71]
+    items:
+      - {t: "(a) record", s: "compensatable: cancel the record"}
+      - {t: "(e) limit check", s: "compensatable: nothing to undo"}
+      - {t: "(b) charge card", s: "the pivot: money has left the card"}
+      - {t: "(c) credit wallet", s: "retriable: idempotent by top-up ID"}
+      - {t: "(d) email", s: "retriable"}
+    note: "Check the limit after the charge, and an over-limit top-up needs a card refund: slow, with fees, and two lines on the statement."
+    lines:
+      - emma: "First the pending record and the limit check. Both are compensatable: cancel the record, and the check has nothing to undo."
+        focus: 1
+      - emma: "Then charging the card. That's the pivot: once the money has left the card, the saga has to finish."
+        focus: 2
+      - emma: "Crediting the wallet must be retriable, idempotent by the top-up ID, retried until it succeeds. Then the email."
+        focus: 4
+      - emma: "The classic mistake is checking the limit after the charge. An over-limit top-up then needs a card refund, which is slow, costs fees, and leaves two lines on the customer's statement."
+
+  - kind: exercise
+    chapter: "7.2 Missing isolation"
+    n: "7.2"
+    q: "A saga transferring 5 million is running: the money is held, waiting for the partner bank. The customer opens the app, balance 10 million, and tries to transfer 8 million. What does the app show, and does the second transfer go through?"
+    items:
+      - {t: "No ledger entries exist yet for the first transfer"}
+      - {t: "The hold moved 5 million from available to held"}
+    lines:
+      - emma: "Exercise 7.2. A saga transferring five million is running. The money is held while it waits for the partner bank. The customer, who had ten million, opens the app and tries to transfer eight million. What does the app show, and does it go through?"
+        say: "Exercise seven point two. A saga transferring five million is running. The money is held while it waits for the partner bank. The customer, who had ten million, opens the app and tries to transfer eight million. What does the app show, and does it go through?"
+      - wait: 6
+
+  - kind: stats
+    heading: "Answer 7.2 — two numbers, not one"
+    points: [ex72]
+    items:
+      - {v: "10,000,000", l: "ledger balance", s: "no entries yet for the transfer in progress"}
+      - {v: "5,000,000", l: "available balance", s: "ledger balance minus the hold", tone: ok}
+      - {v: "rejected", l: "the 8 million transfer", s: "checked against the available balance", tone: bad}
+    note: "The app shows “available 5,000,000 · processing 5,000,000”. The hold is a semantic lock: it tells other flows a saga is running."
+    lines:
+      - emma: "Keep two numbers. The ledger balance is still ten million, because the transfer hasn't posted any entries yet."
+        focus: 0
+      - emma: "The available balance is five million: the ledger balance minus the hold. The app shows both: available five million, processing five million."
+        focus: 1
+      - emma: "The eight million transfer is checked against the available balance, so it's rejected. That hold is a semantic lock: it tells every other flow that a saga is in progress."
+        focus: 2
+
+  - kind: exercise
+    chapter: "7.3 Pivot timeout"
+    n: "7.3"
+    q: "The step that sends the instruction to the partner bank times out after 3 seconds. What do you do?"
+    items:
+      - {t: "(a) compensate now: release the held money"}
+      - {t: "(b) retry: send it again"}
+      - {t: "(c) something else"}
+    lines:
+      - emma: "Exercise 7.3, the one you'll almost certainly get in a bank interview. The step that sends the instruction to the partner bank times out after three seconds. Do you compensate and release the money, send it again, or something else?"
+        say: "Exercise seven point three, the one you'll almost certainly get in a bank interview. The step that sends the instruction to the partner bank times out after three seconds. Do you compensate and release the money, send it again, or something else?"
+      - wait: 7
+
+  - kind: table
+    heading: "Answer 7.3 — a timeout means “unknown”, not “failed”"
+    columns: ["Option", "Verdict", "Why"]
+    widths: [2.0, 1.2, 4.6]
+    build: true
+    points: [ex73]
+    rows:
+      - ["(a) Compensate now", "Wrong", "The partner may have received it and moved the money: releasing the hold loses money"]
+      - ["(b) Send again", "Only if…", "…you send the same idempotency key and the partner deduplicates"]
+      - ["(c) UNKNOWN state", "Right", "Ask for the status by idempotency key, with backoff; still unknown after N tries → the reconciliation queue (the partner's end-of-day settlement file); tell the customer “processing”"]
+    lines:
+      - emma: "Compensating now is wrong. The partner may have received the instruction and already moved the money. Releasing the hold would lose that money."
+        focus: 0
+      - emma: "Sending again is only safe if you send the same idempotency key and the partner deduplicates by it."
+        focus: 1
+      - emma: "The right answer: move the saga to an unknown state, and ask the partner for the status by idempotency key, with backoff. If it's still unknown after a number of tries, put it in the reconciliation queue, matched against the partner's end-of-day settlement file. Meanwhile the customer sees: processing."
+        focus: 2
+
+  - kind: exercise
+    chapter: "7.4 Pick a style"
+    n: "7.4"
+    q: "Orchestration or choreography for each flow?"
+    items:
+      - {t: "(a) an interbank transfer"}
+      - {t: "(b) after a transfer completes: update reward points, send a notification, update the search read model"}
+      - {t: "(c) opening an account: eKYC, create the core account, issue a virtual card, send a welcome email"}
+    lines:
+      - emma: "Exercise 7.4. Orchestration or choreography? An interbank transfer. The side effects after a transfer completes: reward points, a notification, the search read model. And opening an account: identity checks, the core account, a virtual card, and a welcome email."
+        say: "Exercise seven point four. Orchestration or choreography? An interbank transfer. The side effects after a transfer completes: reward points, a notification, the search read model. And opening an account: identity checks, the core account, a virtual card, and a welcome email."
+      - wait: 6
+
+  - kind: table
+    heading: "Answer 7.4"
+    columns: ["Flow", "Style", "Because"]
+    widths: [2.4, 1.9, 3.5]
+    build: true
+    points: [ex74]
+    rows:
+      - ["(a) Interbank transfer", "Orchestration", "many steps, a pivot, exact compensation, one place to see the state"]
+      - ["(b) After a transfer completes", "Choreography", "independent consumers, nobody compensates anybody: publish transfer.completed and you're done"]
+      - ["(c) Open an account", "Both", "orchestrate eKYC → core account → card (order and compensation), then choreography for the welcome email and side jobs"]
+    lines:
+      - emma: "The interbank transfer: orchestration. Many steps, a pivot, exact compensation, and you want to see the state in one place."
+        focus: 0
+      - emma: "The side effects after a transfer: choreography. They're independent, nobody compensates anybody. Publish one transfer completed event and you're done."
+        focus: 1
+      - emma: "Opening an account: both. Orchestrate the identity check, the core account and the card, because they have an order and need compensation."
+        focus: 2
+      - emma: "Then use choreography for the welcome email and the other side jobs."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Four rules from four drills"
+    style: check
+    items:
+      - {t: "Every check that can fail goes before the pivot"}
+      - {t: "Show the available balance next to the ledger balance", s: "the hold is a semantic lock"}
+      - {t: "A timeout at the pivot means unknown: ask by idempotency key, then reconcile"}
+      - {t: "Orchestrate the money; choreograph the side effects"}
+    lines:
+      - emma: "Four rules to keep. Every check that can fail goes before the pivot. Show the available balance next to the ledger balance."
+        focus: 1
+      - emma: "A timeout at the pivot means unknown: ask by idempotency key, then reconcile. And orchestrate the money, choreograph the side effects. Next episode: two timed designs, a payment system and a digital wallet."
+        focus: 3

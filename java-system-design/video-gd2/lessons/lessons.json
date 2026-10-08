@@ -411,6 +411,408 @@
      "section": "20 · Bài tập tuần 5–6"
     }
    ]
+  },
+  {
+   "id": "ep04-consistent-hashing",
+   "ep": 4,
+   "week": 5,
+   "title": "Consistent hashing: lab 5A and the 2-minute talk",
+   "subtitle": "A hash ring in 20 lines of Java, what the measurements say about virtual nodes, and fixed partitions",
+   "file": "ep04-consistent-hashing.mp4",
+   "poster": "ep04-consistent-hashing.jpg",
+   "source": "ep04-consistent-hashing.yaml",
+   "duration": 325.5,
+   "bytes": 4986508,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 19.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 39.2,
+     "title": "Build the ring"
+    },
+    {
+     "t": 76.9,
+     "title": "Measure it"
+    },
+    {
+     "t": 155.3,
+     "title": "Three replicas"
+    },
+    {
+     "t": 182.5,
+     "title": "Exercise 5.6"
+    },
+    {
+     "t": 243.2,
+     "title": "Your 2-minute talk"
+    },
+    {
+     "t": 297.7,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút"
+   ],
+   "points": [
+    {
+     "id": "lab5a-ring",
+     "t": 39.2,
+     "text": "Lab 5A bước 1: ConsistentHash với add, remove, nodeFor, tham số số vnode; TreeMap<Long, String> và tailMap (hoặc ceilingEntry); hash = MD5 nên chạy lại ra đúng số",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+     "section": "20 · Lab 5A — Vòng băm có virtual node"
+    },
+    {
+     "id": "lab5a-numbers",
+     "t": 76.9,
+     "text": "Lab 5A đo 1 triệu key, 4 → 5 node: mod N 80%; vòng 1 vnode lệch 6,77 lần, node bận nhất 40,7%, chỉ 9,1% key chuyển; 10 vnode 2,20 / 16,4%; 100 vnode 1,11 / 18,9%; 200 vnode 1,19 / 19,8%",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+     "section": "20 · Lab 5A — Vòng băm có virtual node"
+    },
+    {
+     "id": "lab5a-lessons",
+     "t": 123.7,
+     "text": "Hai điều đọc ra: vnode tồn tại để làm đều (1 vnode: 40,7%, gấp 1,6 lần lý tưởng, node mới chỉ nhận 9,1%); 200 vnode lệch hơn 100 — với hàm băm cố định, nhiều vnode hơn chỉ đều hơn về kỳ vọng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+     "section": "20 · Lab 5A — Vòng băm có virtual node"
+    },
+    {
+     "id": "lab5a-rf3",
+     "t": 155.3,
+     "text": "Lab 5A bước 3: hệ số nhân bản 3, nodesFor(key, 3) đi theo chiều kim đồng hồ lấy 3 node vật lý khác nhau (bỏ vnode trùng node); test: xoá một node chỉ đổi tập replica của các key node đó đang giữ",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+     "section": "20 · Lab 5A — Vòng băm có virtual node"
+    },
+    {
+     "id": "ex56",
+     "t": 204.3,
+     "text": "BT 5.6: mod N ~80% (đo 80,0%); vòng 100 vnode ~20% (đo 18,9%); 256 partition cố định: node mới nhận ~51 partition (256 ÷ 5) ≈ 20% key nhưng chuyển nguyên partition nên dễ quản lý, theo dõi, giới hạn băng thông; Kafka, Redis Cluster, Elasticsearch chọn cách này; đánh đổi: số partition phải đủ lớn từ đầu",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    },
+    {
+     "id": "talk-w56",
+     "t": 243.2,
+     "text": "Bài nói 'How does consistent hashing reduce data movement when you add a node?': mod N chuyển ~80% (số đo), vòng băm chỉ chuyển phần của node mới (~1/(N+1)), vnode để chia đều (1 vnode lệch 6,8 lần), đánh đổi: mất truy vấn theo khoảng, phải quản lý bản đồ vòng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút",
+     "section": "20 · Bài nói 2 phút tuần 5–6"
+    }
+   ]
+  },
+  {
+   "id": "ep05-kv-store-cache",
+   "ep": 5,
+   "week": 5,
+   "title": "Timed designs: a key-value store and a distributed cache",
+   "subtitle": "Exercise 5.7 and 5.8 — the decision tables, and the deep-dive questions you will get",
+   "file": "ep05-kv-store-cache.mp4",
+   "poster": "ep05-kv-store-cache.jpg",
+   "source": "ep05-kv-store-cache.yaml",
+   "duration": 374.0,
+   "bytes": 5346507,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 22.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 61.6,
+     "title": "45 minutes"
+    },
+    {
+     "t": 95.6,
+     "title": "5.7 Key-value store"
+    },
+    {
+     "t": 197.7,
+     "title": "5.8 Distributed cache"
+    },
+    {
+     "t": 339.5,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56"
+   ],
+   "points": [
+    {
+     "id": "timed-framework",
+     "t": 61.6,
+     "text": "Khung 45 phút (file 00): làm rõ yêu cầu 5–7 phút, ước lượng 3–5, API + data 5–8, tổng thể ~10, đào sâu 15–20 (2–3 điểm, mỗi điểm 2 phương án), tổng kết 3–5 kèm × 10",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "kv-frame",
+     "t": 122.7,
+     "text": "BT 5.7 KV store (1/2): vòng băm + vnode (mất truy vấn theo khoảng); N=3 mỗi bản một AZ, gấp 3 dung lượng; quorum W/R chỉnh theo request (mặc định 2/2 chậm hơn W=1); xung đột bằng vector clock trả mọi bản cho client hoặc LWW nếu chấp nhận mất",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "kv-frame-2",
+     "t": 155.2,
+     "text": "BT 5.7 KV store (2/2): sloppy quorum + hinted handoff (phá R + W > N lúc sự cố); read repair + anti-entropy bằng Merkle tree; gossip + heartbeat hội tụ vài giây; LSM commit log → memtable → SSTable + bloom filter, compaction tốn I/O",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "cache-frame",
+     "t": 224.0,
+     "text": "BT 5.8 distributed cache: Redis Cluster 16.384 hash slot chia cho các master, mỗi master một replica khác AZ; client biết bản đồ slot, gọi thẳng node, redirect MOVED khi bản đồ đổi; resharding = chuyển slot",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "cache-size",
+     "t": 255.0,
+     "text": "Ước lượng cache trước khi vẽ (giả định nói to): 300k GET/s, một node Redis ~100k thao tác/s (con số nhẩm giai đoạn 1, một core) → 3 master ở 100%, chạy ≤ 50% → 6 master + replica = 12 node; 10 triệu key × 1 KB ≈ 10 GB",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "cache-deep",
+     "t": 288.6,
+     "text": "BT 5.8 ba câu đào sâu: hot key (L1 Caffeine trước Redis hoặc nhân bản key), stampede (lab 4 giai đoạn 1), failover mất ghi (Redis nhân bản bất đồng bộ nên cache không bao giờ là nơi lưu chính dữ liệu tiền); thao tác nhiều khoá cần cùng slot: hash tag {account:42}",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    }
+   ]
+  },
+  {
+   "id": "ep06-v6-core-transfer-l2",
+   "ep": 6,
+   "week": 5,
+   "title": "V6: Mini Core Transfer at 1M users",
+   "subtitle": "Track S: redraw the bank at level L2, defend each box with a number, and answer “× 10”",
+   "file": "ep06-v6-core-transfer-l2.mp4",
+   "poster": "ep06-v6-core-transfer-l2.jpg",
+   "source": "ep06-v6-core-transfer-l2.yaml",
+   "duration": 356.6,
+   "bytes": 5315859,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 24.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 80.6,
+     "title": "The numbers"
+    },
+    {
+     "t": 105.8,
+     "title": "The drawing"
+    },
+    {
+     "t": 228.6,
+     "title": "The × 10 answer"
+    },
+    {
+     "t": 304.5,
+     "title": "Track P and week 10"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-56--v6-mini-core-transfer-ở-l2-chủ-nhật-tuần-6-30-phút",
+    "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-56",
+    "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-10",
+    "02-ve-he-thong-100k-1m-10m.md#33-l2--1m-users-tách-đọc-tách-việc-chậm",
+    "02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời"
+   ],
+   "points": [
+    {
+     "id": "v6-numbers",
+     "t": 80.6,
+     "text": "V6 = vẽ lại V2 cho 1M users: ~12.000 CCU, ~2.000 RPS ngày lương, ghi ~150/giây",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-56--v6-mini-core-transfer-ở-l2-chủ-nhật-tuần-6-30-phút",
+     "section": "20 · Track S tuần 5–6 — V6"
+    },
+    {
+     "id": "v6-diagram",
+     "t": 105.8,
+     "text": "Sơ đồ L2: CDN, WAF + ALB, API gateway/BFF (auth, rate limit), Identity (Keycloak/OIDC), core app monolith tách module 3–10 pod autoscale, Redis cluster cache-aside, Postgres primary + 2 read replica bất đồng bộ, outbox relay → Kafka/SQS → Notification service → FCM, APNs, SMS",
+     "src": "02-ve-he-thong-100k-1m-10m.md#33-l2--1m-users-tách-đọc-tách-việc-chậm",
+     "section": "02 §3.3 · L2 — 1M users"
+    },
+    {
+     "id": "v6-decisions",
+     "t": 160.1,
+     "text": "Mỗi hộp một con số: read replica vì đọc ~90% của 2.000 RPS (đánh đổi lag → read-your-writes); cache-aside hit 90% → DB thấy 1/10 (số dư dùng để quyết định vẫn đọc DB có khoá); outbox vì SMS 200–2.000 ms so với 300 ms p99; tách Notification trước (tải, lỗi khác, ít ràng buộc); API gateway thêm 1–3 ms, cần HA",
+     "src": "02-ve-he-thong-100k-1m-10m.md#33-l2--1m-users-tách-đọc-tách-việc-chậm",
+     "section": "02 §3.3 · L2 — 1M users"
+    },
+    {
+     "id": "x10-frame",
+     "t": 228.6,
+     "text": "Đáp án × 10 của V6: số mới 20.000 RPS, ghi 1.500/s, 120k CCU; vỡ trước: connection tới primary 80 pod × 10 = 800, rồi CPU primary; sửa: PgBouncer transaction pooling, lịch sử sang read model CQRS qua CDC (trễ vài trăm ms, thêm hệ thống); vỡ tiếp: sổ cái 650 GB/năm → partition theo tháng; chưa shard theo account_id vì ghi còn dư, shard làm chuyển tiền thành saga",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-56--v6-mini-core-transfer-ở-l2-chủ-nhật-tuần-6-30-phút",
+     "section": "20 · Track S tuần 5–6 — V6"
+    },
+    {
+     "id": "x10-five",
+     "t": 228.6,
+     "text": "Khung 5 câu trả lời × 10: số mới, vỡ trước (vì con số nào), sửa và đánh đổi, vỡ tiếp, chưa làm gì và vì sao (chỗ ghi điểm senior)",
+     "src": "02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời",
+     "section": "02 §5 · Câu hỏi × 10"
+    },
+    {
+     "id": "w56-trackp",
+     "t": 304.5,
+     "text": "Track P tuần 5–6: không có anti-pattern mới; 30 phút Thứ Sáu chạy checklist 01 §6 trên code lab giai đoạn 1 của chính mình (rate limiter, db-lab, cache-lab), mỗi dòng 'có' ghi vào sổ lỗi kèm cách sửa; tập dượt cho review capstone tuần 15–16",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-56",
+     "section": "20 · Track P tuần 5–6"
+    },
+    {
+     "id": "v6-update",
+     "t": 304.5,
+     "text": "Tuần 10 mở lại V6, thay số giả định bằng số đo lab 8: độ trễ commit → consumer (chu kỳ poll của relay chiếm phần lớn), số message trùng mỗi lần relay restart; ghi 'đã đo / còn giả định' cạnh mỗi con số",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-10",
+     "section": "20 · Track S tuần 10"
+    }
+   ]
+  },
+  {
+   "id": "ep07-why-not-2pc",
+   "ep": 7,
+   "week": 7,
+   "title": "Why not two-phase commit: sagas instead",
+   "subtitle": "What 2PC costs between services, orchestration or choreography, the three kinds of steps, and the 2-minute talk",
+   "file": "ep07-why-not-2pc.mp4",
+   "poster": "ep07-why-not-2pc.jpg",
+   "source": "ep07-why-not-2pc.yaml",
+   "duration": 371.5,
+   "bytes": 5553793,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 24.3,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 60.4,
+     "title": "Week 7"
+    },
+    {
+     "t": 120.5,
+     "title": "What 2PC costs"
+    },
+    {
+     "t": 205.1,
+     "title": "Orchestration or choreography"
+    },
+    {
+     "t": 254.0,
+     "title": "Three kinds of steps"
+    },
+    {
+     "t": 320.6,
+     "title": "Your 2-minute talk"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#tuần-7--transaction-phân-tán-saga-outbox-idempotency-sổ-cái-kép",
+    "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần",
+    "20-implement-gd2-du-lieu-phan-tan.md#đọc-1",
+    "20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-1",
+    "20-implement-gd2-du-lieu-phan-tan.md#71-vì-sao-không-2pc-giữa-microservices",
+    "20-implement-gd2-du-lieu-phan-tan.md#72-orchestration-hay-choreography",
+    "20-implement-gd2-du-lieu-phan-tan.md#73-ba-loại-bước-và-thứ-tự",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-1"
+   ],
+   "points": [
+    {
+     "id": "w7-outputs",
+     "t": 60.4,
+     "text": "Cuối tuần 7: lab 7 saga orchestrator lưu trạng thái trong Postgres, bù đúng thứ tự, tiếp tục sau crash, mỗi bước idempotent; đề Payment system và Digital wallet; query bất biến sổ cái (BT 7.6) chạy trên dữ liệu lab; bài nói 2 phút về 2PC",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần",
+     "section": "20 · Tuần 7: đầu ra"
+    },
+    {
+     "id": "w7-reading",
+     "t": 89.8,
+     "text": "Đọc tuần 7: Microservices Patterns (Chris Richardson) ch. 4 saga và phần transactional outbox ch. 3; Alex Xu Vol 2 ch. 11 Payment system, ch. 12 Digital wallet; nab-prep/04 (câu hỏi đích danh vòng EM ở NAB); doc 06 phần II thiết kế lại sổ cái",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đọc-1",
+     "section": "20 · Tuần 7: đọc"
+    },
+    {
+     "id": "no-2pc",
+     "t": 158.7,
+     "text": "2PC giữ khoá trên mọi service suốt hai pha qua mạng; coordinator chết giữa hai pha thì các bên treo với khoá đang giữ; availability là tích (5 service 99,9% → 99,5%); Kafka, phần lớn NoSQL, API REST của đối tác không tham gia 2PC được",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#71-vì-sao-không-2pc-giữa-microservices",
+     "section": "20 §7.1 · Vì sao không 2PC giữa microservices"
+    },
+    {
+     "id": "saga-tradeoff",
+     "t": 158.7,
+     "text": "Saga đổi nhất quán tức thời lấy nhất quán cuối cùng + bù trừ, và phải tự xử lý phần thiếu isolation",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#71-vì-sao-không-2pc-giữa-microservices",
+     "section": "20 §7.1 · Vì sao không 2PC giữa microservices"
+    },
+    {
+     "id": "orch-chor",
+     "t": 205.1,
+     "text": "Orchestration: một orchestrator gửi lệnh, nhận phản hồi, lưu trạng thái; nhìn luồng ở một chỗ; hợp luồng tiền nhiều bước cần bù chính xác; rủi ro 'god service'. Choreography: mỗi service nghe sự kiện tự làm bước của mình; luồng rải khắp nơi; hợp fan-out đơn giản ít bù; rủi ro vòng lặp sự kiện",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#72-orchestration-hay-choreography",
+     "section": "20 §7.2 · Orchestration hay choreography"
+    },
+    {
+     "id": "step-types",
+     "t": 254.0,
+     "text": "Ba loại bước: compensatable (có bù: giữ tiền ↔ nhả tiền), pivot (điểm không quay lại: gửi lệnh sang ngân hàng đối tác, trừ thẻ), retriable (sau pivot, retry đủ là thành công: ghi sổ cái cuối, gửi thông báo); thứ tự đúng compensatable → pivot → retriable; bước có thể thất bại đặt sau pivot là tự tạo trạng thái không bù được",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#73-ba-loại-bước-và-thứ-tự",
+     "section": "20 §7.3 · Ba loại bước và thứ tự"
+    },
+    {
+     "id": "isolation-counter",
+     "t": 294.8,
+     "text": "Saga thiếu isolation, cần biện pháp: semantic lock (trạng thái PENDING/giữ tiền), cập nhật giao hoán (cộng/trừ thay vì ghi đè), đọc lại giá trị trước khi ghi",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#73-ba-loại-bước-và-thứ-tự",
+     "section": "20 §7.3 · Ba loại bước và thứ tự"
+    },
+    {
+     "id": "talk-w7",
+     "t": 320.6,
+     "text": "Bài nói 'Why wouldn't you use two-phase commit between microservices?': khoá giữ qua mạng, coordinator chết thì treo, availability nhân lên, nhiều hệ thống không tham gia được; thay bằng saga + outbox + idempotency; đánh đổi: mất isolation, cần trạng thái PENDING và đối soát",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-1",
+     "section": "20 · Bài nói 2 phút tuần 7"
+    }
+   ]
   }
  ]
 }
