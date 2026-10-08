@@ -90,6 +90,7 @@ scenes:
     ("ISR, eKYC, etcd", "I S R, e K Y C, et-see-dee"),
     ("lab 5B and lab 10B, 1B clicks", "lab 5-B and lab 10-B, 1 billion clicks"),
     ("DDIA, chapter 11", "D D I eigh, chapter 11"),
+    ("an SLO; use draw.io at work", "an S L O; use draw dot I O at work"),
     ("Client A locks it. A poll returns; then A's write and topic A.", "Client eigh locks it. A poll returns; then A's write and topic eigh."),
 ])
 def test_speakable(text, spoken):
@@ -127,6 +128,13 @@ def test_week1_points_all_covered():
     data = coverage.collect(LESSONS, LESSONS / "points.yaml", week=1)
     missing = [pid for pid, claims in data["claims"].items() if not claims]
     assert missing == []
+
+
+def test_phase2_points_and_headings_all_covered():
+    lessons = REPO / "java-system-design" / "video-gd2" / "lessons"
+    data = coverage.collect(lessons, lessons / "points.yaml")
+    assert [pid for pid, claims in data["claims"].items() if not claims] == []
+    assert [anchor for anchor, eps in data["scope"].items() if not eps] == []
 
 
 def test_series_defaults_apply(tmp_path):

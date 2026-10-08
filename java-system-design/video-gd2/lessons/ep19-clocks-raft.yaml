@@ -31,11 +31,14 @@ scenes:
       - {abbr: DDIA, full: "Designing Data-Intensive Applications", vi: "sách của Martin Kleppmann"}
       - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo chạy bytecode Java"}
       - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: etcd, full: "a key-value store built on Raft", vi: "kho khoá–giá trị dùng Raft, nơi Kubernetes lưu trạng thái"}
     lines:
       - emma: "NTP is the Network Time Protocol, which keeps clocks in sync and can move them backwards. LWW is last-write-wins."
         focus: 1
       - emma: "KRaft is Kafka's own Raft mode, and DDIA is Kleppmann's book. JVM is the Java Virtual Machine, and DB the database."
         focus: 5
+      - emma: "And etcd is a key-value store built on Raft. Kubernetes keeps its state there."
+        focus: 6
 
   - kind: bullets
     chapter: "Week 10"

@@ -1351,6 +1351,480 @@
      "section": "20 §8.5 · Retry, DLT, backpressure"
     }
    ]
+  },
+  {
+   "id": "ep14-lab8-outbox-relay",
+   "ep": 14,
+   "week": 8,
+   "title": "Lab 8, part 1: the outbox and its relay on real Kafka",
+   "subtitle": "Six tables, one transaction for the money and the event, and a relay that claims rows with SKIP LOCKED",
+   "file": "ep14-lab8-outbox-relay.mp4",
+   "poster": "ep14-lab8-outbox-relay.jpg",
+   "source": "ep14-lab8-outbox-relay.yaml",
+   "duration": 296.8,
+   "bytes": 4680654,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 21.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 51.6,
+     "title": "The project"
+    },
+    {
+     "t": 84.5,
+     "title": "Step 1 · Schema"
+    },
+    {
+     "t": 125.2,
+     "title": "Step 2 · One transaction"
+    },
+    {
+     "t": 165.5,
+     "title": "Step 3 · The relay"
+    },
+    {
+     "t": 231.9,
+     "title": "P09, on purpose"
+    },
+    {
+     "t": 268.3,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9"
+   ],
+   "points": [
+    {
+     "id": "lab8-setup",
+     "t": 51.6,
+     "text": "Project my-work/w8-9-kafka-lab: spring-boot-starter-web, spring-kafka, spring-boot-starter-jdbc, Postgres; bản lõi không Spring OutboxLab.java đã chạy với Postgres 16.4 và Kafka 4.1.2 thật, dùng để đối chiếu không để chép; test bằng Testcontainers nếu có Docker, không thì Kafka từ tarball như §0",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-schema",
+     "t": 84.5,
+     "text": "Bước 1 schema 6 bảng: account (check balance >= 0), transfer, ledger_entry, outbox (event_id unique, topic, msg_key, payload, created_at, published_at null = chưa gửi), partial index outbox_pending where published_at is null, processed_event (event_id khoá chính), notification",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-tx",
+     "t": 125.2,
+     "text": "Bước 2: TransferService.transfer() @Transactional: trừ có điều kiện (where id = ? and balance >= ?), 0 dòng thì từ chối; cộng bên nhận; insert transfer; hai ledger_entry; một dòng outbox key = acct-{from}; một commit cho tiền, sổ cái và sự kiện",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-relay",
+     "t": 165.5,
+     "text": "Bước 3 relay @Scheduled(fixedDelay = 200): trong một transaction ngắn select … where published_at is null order by id limit 100 for update skip locked (relay khác bỏ qua, không chờ); producer.send(record).get() với header event-id, chỉ đánh dấu published_at khi broker đã ack; relay crash sau khi gửi trước khi đánh dấu → gửi lại (at-least-once)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-relay-conn",
+     "t": 231.9,
+     "text": "Relay giữ connection trong lúc gửi lô 100 message: P09 ở mức nhỏ, chấp nhận vì Kafka cùng AZ ack trong vài ms, relay 1–2 instance với pool riêng, delivery.timeout.ms chặn trên thời gian giữ; không chấp nhận được thì chuyển sang CDC",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    }
+   ]
+  },
+  {
+   "id": "ep15-lab8-consumer-tests",
+   "ep": 15,
+   "week": 8,
+   "title": "Lab 8, part 2: the idempotent consumer, and seven tests that prove it",
+   "subtitle": "Dedup in the same transaction, retry and a dead-letter topic, the measured duplicates, and how two relays break the order",
+   "file": "ep15-lab8-consumer-tests.mp4",
+   "poster": "ep15-lab8-consumer-tests.jpg",
+   "source": "ep15-lab8-consumer-tests.yaml",
+   "duration": 367.4,
+   "bytes": 5599778,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 14.8,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 25.3,
+     "title": "Step 4 · Consumer"
+    },
+    {
+     "t": 64.8,
+     "title": "Step 5 · Retry and DLT"
+    },
+    {
+     "t": 101.4,
+     "title": "Step 6 · Seven tests"
+    },
+    {
+     "t": 217.6,
+     "title": "Step 7 · Break the order"
+    },
+    {
+     "t": 272.9,
+     "title": "Exercise 8.3"
+    },
+    {
+     "t": 325.0,
+     "title": "2-minute talk"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-2"
+   ],
+   "points": [
+    {
+     "id": "lab8-consumer",
+     "t": 25.3,
+     "text": "Bước 4 consumer idempotent: @KafkaListener, trong MỘT transaction insert into processed_event(event_id) on conflict do nothing; chèn được 1 dòng thì tạo notification, 0 dòng thì bỏ qua (trùng); offset commit sau khi DB commit (mặc định Spring Kafka commit sau khi listener trả về)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-dlt",
+     "t": 64.8,
+     "text": "Bước 5: DefaultErrorHandler + DeadLetterPublishingRecoverer + FixedBackOff(1000, 2): lỗi 3 lần sang <topic>.DLT; JSON hỏng đăng ký not-retryable → DLT ngay; phân biệt lỗi không bao giờ thành công với lỗi tạm thời",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-tests",
+     "t": 101.4,
+     "text": "Bước 6, bốn test có số: relayCrashAfterSend_producesDuplicates (1.000 dòng → 1.100 message), idempotentConsumer_appliesEachEventOnce (áp dụng 1.000, bỏ 100), twoRelaysWithSkipLocked_doNotDoublePublish (800/800), ledgerInvariantsHold (sum(ledger) = 0, tổng 100.000.000)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-tests-2",
+     "t": 151.9,
+     "text": "Bước 6, ba test chỉ có trong lab Spring: poisonMessage_goesToDlt (payload hỏng vào DLT kèm header lỗi, message sau vẫn xử lý), consumerCrashBeforeOffsetCommit_noDoubleEffect (lỗi sau DB commit trước offset commit → message tới lại, bị bỏ qua), eventsForOneAccountArriveInOrder (một relay: cùng account_id đến đúng thứ tự)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-output",
+     "t": 180.5,
+     "text": "Output thật của OutboxLab (07/10/2026, chạy 2 lần giống hệt): 1.000 giao dịch; relay A crash sau khi gửi lô 3; relay A đánh dấu 200, B+C 800; 1.100 message cho 1.000 dòng outbox; consumer applied=1000 skipped=100; sum(balance) không đổi, sum(ledger) = 0, outbox pending = 0, 1.000 notification; bản lõi chưa kiểm thứ tự và DLT",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-order",
+     "t": 217.6,
+     "text": "Bước 7: hai relay song song, chạy lại test thứ tự: relay B lấy 101–200, C lấy 201–300, C gửi xong trước → có thể đỏ; SKIP LOCKED chống gửi trùng, không giữ thứ tự",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-order-fix",
+     "t": 247.6,
+     "text": "Bước 7, ghi vào sổ lỗi ba cách giữ thứ tự: một relay duy nhất (khoá leader bằng advisory lock hoặc ShedLock); chia outbox theo hash(key) mod K, mỗi phần một relay; consumer chấp nhận đến lệch thứ tự bằng version theo từng tài khoản",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "ex83",
+     "t": 298.0,
+     "text": "BT 8.3: tối đa 100 × 3 = 300 message trùng mỗi ngày (lab đo đúng 100 cho một lần crash); consumer không idempotent: 300 thông báo gửi hai lần, nếu consumer là ledger thì ghi sổ hai lần; giảm lô chỉ giảm số lượng, idempotency mới bỏ được hậu quả",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập tuần 8–9 (8.3)"
+    },
+    {
+     "id": "talk-w89",
+     "t": 325.0,
+     "text": "Bài nói 'How do you get exactly-once processing with Kafka and a database?': Kafka transaction chỉ bao phần trong Kafka; với DB at-least-once + dedup bằng event_id trong cùng transaction với tác dụng phụ, commit offset sau; outbox phía gửi; số của lab (1.100 message, 1.000 lần áp dụng); đánh đổi: thêm một lần ghi DB mỗi message, bảng dedup phải dọn theo thời gian",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-2",
+     "section": "20 · Bài nói 2 phút tuần 8–9"
+    }
+   ]
+  },
+  {
+   "id": "ep16-p20-rebalance-storm",
+   "ep": 16,
+   "week": 8,
+   "title": "Track P: P20, the slow consumer and the rebalance storm",
+   "subtitle": "One slow call per message, a batch that never commits, and the D20 numbers from real Kafka",
+   "file": "ep16-p20-rebalance-storm.mp4",
+   "poster": "ep16-p20-rebalance-storm.jpg",
+   "source": "ep16-p20-rebalance-storm.yaml",
+   "duration": 296.8,
+   "bytes": 4152944,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 19.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 32.1,
+     "title": "The bug"
+    },
+    {
+     "t": 58.0,
+     "title": "The storm"
+    },
+    {
+     "t": 95.4,
+     "title": "D20 numbers"
+    },
+    {
+     "t": 167.3,
+     "title": "Fix it, in order"
+    },
+    {
+     "t": 193.5,
+     "title": "Exercise P20"
+    },
+    {
+     "t": 270.7,
+     "title": "In production"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-89--p20-consumer-chậm-và-rebalance-storm",
+    "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+    "01-java-code-cham-duoi-tai-cao.md#7-bắt-chúng-trên-production--metric-nào-công-cụ-nào"
+   ],
+   "points": [
+    {
+     "id": "p20-code",
+     "t": 32.1,
+     "text": "Bản xấu: @KafkaListener gọi HTTP 200 ms cho mỗi message, poll 500 record = 100 s mới poll lại; sửa: batch listener + API gửi theo lô (cộng consumer idempotent như lab 8)",
+     "src": "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+     "section": "01 · P20: Kafka consumer xử lý đồng bộ từng message"
+    },
+    {
+     "id": "p20-storm",
+     "t": 58.0,
+     "text": "Đối tác chậm lên 1 s: 500 × 1 s = 500 s vượt max.poll.interval.ms 300 s → broker coi consumer chết → rebalance → partition sang consumer khác, xử lý lại từ offset chưa commit → cũng chậm → lại rebalance: rebalance storm, gửi trùng thông báo",
+     "src": "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+     "section": "01 · P20: Kafka consumer xử lý đồng bộ từng message"
+    },
+    {
+     "id": "p20-d20",
+     "t": 95.4,
+     "text": "Số đo D20 (Kafka 4.1.2 thật, 2.000 message, 4 partition, 2 consumer, downstream 20 ms, max.poll.interval.ms hạ xuống 6 s, 2 lần chạy): PER_MESSAGE_500 chưa xong sau 45 s (1.267–1.619/2.000, 1.847–2.245 lần gửi trùng, 6 partition bị thu hồi, 6–7 commit lỗi); PER_MESSAGE_50 xong 24,6 s; BATCH_CALL_500 xong 1,3 s, 0 trùng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-89--p20-consumer-chậm-và-rebalance-storm",
+     "section": "20 · Track P tuần 8–9: chạy D20, bài tập P20"
+    },
+    {
+     "id": "p20-d20-meaning",
+     "t": 145.0,
+     "text": "Bản xấu không bao giờ xong vì mỗi lô bị đuổi khỏi group trước khi commit nên quay lại từ đầu; gửi trùng hơn 2.000 thông báo; sửa A (giảm max.poll.records) hết storm nhưng chậm, sửa B (gọi theo lô) nhanh gấp 18 lần",
+     "src": "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+     "section": "01 · P20: Kafka consumer xử lý đồng bộ từng message"
+    },
+    {
+     "id": "p20-fix-order",
+     "t": 167.3,
+     "text": "Sửa theo thứ tự: gọi theo lô; giảm max.poll.records theo p99 của downstream chứ không theo trung bình; xử lý song song có giới hạn nhưng giữ thứ tự theo key; pause() partition khi downstream chậm; consumer idempotent vì trùng chắc chắn xảy ra",
+     "src": "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+     "section": "01 · P20: Kafka consumer xử lý đồng bộ từng message"
+    },
+    {
+     "id": "ex-p20",
+     "t": 220.3,
+     "text": "Bài tập P20: (a) 300.000 ÷ 500 = 600 ms mỗi message; sự cố làm downstream chậm lên 700 ms là đủ storm; (b) theo p99 với hệ số an toàn 2: 300 s ÷ (1,2 s × 2) ≈ 125, chọn 100; tốt hơn gọi theo lô hoặc executor có giới hạn + pause(); (c) consumer lag tăng (records-lag-max), số lần rebalance / join group tăng, số commit thất bại",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-89--p20-consumer-chậm-và-rebalance-storm",
+     "section": "20 · Track P tuần 8–9: chạy D20, bài tập P20"
+    },
+    {
+     "id": "p20-metric",
+     "t": 270.7,
+     "text": "P20 trên production: metric kafka.consumer.fetch.manager.records.lag.max tăng, số lần rebalance; xác nhận bằng log 'Member ... has left the group' lặp lại; đo p99 không đo trung bình",
+     "src": "01-java-code-cham-duoi-tai-cao.md#7-bắt-chúng-trên-production--metric-nào-công-cụ-nào",
+     "section": "01 §7 · Bắt P20 trên production"
+    }
+   ]
+  },
+  {
+   "id": "ep17-stream-ad-click",
+   "ep": 17,
+   "week": 9,
+   "title": "Stream processing, and the ad click aggregation design",
+   "subtitle": "Windows, event time versus processing time, watermarks and late events — then exercise 8.4 in 45 minutes",
+   "file": "ep17-stream-ad-click.mp4",
+   "poster": "ep17-stream-ad-click.jpg",
+   "source": "ep17-stream-ad-click.yaml",
+   "duration": 266.8,
+   "bytes": 3661621,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 17.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 32.5,
+     "title": "Windows"
+    },
+    {
+     "t": 60.5,
+     "title": "Event time"
+    },
+    {
+     "t": 104.7,
+     "title": "Exercise 8.4"
+    },
+    {
+     "t": 229.6,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#86-stream-processing--đủ-để-nói-chuyện",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89"
+   ],
+   "points": [
+    {
+     "id": "stream-windows",
+     "t": 32.5,
+     "text": "Window tumbling (1 phút, không chồng), hopping (5 phút trượt mỗi 1 phút), session (đóng theo khoảng lặng)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#86-stream-processing--đủ-để-nói-chuyện",
+     "section": "20 §8.6 · Stream processing"
+    },
+    {
+     "id": "stream-time",
+     "t": 60.5,
+     "text": "Event time (lúc click xảy ra) khác processing time (lúc hệ thống thấy); gom theo event time, watermark quyết khi nào đóng window, có chính sách cho late event (cập nhật lại window đã đóng hoặc đưa vào bảng đối soát)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#86-stream-processing--đủ-để-nói-chuyện",
+     "section": "20 §8.6 · Stream processing"
+    },
+    {
+     "id": "ex84-numbers",
+     "t": 128.6,
+     "text": "BT 8.4: 1 tỷ click/ngày ≈ 11.600/s trung bình, ~50.000/s đỉnh; truy vấn số click theo ad trong N phút gần nhất và top 100 ad",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    },
+    {
+     "id": "ex84-pipeline",
+     "t": 152.0,
+     "text": "BT 8.4 luồng: click → Kafka (key ad_id#0..7) → stream processor (tumbling 1 phút theo event time, watermark 15 s) → upsert (ad_id, minute) → OLAP; raw click vào object storage; batch hằng ngày tính lại và so với stream",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    },
+    {
+     "id": "ex84-ingest",
+     "t": 181.1,
+     "text": "Quyết định: thu click → Kafka key ad_id, ad nóng → partition nóng nên tách key ad_id#0..7; gộp bằng stream processor tumbling 1 phút theo event time, watermark 15 s, click sau watermark xử lý riêng; ghi upsert (ad_id, minute) → sink idempotent, không cần exactly-once của framework",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    },
+    {
+     "id": "ex84-raw",
+     "t": 207.8,
+     "text": "Lưu raw click vào object storage để đối soát và tính lại khi có bug; batch hằng ngày tính lại từ raw so với kết quả stream (hai đường tính cùng một con số); phục vụ bằng OLAP (ClickHouse/Druid) hoặc Postgres partition theo ngày",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    },
+    {
+     "id": "ex84-family",
+     "t": 229.6,
+     "text": "Cùng họ bài với 04 — đếm sự kiện 10k/phút: bucket theo thời gian, rollup, giữ raw để đối soát",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    }
+   ]
+  },
+  {
+   "id": "ep18-v7-payments-kafka-saga",
+   "ep": 18,
+   "week": 9,
+   "title": "V7: an interbank transfer with Kafka and a saga",
+   "subtitle": "The drawing for Sunday of week 9 — who sends which command, where the pivot is, and five points you must say",
+   "file": "ep18-v7-payments-kafka-saga.mp4",
+   "poster": "ep18-v7-payments-kafka-saga.jpg",
+   "source": "ep18-v7-payments-kafka-saga.yaml",
+   "duration": 181.9,
+   "bytes": 2575895,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 18.8,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 29.2,
+     "title": "The drawing"
+    },
+    {
+     "t": 76.9,
+     "title": "Five points"
+    },
+    {
+     "t": 121.6,
+     "title": "Check yourself"
+    },
+    {
+     "t": 150.8,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-89--v7-paymentwallet-có-kafka--saga-chủ-nhật-tuần-9-40-phút"
+   ],
+   "points": [
+    {
+     "id": "v7-diagram",
+     "t": 29.2,
+     "text": "Sơ đồ V7: app → Transfer API (Idempotency-Key) → orchestrator (saga_instance + outbox) → lệnh hold/check/post qua Kafka (transfer.commands / transfer.events) → ledger append-only, fraud/limit, interbank gateway (idempotency key sang đối tác) trả lời qua Kafka; gateway → ngân hàng đối tác; transfer.completed → notification idempotent; job đối soát file đối tác với sổ cái",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-89--v7-paymentwallet-có-kafka--saga-chủ-nhật-tuần-9-40-phút",
+     "section": "20 · Track S tuần 8–9: V7"
+    },
+    {
+     "id": "v7-points",
+     "t": 76.9,
+     "text": "5 điểm phải nói: orchestrator lưu trạng thái + outbox cùng transaction; key topic = transferId cho lệnh, accountId cho sự kiện tài khoản; gateway là pivot, timeout trả unknown, không bù mù (7.3); mọi consumer idempotent vì outbox và Kafka at-least-once; job đối soát là bằng chứng cuối cùng tiền đúng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-89--v7-paymentwallet-có-kafka--saga-chủ-nhật-tuần-9-40-phút",
+     "section": "20 · Track S tuần 8–9: V7"
+    }
+   ]
   }
  ]
 }

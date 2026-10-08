@@ -11,7 +11,7 @@ import re
 
 # chữ viết tắt / tên riêng Kokoro đọc sai → cách viết cho đúng (đã kiểm phiên âm)
 WORDS = {
-    "OIDC": "O I D C", "SLO": "S L O", "DDIA": "D D I eigh", "PACELC": "pass-elk", "ReDoS": "ree-doss", "DDoS": "dee-doss",
+    "OIDC": "O I D C", "SLO": "S L O", "draw.io": "draw dot I O", "DDIA": "D D I eigh", "PACELC": "pass-elk", "ReDoS": "ree-doss", "DDoS": "dee-doss",
     "SaaS": "sass", "RAM": "ram", "Alex Xu": "Alex Shoo", "regex": "reg-ex", "memtable": "mem table",
     "idempotency": "idem-potency", "Idempotency": "Idem-potency", "idempotent": "idem-potent",
     "I/O": "I O", "HTTP/1.1": "HTTP one point one", "HTTP/2": "HTTP two", "HTTP/3": "HTTP three",

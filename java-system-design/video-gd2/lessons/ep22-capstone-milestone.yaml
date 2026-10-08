@@ -14,6 +14,7 @@ covers:
 scenes:
   - kind: title
     chapter: "Intro"
+    points: [capstone-phase2]
     items:
       - {t: "Sources: 20 · capstone kickoff (design doc template, ADR, MVP scope), week-10 milestone, honest boundaries; 00 · the capstone"}
       - {t: "Weeks 9–10 · design doc v1 in week 9, a running MVP skeleton in week 10"}

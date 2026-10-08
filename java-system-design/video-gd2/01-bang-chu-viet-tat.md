@@ -33,7 +33,7 @@
 |---|---|---|---|---|
 | **2PC** | Two-phase commit | Commit hai pha: coordinator hỏi mọi bên "prepare", rồi mới "commit"; giữ khoá qua mạng suốt hai pha | ✓ (*two P C*) | Ep00 |
 | **WAL** | Write-ahead log | Nhật ký ghi trước của Postgres; CDC (Debezium) đọc WAL để phát sự kiện | ✓ | Ep08 |
-| **PSP** | Payment service provider | Cổng thanh toán (trừ thẻ thay merchant), ví dụ Stripe, Adyen | ✓ | Ep11 |
+| **PSP** | Payment service provider | Cổng thanh toán (trừ thẻ thay merchant), ví dụ Stripe, Adyen | ✓ | Ep08 |
 | **PCI DSS** | Payment Card Industry Data Security Standard | Chuẩn bảo mật dữ liệu thẻ; lưu số thẻ là phải gánh toàn bộ phạm vi của chuẩn | ✓ | Ep11 |
 | **eKYC** | Electronic know your customer | Định danh khách hàng điện tử (ảnh giấy tờ, khuôn mặt) khi mở tài khoản | `e K Y C` | Ep10 |
 | EM | Engineering manager | Quản lý kỹ thuật; ở NAB là người phỏng vấn vòng system design (saga, event-driven) | ✓ | Ep07 |
