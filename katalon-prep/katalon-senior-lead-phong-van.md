@@ -325,7 +325,7 @@ Làm **trọn vẹn** bài "Design TrueTest — AI journey mining" ở [mục 5.
 ## 5. Ba bài System Design on-domain
 
 > **Đã tách ra folder riêng:** [katalon-prep/katalon-system-design/](katalon-system-design/)
-> — mỗi bài một file, có bản đồ **6 họ bài** và **4 trục nhận diện** để xử lý cả đề chưa từng thấy.
+> — mỗi bài một file, có bản đồ **7 họ bài** và **5 trục nhận diện** để xử lý cả đề chưa từng thấy.
 > Mục này giữ lại khung 45 phút và bảng dẫn đường; nội dung chi tiết nằm ở các file con.
 
 ### Quy trình chuẩn 45 phút (áp cho cả 3 bài)
