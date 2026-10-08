@@ -39,14 +39,18 @@ scenes:
       - {abbr: SaaS, full: "software as a service", vi: "phần mềm bán dạng thuê bao trên cloud"}
       - {abbr: STAR, full: "situation, task, action, result", vi: "khung kể chuyện kinh nghiệm khi phỏng vấn"}
       - {abbr: CV, full: "curriculum vitae", vi: "hồ sơ xin việc"}
+      - {abbr: NAB, full: "National Australia Bank", vi: "một trong hai hướng ứng tuyển của lộ trình"}
+      - {abbr: MVP, full: "minimum viable product", vi: "bản sản phẩm nhỏ nhất dùng được"}
     lines:
-      - tom: "Eight acronyms first. CCU means concurrent users, the people using the app at the same moment. RPS means requests per second."
+      - tom: "Twelve acronyms first. CCU means concurrent users, the people using the app at the same moment. RPS means requests per second."
         focus: 0
       - tom: "CPU is the processor. HTTP is the protocol of the web. URL is a web address, as in the URL shortener problem. API is an application programming interface, and ID means identifier."
         focus: 2
       - tom: "SaaS is software as a service. STAR is situation, task, action, result, a way to tell an interview story. And CV is your résumé."
         say: "SaaS is software as a service. STAR is situation, task, action, result, a way to tell an interview story. And C V is your resume."
-        focus: 7
+        focus: 9
+      - tom: "NAB is National Australia Bank, one of the two companies this roadmap targets. And MVP is a minimum viable product: the smallest version that works."
+        focus: 11
 
   - kind: bullets
     chapter: "Where six months lead"

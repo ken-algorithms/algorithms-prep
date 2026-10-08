@@ -1,0 +1,205 @@
+id: k04-exactly-once-counts
+ep: 4
+week: 10
+tag: "K04 · AFTER PHASE 2"
+title: "Counting exactly once with at-least-once parts"
+subtitle: "Dedup by batch_id, GREATEST as a fencing token, late events and client clocks, and the hourly reconcile"
+covers:
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#74-đồng-hồ-của-client
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#83-follow-up-hay-gặp
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: problem 07 · §5.4, §7.4, §8.3"}
+      - {t: "Builds on phase 2: Ep13, Ep15 delivery · Ep19 clocks · Ep20 fencing"}
+    lines:
+      - tom: "Episode K04. No part of your pipeline is exactly-once. Clients retry, consumers replay, and some consumers wake up from the dead. Convince me the counts are exact."
+      - emma: "Exactly once in effect, built from three parts that are each only at-least-once."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SDK, full: "software development kit", vi: "thư viện phía client gửi sự kiện"}
+      - {abbr: GC, full: "garbage collection", vi: "dọn rác của JVM; có thể dừng tiến trình vài giây"}
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: TTL, full: "time to live", vi: "thời gian sống của khoá"}
+    lines:
+      - emma: "SDK is the client library. GC is garbage collection, which can pause a process for seconds. SQL is the query language, ID means identifier, and TTL is time to live, how long a lock or key lasts."
+        focus: 4
+
+  - kind: exercise
+    chapter: "The question"
+    label: "Question"
+    q: "A consumer crashes in the middle of a window and its job restarts from a checkpoint. Another consumer freezes in a long GC pause, loses its partition, then wakes up and writes. How do your counts stay exact?"
+    items:
+      - {t: "Pipeline from K03: Kafka keyed by batch_id → dedup → 1-minute windows → rollup store"}
+      - {t: "Hint: what can only go up, once duplicates are gone?"}
+    lines:
+      - tom: "Two failures. A consumer crashes in the middle of a window, and its job restarts from the last checkpoint. Another freezes in a long GC pause, loses its partition, then wakes up and writes anyway. How do your counts stay exact?"
+      - wait: 8
+        note: "Once duplicates are removed, what can only go up?"
+
+  - kind: flow
+    chapter: "Three parts"
+    heading: "Three at-least-once parts, one exact count"
+    points: [x-three]
+    build: true
+    items:
+      - {t: "Client", s: "resends the same batch_id; gives up after 10 minutes", f: "retry window < dedup window"}
+      - {t: "Stream processor", s: "drops a batch_id seen in the last 15 minutes, then counts", f: "state = 166,667/s × 900 s ≈ 150M keys"}
+      - {t: "Sink", s: "overwrites with the larger count, never adds", f: "cnt = GREATEST(cnt, new)", tone: ok}
+    lines:
+      - emma: "Three parts. The client resends the same batch ID on every retry, and gives up after ten minutes. That's the idempotency-key rule from phase one: keep the key longer than the client's retry window."
+        focus: 0
+      - emma: "The stream processor drops any batch ID it saw in the last fifteen minutes, then counts. Because Kafka is keyed by batch ID, the original and the retry are in the same partition, so this is local state. Its size is rate times time, Little's Law: a hundred sixty-six thousand per second times nine hundred seconds, about a hundred fifty million keys, seven to eight gigabytes. Expire them by event time, not the wall clock, so a replay gives the same answer."
+        focus: 1
+      - emma: "And the sink never adds. It overwrites, keeping the larger count."
+        focus: 2
+
+  - kind: code
+    chapter: "GREATEST"
+    heading: "The sink: overwrite, keep the larger count"
+    points: [x-greatest]
+    code: |
+      INSERT INTO agg_1m (tenant_id, bucket, outcome, cnt)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (tenant_id, bucket, outcome)
+      DO UPDATE SET cnt = GREATEST(agg_1m.cnt, EXCLUDED.cnt);
+    items:
+      - {lines: [1, 2], t: "one row per tenant, minute and outcome: the full count so far, not a +1"}
+      - {lines: [3, 4], t: "an older, smaller count can never replace a newer, larger one"}
+    lines:
+      - emma: "In SQL: insert one row per tenant, minute and outcome, holding the whole count so far, not a plus one."
+        focus: 0
+      - emma: "On conflict, keep the greatest of the stored count and the new one. An older, smaller count can never replace a newer, larger one."
+        focus: 1
+
+  - kind: table
+    chapter: "Why it holds"
+    heading: "Why GREATEST is right: after dedup, a count only goes up"
+    columns: ["What happens", "What the sink receives", "Result"]
+    widths: [3.0, 3.6, 2.6]
+    build: true
+    points: [x-why]
+    rows:
+      - ["Job restarts from a checkpoint", "smaller counts first, then they climb back", "ignored until they pass the stored value"]
+      - ["A zombie consumer wakes after a GC pause", "an older, smaller count", "ignored: the table never goes back"]
+      - ["A late event within 30 minutes", "the window recomputed: a larger count", "accepted"]
+      - ["A retry after the 15-minute dedup expired", "a count that is too high", "GREATEST can't fix it → the batch reconcile can"]
+    lines:
+      - emma: "Why is it right? Once duplicates are gone, the count of a group can only go up as the log is read. A job that restarts from a checkpoint first re-emits smaller numbers, then climbs back. They're ignored until they pass the stored value."
+        focus: 0
+      - emma: "A zombie, a consumer that lost its partition during a GC pause but doesn't know it, can only hold an older, smaller count. Ignored. A late event within thirty minutes recomputes its window to a larger count. Accepted."
+        focus: 2
+      - emma: "And the limit, which you must say: GREATEST can't lower a count that's too high, say from a retry after the dedup key expired. That's the batch reconcile's job."
+        focus: 3
+
+  - kind: compare
+    chapter: "A fencing token"
+    heading: "The same idea as a fencing token"
+    points: [x-fencing]
+    items:
+      - title: "Phase 2 · lab 10A · fencing token"
+        lines:
+          - "A lock holder pauses past its TTL; another client takes the lock"
+          - "The old holder wakes up and writes"
+          - "Only the storage can stop it: write only if token ≥ last token"
+      - title: "This sink · GREATEST"
+        tone: ok
+        lines:
+          - "A consumer pauses; its partition moves to another consumer"
+          - "The old consumer wakes up and writes an older count"
+          - "The storage stops it: the count itself is the token"
+    lines:
+      - emma: "This is the fencing token of phase two, lab 10A. A client can't know it paused past its lock's lifetime. Only the storage can reject the old writer, by comparing a token."
+        say: "This is the fencing token of phase two, lab ten A. A client can't know it paused past its lock's lifetime. Only the storage can reject the old writer, by comparing a token."
+        focus: 0
+      - emma: "Here the count itself is the token, because it only grows. No coordination, no lock service. The storage rejects the stale value."
+        focus: 1
+
+  - kind: table
+    chapter: "Late events and clocks"
+    heading: "Late events, and clocks you don't own"
+    columns: ["Case", "Handling"]
+    widths: [3.0, 6.2]
+    build: true
+    points: [x-late, x-clock]
+    rows:
+      - ["Late, within 30 minutes", "the window recomputes and re-emits a larger count"]
+      - ["Later than 30 minutes", "a “late” topic + the events_late counter; raw still has them, so the reconcile counts them"]
+      - ["Event time in the future, or older than raw retention", "flag it, count it in events_clock_skew — the client clock is wall time"]
+    lines:
+      - emma: "Late events. Within thirty minutes, the window recomputes and re-emits a larger count, and GREATEST accepts it."
+        focus: 0
+      - emma: "Later than that, they go to a late topic, and a counter goes up. Never drop them silently. The raw data still has them, so the reconcile counts them."
+        focus: 1
+      - emma: "And event time comes from the client's wall clock, which can be wrong, even go backwards. The collector records when it received each request. An event from the future, or older than the raw retention, is flagged and counted, not quietly put in the wrong bucket."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Reconcile"
+    heading: "The hourly reconcile: measure, don't trust"
+    style: check
+    points: [x-reconcile]
+    items:
+      - {t: "Recount every hour from packed raw, deduplicating batch_id across the whole hour"}
+      - {t: "Compare with the rollups: reconcile_drift must be 0"}
+      - {t: "Write corrections to a separate final_cnt; reads use COALESCE(final_cnt, cnt)"}
+      - {t: "Mark the hour is_final; billing reads only final hours"}
+      - {t: "Both paths share one classification code and one definition"}
+    lines:
+      - emma: "Every hour a batch job recounts from the packed raw data, with deduplication across the whole hour, and compares with the rollups. The drift must be zero."
+        focus: 1
+      - emma: "Corrections go to a separate column, final count, because GREATEST would refuse a lower number. Reads take the final count when it exists, and the hour is marked final. Billing only reads final hours."
+        focus: 3
+      - emma: "And both paths, stream and batch, must share one classification code. Two paths computing one number is the cost of this design."
+        focus: 4
+
+  - kind: exercise
+    chapter: "Follow-ups"
+    label: "Follow-up"
+    q: "“Why not Kafka transactions, exactly-once from end to end?”"
+    items:
+      - {t: "Think: what does a Kafka transaction cover, and where is your sink?"}
+    lines:
+      - tom: "Why not just turn on exactly-once? Kafka has transactions."
+      - wait: 5
+      - emma: "A Kafka transaction covers reading a topic, writing a topic and committing offsets. My sink is a database, outside it, so the sink must be idempotent anyway. At-least-once with deduplication and GREATEST is cheaper, and it also stops zombie writers."
+      - tom: "And the consumer that dies in the middle of a window?"
+      - emma: "It restarts from the checkpoint, reads from that offset again, re-emits smaller counts, then climbs back. GREATEST ignores the smaller ones, so the table never goes backwards."
+
+  - kind: table
+    chapter: "Built on"
+    heading: "Built on: phase 2 (and phase 1)"
+    columns: ["In this video", "Where you learned it"]
+    widths: [4.2, 5.0]
+    points: [x-built-on]
+    rows:
+      - ["Same batch_id on retry, kept longer than retries", "Phase 1 · week 2 · idempotency keys; Phase 2 · Ep08 · three layers"]
+      - ["At-least-once + idempotent sink; transactions stop at Kafka", "Phase 2 · Ep13, Ep15 · delivery, lab 8"]
+      - ["Dedup state = rate × time", "Phase 1 · Ep01 · Little's Law"]
+      - ["Wall clocks lie", "Phase 2 · Ep19 · clocks"]
+      - ["The storage rejects an old writer", "Phase 2 · Ep20 · locks and fencing tokens"]
+    lines:
+      - emma: "Built on: the idempotency-key rules of phase one and the three layers of idempotency in phase two, episode eight. At-least-once with an idempotent sink, and transactions that stop at Kafka, are episodes thirteen and fifteen. Dedup state is Little's Law from episode one."
+        focus: 2
+      - emma: "Client clocks are episode nineteen, and the stale writer stopped by the storage is the fencing token of episode twenty."
+        focus: 4
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: dot
+    items:
+      - {t: "Client: same batch_id, retries < 10 minutes · processor: dedup 15 minutes, local per partition"}
+      - {t: "Sink: GREATEST — replays and zombies can't move a count backwards"}
+      - {t: "Too high? Only the hourly reconcile fixes it: final_cnt, is_final"}
+      - {t: "Next, K05: a hundred million a minute"}
+    lines:
+      - tom: "Fine. Now ten times more again."
+      - emma: "K05: a hundred million a minute, where the problem becomes physics and money."
+        focus: 3

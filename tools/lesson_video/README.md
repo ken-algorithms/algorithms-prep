@@ -6,15 +6,18 @@ công cụ `agents/lesson_video` của repo
 [superken-ielts/ielts-target-5-5](https://github.com/superken-ielts/ielts-target-5-5) (phần đọc giọng, ghép
 tiếng, mã hoá), viết mới phần slide cho nội dung system design.
 
-Hai bộ video, mỗi bộ một thư mục `java-system-design/<bộ>/lessons/` có kế hoạch, bảng trạng thái và nhật ký riêng:
+Ba bộ video, mỗi bộ một thư mục `java-system-design/<bộ>/lessons/` có kế hoạch, bảng trạng thái và nhật ký riêng:
 
-| Bộ | Giọng | Kế hoạch |
-|---|---|---|
-| Giai đoạn 1 (tuần 1–4) | Tom, `am_michael` | [video-gd1/00-ke-hoach-va-lich-su.md](../../java-system-design/video-gd1/00-ke-hoach-va-lich-su.md) |
-| Giai đoạn 2 (tuần 5–10) | Emma, `af_heart` | [video-gd2/00-ke-hoach-va-lich-su.md](../../java-system-design/video-gd2/00-ke-hoach-va-lich-su.md) |
+| Bộ | Giọng | Mã | Kế hoạch |
+|---|---|---|---|
+| Giai đoạn 1 (tuần 1–4) | Tom, `am_michael` | `Ep00`… | [video-gd1/00-ke-hoach-va-lich-su.md](../../java-system-design/video-gd1/00-ke-hoach-va-lich-su.md) |
+| Giai đoạn 2 (tuần 5–10) | Emma, `af_heart` | `Ep00`… | [video-gd2/00-ke-hoach-va-lich-su.md](../../java-system-design/video-gd2/00-ke-hoach-va-lich-su.md) |
+| Chen ngang Katalon (10k → 10M → 100M) | Tom hỏi, Emma trả lời | `K00`… | [video-katalon/00-ke-hoach-va-lich-su.md](../../java-system-design/video-katalon/00-ke-hoach-va-lich-su.md) |
 
 File `series.yaml` cạnh kịch bản (nếu có) chứa giá trị chung của cả bộ: `series` (dòng chữ góc phải slide),
-`speakers` (người đọc, màu, giọng), `sources`, `gap`, `scene_gap`. Kịch bản ghi đè được từng khoá.
+`speakers` (người đọc, màu, giọng; hai, ba người thì thẻ mở đầu hiện đủ), `prefix` (mã video: `Ep` mặc định, `K` cho bộ
+chen ngang), `sources`, `gap`, `scene_gap`. Kịch bản ghi đè được từng khoá. Mọi file `.yaml` trong `lessons/` trừ
+`points.yaml` và `series.yaml` là kịch bản.
 
 ## Chạy
 
@@ -27,6 +30,9 @@ $R check $L/ep01-*.yaml --glossary ../java-system-design/video-gd1/01-bang-chu-v
 # bộ giai đoạn 2: kiểm với cả hai bảng (--glossary lặp lại được)
 $R check ../java-system-design/video-gd2/lessons/ep*.yaml --glossary ../java-system-design/video-gd1/01-bang-chu-viet-tat.md \
                                                           --glossary ../java-system-design/video-gd2/01-bang-chu-viet-tat.md
+# bộ chen ngang: kiểm với cả ba bảng
+$R check ../java-system-design/video-katalon/lessons/k0*.yaml --glossary ../java-system-design/video-gd1/01-bang-chu-viet-tat.md \
+   --glossary ../java-system-design/video-gd2/01-bang-chu-viet-tat.md --glossary ../java-system-design/video-katalon/01-bang-chu-viet-tat.md
 $R frames $L/ep01-estimation-toolkit.yaml --out /tmp/frames     # ảnh cuối mỗi cảnh, không cần model
 $R phon $L/ep01-estimation-toolkit.yaml                         # phiên âm các câu có số, ký hiệu
 $R build $L/ep01-estimation-toolkit.yaml                        # Kokoro → ep01-….mp4 + .jpg + lessons.json
@@ -36,7 +42,9 @@ uv run --with-requirements lesson_video/requirements.txt --with pytest python3 -
 
 `check` kiểm: cú pháp, anchor trong `covers` có thật trong file nguồn, mỗi ý chính khai ở `points:` có đủ chữ
 bắt buộc (`expect` trong `points.yaml`) ngay trong cảnh đó, và (khi có `--glossary`) mọi chữ viết tắt trên
-màn hình hay trong lời đọc đều có trong bảng chữ viết tắt **và** trong thẻ *Acronyms in this video* của video.
+màn hình hay trong lời đọc (kể cả các dòng của cột so sánh `compare`) đều có trong bảng chữ viết tắt **và** trong
+thẻ *Acronyms in this video* của video. Từ khoá SQL (`GREATEST`, `COALESCE`…) và động từ HTTP (`GET`, `POST`…) không
+tính là chữ viết tắt. Nguồn nằm ngoài `java-system-design/` thì viết `covers` dạng `../katalon-prep/…`.
 
 ## Model Kokoro
 
@@ -93,12 +101,13 @@ scenes:
 | `flow` | Các bước nối mũi tên | `items: [{t, s, f}]`, `build` |
 | `diagram` | Sơ đồ hộp–mũi tên hiện dần | `nodes: [{id, label, sub, x, y, w, h, shape, at, tone}]`, `edges: [{a, b, label, dashed, at}]` |
 | `stats` | Con số lớn | `items: [{v, l, s, tone}]` |
-| `exercise` | Đề bài + dữ kiện, đi với `wait` | `n`, `q`, `items: [{t}]` |
+| `exercise` | Đề bài + dữ kiện, đi với `wait` | `n`, `q`, `items: [{t}]`, `label` (thay chữ "Exercise": *Question*, *Drill*…) |
 | `speech` | Bài nói mẫu, tô câu đang đọc | `items: [{t, say}]`, dòng `read: tom` |
 
 Câu không có `say` vẫn được đổi cho dễ đọc (`speak.py`): số thập phân, dải `P01–P07`, đơn vị `ms`/`KB`/`MB/s`,
 `~`, `≈`, `→`, `>`, `<`, `≠`, lũy thừa `10⁵`, tên cấu hình có dấu chấm (`max.poll.records`), mã lab (`lab 5B`)
-và vài chữ Kokoro đọc sai (PACELC, ReDoS, SaaS, OIDC, DDIA, SLO, ISR, eKYC, etcd, draw.io, retryable…).
+và vài chữ Kokoro đọc sai (PACELC, ReDoS, SaaS, OIDC, DDIA, SLO, ISR, eKYC, etcd, draw.io, retryable, PII, dedup…).
+Mã video chen ngang `K03` đọc *K 3*; `Gbit/s` đọc *gigabits per second*; `1 µs`, `1 s` đọc số ít.
 Chữ "A" viết hoa đứng riêng **giữa câu** (`relay A`, `topic A`, `J P A`) đọc là chữ cái (`eigh`); đầu câu thì
 giữ nguyên vì thường là mạo từ ("A poll returns…"), nên đừng mở câu bằng nhãn A. Viết tắt đánh vần cũng
 đọc đúng (`D A U` → `D eigh U`).

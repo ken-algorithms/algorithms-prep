@@ -27,11 +27,14 @@ scenes:
       - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu dạng văn bản"}
       - {abbr: AZ, full: "availability zone", vi: "một trung tâm dữ liệu độc lập trong một region"}
       - {abbr: CDC, full: "change data capture", vi: "đọc log thay đổi của database để phát sự kiện"}
+      - {abbr: WAL, full: "write-ahead log", vi: "nhật ký ghi trước của Postgres; CDC đọc nó"}
     lines:
       - emma: "JDBC is Java Database Connectivity, the low-level way Java talks to a database. DB is the database, a UUID a universally unique identifier, and ID an identifier."
         focus: 3
       - emma: "JSON is the text format of the payload. An AZ is an availability zone, one data center in a region. And CDC is change data capture, reading the database's log to publish events."
         focus: 6
+      - emma: "That log is the WAL, the write-ahead log, where Postgres records every change before applying it."
+        focus: 7
 
   - kind: bullets
     chapter: "The project"

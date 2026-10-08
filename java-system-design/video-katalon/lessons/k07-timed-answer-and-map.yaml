@@ -1,0 +1,238 @@
+id: k07-timed-answer-and-map
+ep: 7
+week: 10
+tag: "K07 · AFTER PHASE 2"
+title: "The timed answer, and where each idea comes from"
+subtitle: "Both follow-ups under time pressure, rapid-fire questions, then the map back to phase-1 and phase-2 lessons"
+covers:
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#8-kịch-bản-trả-lời
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10-ranh-giới-trung-thực
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: problem 07 · §8 answers, §9 the map, §10 limits"}
+      - {t: "Tom asks; you pause, answer for two minutes, then compare"}
+    lines:
+      - tom: "Episode K07, the last one. No more teaching. I ask, you answer, two minutes each."
+      - emma: "And afterwards, the map: every idea in these answers, and the phase-one or phase-two lesson it comes from."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý"}
+      - {abbr: SDK, full: "software development kit", vi: "thư viện phía client"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: OLAP, full: "online analytical processing", vi: "kho cột cho truy vấn gom nhiều dòng"}
+      - {abbr: CRDT, full: "conflict-free replicated data type", vi: "kiểu dữ liệu gộp được không xung đột"}
+      - {abbr: 2PC, full: "two-phase commit", vi: "giao dịch phân tán hai pha"}
+      - {abbr: HTTPS, full: "HTTP over TLS", vi: "HTTP có mã hoá"}
+      - {abbr: LSM, full: "log-structured merge tree", vi: "cấu trúc lưu trữ ghi tuần tự (RocksDB)"}
+    lines:
+      - emma: "CPU is a processor core, SDK the client library, ID an identifier, and OLAP a columnar store for aggregates."
+        focus: 3
+      - emma: "A CRDT is a data type that copies can update separately and merge, and two P C is two-phase commit. HTTPS is encrypted HTTP. And an LSM tree, a log-structured merge tree, is the write-friendly storage under RocksDB."
+        focus: 7
+
+  - kind: exercise
+    chapter: "Ten million"
+    label: "Question"
+    n: "1"
+    q: "“Ten million requests a minute, same contract. Two minutes, go.”"
+    items:
+      - {t: "Restate · new numbers · what doesn't change · what breaks first · the fix with trade-offs · not yet"}
+    lines:
+      - tom: "Ten million requests a minute, same contract. Two minutes. Go."
+      - wait: 10
+        note: "Say it out loud, with numbers. Then compare."
+
+  - kind: speech
+    heading: "Model answer · 10 million a minute"
+    points: [t-answer-10m]
+    items:
+      - {t: "“So, 10 million a minute, still 20 pairs, still exact over any range: 166,000 requests and 3.3 million events per second, 288 billion a day.”"}
+      - {t: "“The read path stays: rollups grow with groups times buckets, so a one-year query still reads about 500 rows.”"}
+      - {t: "“What breaks first: keyed by tenant, the biggest tenant makes one partition hot; and no database keeps a row per event.”"}
+      - {t: "“The collector turns each request into one record; Kafka is keyed by batch_id; the stream job drops duplicates for 15 minutes and counts in one-minute windows by event time, in two levels.”"}
+      - {t: "“The sink overwrites with GREATEST, so replays and zombies can't move a count back; packed raw goes to object storage, and an hourly batch reconciles.”"}
+      - {t: "“I'm not adding regions, client-side batching or sketches yet: none is needed at this rung.”"}
+    lines:
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+      - read: emma
+        focus: 3
+      - read: emma
+        focus: 4
+      - read: emma
+        focus: 5
+
+  - kind: exercise
+    chapter: "A hundred million"
+    label: "Question"
+    n: "2"
+    q: "“And a hundred million a minute?”"
+    items:
+      - {t: "New numbers · why it's physics and money · the five changes · what you still don't build"}
+    lines:
+      - tom: "And a hundred million a minute?"
+      - wait: 10
+        note: "Price one microsecond first."
+
+  - kind: speech
+    heading: "Model answer · 100 million a minute"
+    points: [t-answer-100m]
+    items:
+      - {t: "“1.67 million requests and 33 million events per second, 13 Gbit/s coming in, three times that at the peak.”"}
+      - {t: "“Now it's physics and money: a microsecond of CPU per request is 1.7 cores; raw copied across zones is a daily bill; dedup by batch_id is 1.5 billion keys.”"}
+      - {t: "“So: regional cells that each run the 10-million pipeline, only counts summed globally; dedup by client and sequence number; a binary, compressed wire; packed raw that stays in its region.”"}
+      - {t: "“Sketches only for distinct counts and top-K; totals stay exact because they're cheap.”"}
+      - {t: "“Not exactly-once across regions, not one global Kafka; every answer says whether it is final.”"}
+    lines:
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+      - read: emma
+        focus: 3
+      - read: emma
+        focus: 4
+
+  - kind: table
+    chapter: "Rapid fire"
+    heading: "Rapid fire: one sentence each"
+    columns: ["Tom asks", "Emma answers"]
+    widths: [3.4, 5.8]
+    build: true
+    points: [t-rapid]
+    rows:
+      - ["“Your biggest tenant is 30% of the load?”", "Keyed by batch_id it spreads over every partition, and the global step only sees partial sums"]
+      - ["“A retry after the dedup key expired?”", "The SDK gives up after 10 minutes, the key lives 15; anything later, the hourly reconcile catches"]
+      - ["“A breakdown per 100,000 keys?”", "At 10M a minute it compresses 500 times, so worth it, in an OLAP store; top-K with Count-Min Sketch"]
+      - ["“A region goes down?”", "Clients move to another cell with a new epoch; the dead cell's numbers stay not final until its raw is reconciled"]
+      - ["“What costs the most at 100M?”", "Not the database: collector CPU per request, bytes across zones, and raw storage"]
+    lines:
+      - tom: "Rapid fire. Your biggest tenant is thirty percent of the load?"
+      - emma: "Keyed by batch ID, it spreads over every partition, and the global step only sees partial sums."
+        focus: 0
+      - tom: "A retry after the dedup key expired?"
+      - emma: "The SDK gives up after ten minutes and the key lives fifteen. Anything later, the hourly reconcile catches."
+        focus: 1
+      - tom: "A breakdown per key, a hundred thousand keys?"
+      - emma: "At ten million a minute, a per-key rollup compresses five hundred times, so it's worth it, in an OLAP store. For the hottest keys, a Count-Min Sketch."
+        focus: 2
+      - tom: "A region goes down?"
+      - emma: "Its clients move to another cell with a new epoch. The dead cell's numbers stay marked not final until its raw data is reconciled."
+        focus: 3
+      - tom: "And what costs the most at a hundred million?"
+      - emma: "Not the database. Collector CPU per request, bytes copied across zones, and raw storage."
+        focus: 4
+
+  - kind: table
+    chapter: "The map: phase 1"
+    heading: "Where each idea comes from: phase 1, filmed episodes"
+    columns: ["Idea in these answers", "Phase 1 lesson"]
+    widths: [4.4, 4.8]
+    build: true
+    points: [t-map-1a]
+    rows:
+      - ["Requests/s, events/day, TB/day, Gbit/s", "Ep01–Ep03 · conversions and the estimation workout"]
+      - ["Dedup state = rate × time", "Ep01 · Little's Law"]
+      - ["The five sentences of “× 10”; “not yet”", "Ep06 · the ladder rule"]
+      - ["1 µs per request = 1.7 cores", "Ep04, Ep05 · Track P: per-request waste, measure first"]
+    lines:
+      - emma: "The map, phase one first. Every number came from the estimation of episodes one to three. Dedup state is Little's Law from episode one. The five sentences and the not-yet rule are episode six."
+        focus: 2
+      - emma: "Pricing a microsecond as cores is Track P, episodes four and five."
+        focus: 3
+
+  - kind: table
+    heading: "Phase 1, weeks 2–4: the lessons whose videos are still to be made"
+    columns: ["Idea in these answers", "Phase 1 lesson"]
+    widths: [4.4, 4.8]
+    build: true
+    points: [t-map-1b]
+    rows:
+      - ["The whole ladder, L0 to L4, with cells", "Ep25 (planned) · the scale ladder"]
+      - ["Quotas, 429, token buckets; keep-alive at the edge", "Week 2 · lab 2, V3, the life of an HTTPS request"]
+      - ["The same batch_id on retry, kept longer than retries", "Week 2 · the four idempotency-key rules"]
+      - ["RocksDB and columnar stores for heavy writes", "Week 3 · B-tree or LSM tree"]
+      - ["Version-bump cache, final or not", "Week 4 · cache illnesses, consistency trade-offs"]
+    lines:
+      - emma: "Then weeks two to four, whose videos are still to be made: the full ladder with cells in episode twenty-five, rate limits and the HTTPS round trips at the edge, and the idempotency-key rules behind batch ID."
+        focus: 2
+      - emma: "B-tree versus LSM tree for heavy writes, and the cache and consistency choices behind final or not."
+        focus: 4
+
+  - kind: table
+    chapter: "The map: phase 2"
+    heading: "Where each idea comes from: phase 2, Kafka"
+    columns: ["Idea in these answers", "Phase 2 lesson"]
+    widths: [4.4, 4.8]
+    build: true
+    points: [t-map-2a]
+    rows:
+      - ["Hot partitions; key by what spreads", "Ep03 · partitioning"]
+      - ["Order only in a partition; acks=all, 3 replicas, 2 in sync", "Ep12 · Kafka ordering, keys, durability"]
+      - ["At-least-once + idempotent sink; transactions stop at Kafka", "Ep13, Ep15 · delivery guarantees, lab 8"]
+      - ["max.poll.records by p99", "Ep16 · P20, the rebalance storm"]
+    lines:
+      - emma: "Phase two. Hot partitions are episode three. Kafka keys and durable writes are episode twelve, and at-least-once with an idempotent sink is thirteen and fifteen, the lab where duplicates were proven harmless."
+        focus: 2
+      - emma: "Consumer batch sizes are P20, in episode sixteen."
+        focus: 3
+
+  - kind: table
+    heading: "Where each idea comes from: phase 2, streams and distributed systems"
+    columns: ["Idea in these answers", "Phase 2 lesson"]
+    widths: [4.4, 4.8]
+    build: true
+    points: [t-map-2b]
+    rows:
+      - ["Event-time windows, watermarks; ad clicks are family A", "Ep17 · stream processing"]
+      - ["Client clocks lie; GREATEST as a fencing token", "Ep19, Ep20 · clocks, locks and fencing"]
+      - ["Cells summed as a CRDT", "Ep01 · replication, multi-leader"]
+      - ["No 2PC across regions", "Ep07 · sagas instead"]
+    lines:
+      - emma: "Windows and watermarks, and ad click aggregation, the same family as this question, are episode seventeen."
+        focus: 0
+      - emma: "Client clocks and fencing tokens are episodes nineteen and twenty. Cells summed like a CRDT come from episode one, and no two-phase commit across regions from episode seven."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Honest limits"
+    heading: "Say these limits before the interviewer does"
+    style: check
+    points: [t-honest]
+    items:
+      - {t: "Every number is arithmetic from assumptions: 20 pairs per request, 1 KB per request, 0.2 ms of collector CPU"}
+      - {t: "Thresholds such as 30–50k rows/s or 100k Redis operations/s are orders of magnitude, not benchmarks"}
+      - {t: "P01 and P04 costs are real measurements; multiplying them by requests per second is an estimate"}
+      - {t: "Prices are list prices at the time of writing"}
+      - {t: "No demo runs at 10M or 100M: say “I would build and measure it like this”, never “I ran it”"}
+    lines:
+      - emma: "Last, the honest limits. Every number here is arithmetic from assumptions, and the thresholds are orders of magnitude, not benchmarks."
+        focus: 1
+      - emma: "The Track P costs are real measurements, and multiplying them is an estimate. Prices change. And nothing here has been run at ten million a minute, so say: I would build it and measure it like this. Never: I ran it."
+        focus: 4
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: dot
+    items:
+      - {t: "10M: one record per request · key = batch_id · dedup · two-level windows · GREATEST · packed raw + reconcile"}
+      - {t: "100M: cells summed globally · (client_id, seq) · binary wire · raw stays in region · sketches only for distinct and top-K"}
+      - {t: "Nothing new: phase 1 gave the numbers and the × 10 frame; phase 2 gave Kafka, windows and fencing"}
+      - {t: "Back to the roadmap: continue phase 2 or 3 where you left off"}
+    lines:
+      - tom: "That's the answer I was hoping for at the Principal round."
+      - emma: "And none of it was new. Phase one gave the numbers and the ten-times frame. Phase two gave Kafka, windows and fencing. Back to the roadmap, where you left off."
+        focus: 2

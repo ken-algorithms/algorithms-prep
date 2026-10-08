@@ -1,0 +1,191 @@
+id: k06-family-c-at-scale
+ep: 6
+week: 10
+tag: "K06 · AFTER PHASE 2"
+title: "Collecting from sources you don't control"
+subtitle: "Family C at 10 and 100 million a minute: backpressure, idempotent sinks, partition keys, the key registry, and PII"
+covers:
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#7-họ-c-khi-tải-lớn--thu-thập-từ-nguồn-không-kiểm-soát
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#71-bảng-ba-mức-tải
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#73-registry-key-hợp-lệ-ở-33-triệu-lần-tra-mỗi-giây
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#75-metric-thêm-vào-sáu-metric-của-04
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: problem 07 · §7 · problem 01 (family C on Katalon's product)"}
+      - {t: "Builds on: P13, lab 2 (phase 1) · Ep13, Ep16 (phase 2)"}
+    lines:
+      - tom: "Episode K06. Your clients are other people's code, on other people's networks. They retry too fast, send garbage, and sometimes send personal data. Walk me through collecting at a hundred million a minute."
+      - emma: "That's family C: collecting from sources you don't control. Same four rules at every load, very different mechanics."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: PII, full: "personally identifiable information", vi: "dữ liệu định danh cá nhân"}
+      - {abbr: SDK, full: "software development kit", vi: "thư viện phía client"}
+      - {abbr: RAM, full: "random-access memory", vi: "bộ nhớ trong"}
+      - {abbr: RTT, full: "round-trip time", vi: "thời gian một lượt đi–về trên mạng"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý; một core"}
+    lines:
+      - emma: "PII is personally identifiable information. SDK is the client library. RAM is memory, RTT a network round trip, ID an identifier, and CPU a processor core."
+        focus: 5
+
+  - kind: table
+    chapter: "Four rules, three loads"
+    heading: "Family C's four rules, at three loads"
+    columns: ["Rule", "10k a minute (04)", "10 million", "100 million"]
+    widths: [1.9, 2.3, 2.5, 2.5]
+    build: true
+    points: [c-table]
+    rows:
+      - ["Backpressure", "rate limit at the gateway, a bounded queue, Kafka lag", "+ a quota per tenant at the edge; a bounded producer buffer → 503", "+ token buckets local to each collector; the SDK backs off with jitter"]
+      - ["At-least-once + idempotent sink", "event_id + ON CONFLICT DO NOTHING", "dedup batch_id + GREATEST", "dedup (client_id, seq)"]
+      - ["Partition key", "tenant_id", "batch_id: no order needed, retries co-located", "client_id inside each cell"]
+      - ["PII", "—", "hash or redact on the client", "+ raw stays in its region"]
+    lines:
+      - emma: "Family C has four rules: backpressure, at-least-once with an idempotent sink, a partition key that keeps order only where it matters, and personal data handled before it leaves the client."
+      - emma: "Backpressure grows from a gateway rate limit at ten thousand a minute, to a quota per tenant and a bounded producer buffer at ten million, to token buckets inside each collector at a hundred million."
+        focus: 0
+      - emma: "The idempotent sink moves from a unique key on raw rows, to batch ID dedup and GREATEST, to client and sequence. The partition key moves from tenant, to batch, to client within a cell."
+        focus: 2
+      - emma: "And personal data: if keys can contain user data, hash or redact them on the client, and at a hundred million, keep raw in its region."
+        focus: 3
+
+  - kind: flow
+    chapter: "Backpressure"
+    heading: "Backpressure: five layers, each one bounded"
+    sub: "An unbounded queue turns “reject fast” into “out of memory in twenty minutes” — P13"
+    points: [c-backpressure]
+    build: true
+    items:
+      - {t: "Client SDK", s: "bounded buffer · drop oldest, count it · jitter · stop at 10 min"}
+      - {t: "Edge", s: "quota per tenant → 429 + Retry-After"}
+      - {t: "Collector", s: "bounded producer buffer → 503"}
+      - {t: "Kafka", s: "shock absorber: lag grows, nothing lost", tone: ok}
+      - {t: "Consumer", s: "max.poll.records by p99 · batches"}
+    lines:
+      - emma: "Backpressure in five layers, and every layer has a limit. The SDK keeps a bounded buffer. When it's full, it drops the oldest and counts what it dropped, then reports that count. It retries with exponential backoff and jitter, honours Retry-After, and gives up after ten minutes, inside the fifteen-minute dedup window."
+        focus: 0
+      - emma: "The edge enforces a quota per tenant with 429. The collector's Kafka producer has a bounded buffer: when it's full, answer 503 instead of waiting forever."
+        say: "The edge enforces a quota per tenant with four twenty-nine. The collector's Kafka producer has a bounded buffer: when it's full, answer five oh three instead of waiting forever."
+        focus: 2
+      - emma: "Kafka is the shock absorber: when consumers slow down, lag grows and nothing is lost. And consumers size their batches by the p99 of their own processing, the lesson of P20."
+        say: "Kafka is the shock absorber: when consumers slow down, lag grows and nothing is lost. And consumers size their batches by the p ninety-nine of their own processing, the lesson of P20."
+        focus: 4
+
+  - kind: compare
+    chapter: "Rate limits at 100M"
+    heading: "Rate limiting at 1.67 million requests per second"
+    points: [c-ratelimit]
+    items:
+      - title: "Phase 1 lab 2: Redis + Lua per request"
+        tone: bad
+        lines:
+          - "One Redis round trip per request"
+          - "1.67 million operations/s ≈ 17 Redis nodes, only for quotas"
+          - "Every request waits one more RTT"
+      - title: "Token buckets in each collector's memory"
+        tone: ok
+        lines:
+          - "Each collector holds a share of the tenant's quota"
+          - "Rebalanced every few seconds from a central counter"
+          - "Trade-off: the global limit becomes approximate"
+    lines:
+      - emma: "Rate limiting is a good example of a phase-one answer that stops working. Lab 2's token bucket in Redis with Lua costs one round trip per request. At a hundred million a minute that's one point six seven million operations per second, about seventeen Redis nodes just to count quotas, and one more round trip on every request."
+        say: "Rate limiting is a good example of a phase-one answer that stops working. Lab two's token bucket in Redis with Lua costs one round trip per request. At a hundred million a minute that's one point six seven million operations per second, about seventeen Redis nodes just to count quotas, and one more round trip on every request."
+        focus: 0
+      - emma: "So each collector keeps buckets in memory, with a share of each tenant's quota, rebalanced every few seconds from a central counter. The trade-off: a tenant can briefly exceed its limit while shares are rebalanced."
+        focus: 1
+
+  - kind: table
+    chapter: "The key registry"
+    heading: "Fake keys at 33 million lookups per second"
+    columns: ["Option", "What it costs at 100M a minute"]
+    widths: [3.4, 5.8]
+    build: true
+    points: [c-registry]
+    rows:
+      - ["Bloom filter + a store (problem 04)", "Bloom only saves lookups for fake keys; every “maybe” still asks the store: tens of millions per second"]
+      - ["The whole registry in each collector's RAM", "64-bit fingerprints: 10 million keys ≈ 80 MB; collision ≈ 10⁷ ÷ 2⁶⁴ ≈ 5 × 10⁻¹³ per lookup"]
+      - ["Updates", "a compacted Kafka topic: key name → valid or not, with a version"]
+      - ["Audit", "write the registry version into raw, so the reconcile can reclassify"]
+    lines:
+      - emma: "The fake-key check. Problem 04 used a Bloom filter to reject fake keys fast. But a Bloom filter only saves lookups for fake keys. Every maybe still asks the store, and at thirty-three million items per second that store would be bigger than the counting system."
+        say: "The fake-key check. Problem four used a Bloom filter to reject fake keys fast. But a Bloom filter only saves lookups for fake keys. Every maybe still asks the store, and at thirty-three million items per second that store would be bigger than the counting system."
+        focus: 0
+      - emma: "So keep the whole registry in each collector's memory, as sixty-four-bit fingerprints. Ten million keys is about eighty megabytes. The chance that a fake key collides is about five in ten to the thirteenth per lookup, smaller than any other source of error."
+        say: "So keep the whole registry in each collector's memory, as sixty-four-bit fingerprints. Ten million keys is about eighty megabytes. The chance that a fake key collides is about five times ten to the minus thirteen per lookup, smaller than any other source of error."
+        focus: 1
+      - emma: "Updates arrive through a compacted Kafka topic. And every raw record carries the registry version it was classified with, so the reconcile can reclassify if needed."
+        focus: 3
+
+  - kind: table
+    chapter: "Metrics"
+    heading: "Metrics to add to the six from problem 04"
+    columns: ["Metric", "Warns you that…"]
+    widths: [3.4, 5.8]
+    mono: [0]
+    points: [c-metrics]
+    rows:
+      - ["consumer_lag_seconds", "a stream task can't keep up; one partition lagging alone = a hot partition"]
+      - ["dedup_hits_per_sec", "a sudden jump = clients retrying in bulk, usually because the edge is slow"]
+      - ["events_late, events_clock_skew", "events pushed to a side path: never silent"]
+      - ["reconcile_drift per cell", "which cell is wrong"]
+      - ["collector_cpu_us_per_request", "a Track P regression on deploy: +10 µs = +17 cores at 100M"]
+    lines:
+      - emma: "Add five metrics to the six from problem 04. Consumer lag in seconds per partition: one partition lagging alone means a hot partition. Dedup hits per second: a jump means clients are retrying in bulk."
+        say: "Add five metrics to the six from problem four. Consumer lag in seconds per partition: one partition lagging alone means a hot partition. Dedup hits per second: a jump means clients are retrying in bulk."
+        focus: 1
+      - emma: "Late and clock-skewed events, so nothing is dropped silently. Drift per cell. And CPU microseconds per request on the collector, which catches a Track P regression the day it's deployed: ten microseconds more is seventeen cores at a hundred million a minute."
+        focus: 4
+
+  - kind: exercise
+    chapter: "Drill"
+    label: "Drill"
+    q: "Your biggest tenant suddenly sends ten times more. Walk through what happens at each layer."
+    items:
+      - {t: "Layers: SDK → edge → collector → Kafka → stream processor → rollups"}
+    lines:
+      - tom: "Your biggest tenant suddenly sends ten times more. Walk me through every layer."
+      - wait: 8
+        note: "Who says no first, with which status code? What does the tenant see?"
+      - emma: "The edge says no first: its quota answers 429 with Retry-After, so the extra load never reaches the collectors. The SDK backs off with jitter instead of hammering. What gets through is spread over every partition by batch ID, so no partition is hot."
+        say: "The edge says no first: its quota answers four twenty-nine with Retry-After, so the extra load never reaches the collectors. The SDK backs off with jitter instead of hammering. What gets through is spread over every partition by batch ID, so no partition is hot."
+      - emma: "Other tenants keep their quotas and see nothing. That tenant sees throttling and, in its dashboard, numbers marked not final yet. And on our side, dedup hits and lag tell us it happened."
+
+  - kind: table
+    chapter: "Built on"
+    heading: "Built on: phase 1 and phase 2"
+    columns: ["In this video", "Where you learned it"]
+    widths: [4.2, 5.0]
+    points: [c-built-on]
+    rows:
+      - ["Bounded queues, 503 instead of waiting", "Phase 1 · file 01 · P13 · Phase 2 · Ep13 · backpressure"]
+      - ["Quota, 429 + Retry-After, token bucket", "Phase 1 · week 2 · lab 2 and V3 (videos planned)"]
+      - ["max.poll.records by p99, batch calls", "Phase 2 · Ep16 · P20, the rebalance storm"]
+      - ["A compacted topic, one partition per key", "Phase 2 · Ep12 · Kafka keys"]
+      - ["Redact on the client, data stays in its region", "Katalon problem 01 · TrueTest journey mining"]
+    lines:
+      - emma: "Built on: P13 and the token-bucket lab from phase one; backpressure in episode thirteen and P20 in episode sixteen of phase two."
+        focus: 2
+      - emma: "Kafka keys in episode twelve. And redacting on the client is the point of Katalon problem 01, journey mining, the on-domain family C question."
+        say: "Kafka keys in episode twelve. And redacting on the client is the point of Katalon problem one, journey mining, the on-domain family C question."
+        focus: 4
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: dot
+    items:
+      - {t: "Four rules at every load: backpressure, idempotent sink, partition key, PII"}
+      - {t: "Every layer bounded; Kafka absorbs; the edge says no first"}
+      - {t: "At 100M: local token buckets, the registry in memory, metrics per cell"}
+      - {t: "Next, K07: the timed answer, and the map back to phases 1 and 2"}
+    lines:
+      - tom: "Last one: say it all under time pressure."
+      - emma: "K07: the timed answer to both follow-ups, and the full map back to phases one and two."
+        focus: 3

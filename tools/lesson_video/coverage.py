@@ -21,7 +21,7 @@ def collect(lessons_dir: Path, points_path: Path, week: Optional[int] = None) ->
     if mpath.exists():
         manifest = {x["id"]: x for x in json.loads(mpath.read_text(encoding="utf-8")).get("lessons", [])}
     lessons = []
-    for p in sorted(lessons_dir.glob("ep*.yaml")):
+    for p in sc.lesson_paths(lessons_dir):
         L = sc.load(p)
         if week is not None and L.week not in (week, 0):
             continue
@@ -33,16 +33,17 @@ def collect(lessons_dir: Path, points_path: Path, week: Optional[int] = None) ->
             chapter = next((s.chapter for s in reversed(L.scenes[:i + 1]) if s.chapter), "")
             for pid in scene.points:
                 if pid in claims and all(c["ep"] != L.ep for c in claims[pid]):
-                    claims[pid].append({"ep": L.ep, "id": L.id, "chapter": chapter, "t": times.get(pid)})
+                    claims[pid].append({"ep": L.ep, "code": L.code, "id": L.id, "chapter": chapter,
+                                        "t": times.get(pid)})
     import yaml
     raw = yaml.safe_load(Path(points_path).read_text(encoding="utf-8")) or {}
     scope = [a for w, anchors in (raw.get("scope") or {}).items() if week is None or int(w) == week for a in anchors]
-    covered: dict[str, list[int]] = {a: [] for a in scope}
+    covered: dict[str, list[str]] = {a: [] for a in scope}
     for p, L in lessons:
         refs = set(L.all_covers()) | {points[pid]["src"] for s in L.scenes for pid in s.points if pid in points}
         for a in scope:
-            if a in refs and L.ep not in covered[a]:
-                covered[a].append(L.ep)
+            if a in refs and L.code not in covered[a]:
+                covered[a].append(L.code)
     src_dir = sc.source_dir(lessons[0][0], lessons[0][1]) if lessons else None
     titles = {}
     if src_dir:
@@ -61,19 +62,19 @@ def to_markdown(data: dict, title: str, link_prefix: str = "") -> str:
     done = sum(1 for pid in points if claims[pid])
     out = [f"# {title}", "",
            f"**{done}/{total} ý chính đã có video.** Bảng sinh bằng `python -m lesson_video coverage` từ "
-           "`points.yaml` (ý chính lấy từ tài liệu nguồn) và kịch bản `ep*.yaml`; mỗi ý có chữ bắt buộc "
+           "`points.yaml` (ý chính lấy từ tài liệu nguồn) và các kịch bản `.yaml`; mỗi ý có chữ bắt buộc "
            "(`expect`) mà lệnh `check` đã kiểm là có mặt trong cảnh dạy ý đó. Thời điểm lấy từ `lessons.json` "
            "sau khi dựng.", ""]
-    rows_by_ep: dict[int, int] = {}
+    rows_by_ep: dict[str, int] = {}
     for pid in points:
         for c in claims[pid]:
-            rows_by_ep[c["ep"]] = rows_by_ep.get(c["ep"], 0) + 1
+            rows_by_ep[c["code"]] = rows_by_ep.get(c["code"], 0) + 1
     out += ["## Theo video", "", "| Video | Dài | Chương | Ý chính |", "|---|---:|---:|---:|"]
     for p, L in data["lessons"]:
         m = data["manifest"].get(L.id)
         dur = mmss(m["duration"]) if m else "chưa dựng"
         chap = len(m["chapters"]) if m else len(L.chapters())
-        out.append(f"| Ep{L.ep:02d} · {L.title} | {dur} | {chap} | {rows_by_ep.get(L.ep, 0)} |")
+        out.append(f"| {L.code} · {L.title} | {dur} | {chap} | {rows_by_ep.get(L.code, 0)} |")
     out.append("")
     if data.get("scope"):
         sc_ok = sum(1 for v in data["scope"].values() if v)
@@ -85,8 +86,8 @@ def to_markdown(data: dict, title: str, link_prefix: str = "") -> str:
             f = a.split("#")[0]
             title = data["titles"].get(a, a)
             link = f"{link_prefix}{a}" if link_prefix else a
-            out.append(f"| {'✅' if eps else '❌'} | [{f.split('-')[0]} · {title}]({link}) | "
-                       f"{', '.join(f'Ep{e:02d}' for e in sorted(eps)) or '**chưa có**'} |")
+            out.append(f"| {'✅' if eps else '❌'} | [{Path(f).stem.split('-')[0]} · {title}]({link}) | "
+                       f"{', '.join(sorted(eps)) or '**chưa có**'} |")
         out.append("")
     sections: dict[str, list[str]] = {}
     for pid, pt in points.items():
@@ -101,7 +102,7 @@ def to_markdown(data: dict, title: str, link_prefix: str = "") -> str:
         for pid in pids:
             pt = points[pid]
             cs = claims[pid]
-            where = ", ".join(f"Ep{c['ep']:02d}" + (f" · {mmss(c['t'])}" if c["t"] is not None else "")
+            where = ", ".join(c["code"] + (f" · {mmss(c['t'])}" if c["t"] is not None else "")
                               + (f" ({c['chapter']})" if c["chapter"] else "") for c in cs) or "**chưa có**"
             out.append(f"| {'✅' if cs else '❌'} | {pt['text']} | {where} |")
         out.append("")
@@ -120,6 +121,7 @@ IGNORE = re.compile(r"^(?:P\d\d|D\d\d|V\d+|L\d|Ep\d\d|EP\d\d|NOT|AND|OR|THE|BAD|
                     r"PENDING|COMPLETED|COMPENSATED|UNKNOWN|CREATED|SUCCEEDED|FAILED|RUNNING|READY|HELD|DONE|OK|FAIL|"
                     r"UNDO|VACUUM|MOVED|BY|ON|CONFLICT|DO|NOTHING|RETURNING|SET|IN|IS|NULL|DESC|ASC|GROUP|HAVING|"
                     r"ORDER|JOIN|LEFT|INTO|VALUES|CREATE|TABLE|INDEX|PRIMARY|KEY|BEGIN|COMMIT|ROLLBACK|"
+                    r"GREATEST|LEAST|COALESCE|EXCLUDED|COUNT|SUM|MAX|MIN|GET|POST|PUT|PATCH|DELETE|"
                     r"MySQL|MinIO|OpenID|OpenSearch)$")
 
 
@@ -153,7 +155,9 @@ def acronym_report(lesson: sc.Lesson, terms: set[str]) -> list[str]:
         if scene.kind == "acronyms":
             continue
         blob = "\n".join([scene.heading, scene.sub, scene.q, scene.note]
-                         + [str(v) for it in scene.items for k, v in it.items() if k not in ("lines", "lang")]
+                         # mọi chữ của mục, kể cả các dòng của cột so sánh (`compare`); `lines` của cảnh code là số dòng
+                         + [str(x) for it in scene.items for k, v in it.items() if k != "lang"
+                            for x in (v if isinstance(v, list) else [v])]
                          + [c for r in scene.rows for c in r] + scene.columns + [c for r in scene.stats for c in r]
                          + [n.label + " " + n.sub for n in scene.nodes] + [e.label for e in scene.edges]
                          + [ln.text for ln in scene.lines])

@@ -1,0 +1,268 @@
+id: k05-100m-physics-money
+ep: 5
+week: 10
+tag: "K05 · AFTER PHASE 2"
+title: "A hundred million a minute: physics and money"
+subtitle: "CPU per request, bytes on the wire, dedup state, and one region as a blast radius — then cells"
+covers:
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#44--10000--100m-requestphút
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#55-collector-chi-phí-mỗi-request-nhân-với-166667
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#6-kiến-trúc-ở-100m-requestphút
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#61-sơ-đồ-cell-theo-region
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#63-ba-thứ-phải-tính-tiền-ra-được
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#82-còn-100m--2-phút
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: problem 07 · §4.4, §5.5, §6, §8.2"}
+      - {t: "Builds on: Track P (Ep04, Ep05), rung L4 · phase 2 Ep01, Ep07"}
+    lines:
+      - tom: "Episode K05. A hundred million requests a minute. Ten thousand times the original question."
+      - emma: "At this rung the question stops being which database. It becomes physics and money: CPU per request, bytes on the wire, state, and how much of the world one failure can take down."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý; một core"}
+      - {abbr: GC, full: "garbage collection", vi: "dọn rác của JVM"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng văn bản của request"}
+      - {abbr: AZ, full: "availability zone", vi: "một trung tâm dữ liệu độc lập trong một region"}
+      - {abbr: S3, full: "Simple Storage Service", vi: "object storage của AWS"}
+      - {abbr: AWS, full: "Amazon Web Services", vi: "nhà cung cấp cloud"}
+      - {abbr: CRDT, full: "conflict-free replicated data type", vi: "kiểu dữ liệu gộp được không xung đột"}
+      - {abbr: 2PC, full: "two-phase commit", vi: "giao dịch phân tán hai pha"}
+      - {abbr: SDK, full: "software development kit", vi: "thư viện phía client"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "CPU is a processor core. GC is garbage collection, JSON the text format of each request, and an AZ an availability zone. S3 is the object storage of AWS, Amazon Web Services."
+        focus: 5
+      - emma: "A CRDT is a conflict-free replicated data type: a value that copies can update separately and merge. Two P C is two-phase commit, SDK the client library, and ID an identifier."
+        focus: 9
+
+  - kind: exercise
+    chapter: "The question"
+    label: "Question"
+    q: "One hundred million requests a minute. Same contract. New numbers, what breaks first, and what you change from the 10-million design."
+    items:
+      - {t: "The 10M design: one record per request, Kafka keyed by batch_id, dedup 15 minutes, GREATEST, packed raw"}
+    lines:
+      - tom: "A hundred million a minute. New numbers, what breaks first, and what you change from the ten-million design."
+      - wait: 8
+        note: "Hint: price one microsecond of CPU per request."
+
+  - kind: stats
+    chapter: "New numbers"
+    heading: "× 10,000 · the new numbers"
+    sub: "Peak about × 3: 5 million requests/s, 100 million events/s, about 40 Gbit/s"
+    points: [h-numbers]
+    items:
+      - {v: "1.67 million/s", l: "requests", s: "100,000,000 ÷ 60"}
+      - {v: "33 million/s", l: "events", s: "2,880 billion a day", tone: warn}
+      - {v: "13 Gbit/s", l: "coming in", s: "1 KB of JSON per request", tone: warn}
+      - {v: "173 TB/day", l: "raw at 60 B per event", s: "about 18 TB if packed", tone: bad}
+    lines:
+      - emma: "One point six seven million requests per second. Thirty-three million events per second, two thousand eight hundred eighty billion a day."
+        focus: 1
+      - emma: "Thirteen gigabits per second of JSON coming in, forty at the peak. And raw at sixty bytes per event: a hundred seventy-three terabytes a day, or about eighteen if packed per request."
+        focus: 3
+
+  - kind: table
+    chapter: "CPU per request"
+    heading: "Price one microsecond: 1 µs per request = 1.7 cores"
+    sub: "Assumption: a collector without a database spends about 0.2 ms of CPU per request — to be measured"
+    columns: ["", "10k a minute", "10M a minute", "100M a minute"]
+    widths: [3.4, 1.9, 1.9, 2.0]
+    mono: [1, 2, 3]
+    accent: [3]
+    build: true
+    points: [h-cpu, h-trackp]
+    rows:
+      - ["1 µs more per request", "0.0002 core", "0.17 core", "1.7 cores"]
+      - ["Collector at 0.2 ms, 60% CPU", "1 pod", "≈ 28 pods", "≈ 280 pods"]
+      - ["P01: new ObjectMapper() per request, +14 µs", "invisible", "2.4 cores, 3 GB/s garbage", "24 cores, 30 GB/s garbage"]
+      - ["P04: exceptions for fake keys, 50% bad input", "invisible", "≈ 3 cores", "≈ 31 cores"]
+    lines:
+      - emma: "Price one microsecond. At ten thousand a minute, one extra microsecond per request costs two ten-thousandths of a core. At a hundred million, it costs one point seven cores."
+        focus: 0
+      - emma: "A collector that never touches a database might spend about point two milliseconds of CPU per request. That's an assumption to measure. At sixty percent CPU, it's about twenty-eight pods at ten million a minute, and two hundred eighty at a hundred million."
+        focus: 1
+      - emma: "Now Track P from phase one. P01, a new object mapper per request, measured at fourteen extra microseconds and twenty kilobytes of garbage. Invisible at ten thousand a minute. At a hundred million: twenty-four cores, and thirty gigabytes of garbage per second for the collector to clean up."
+        focus: 2
+      - emma: "P04, exceptions as control flow for fake keys: about a microsecond per check when half the input is bad. Thirty-one cores. Same line of code. The only difference is how many requests multiply it."
+        focus: 3
+
+  - kind: table
+    chapter: "Three bills"
+    heading: "Three bills you can compute on the whiteboard"
+    sub: "List prices at the time of writing; managed services price differently — order of magnitude, not a quote"
+    columns: ["Bill", "Unpacked raw", "Packed raw"]
+    widths: [3.6, 2.8, 2.8]
+    build: true
+    points: [h-bills]
+    rows:
+      - ["Copying raw across AZs: × 2 copies × $0.02 per GB", "≈ $6,900 a day", "≈ 10 times less, before compression"]
+      - ["30 days of raw in S3 at ~$0.021–0.023 per GB-month", "≈ 5,200 TB → ≈ $110k a month", "≈ 540 TB → ≈ $12k a month"]
+      - ["CPU per request", "1 µs = 1.7 cores", "Track P pays here"]
+    lines:
+      - emma: "Three bills. Self-run Kafka copies every byte to two other availability zones, and AWS charges about one cent per gigabyte each way. A hundred seventy-three terabytes a day times two copies is about six thousand nine hundred dollars a day, just for internal network."
+        say: "Three bills. Self-run Kafka copies every byte to two other availability zones, and AWS charges about one cent per gigabyte each way. A hundred seventy-three terabytes a day times two copies is about six thousand nine hundred dollars a day, just for internal network."
+        focus: 0
+      - emma: "Thirty days of unpacked raw is over five thousand terabytes: about a hundred ten thousand dollars a month in S3. Packed, about twelve thousand."
+        focus: 1
+      - emma: "And CPU, at one point seven cores per microsecond. These are list prices and they change, but the multiplication is what the interviewer wants to see. Packing and compressing before sending is mandatory, not an optimisation."
+        focus: 2
+
+  - kind: diagram
+    chapter: "Cells"
+    heading: "Regional cells, summed globally"
+    points: [h-cells]
+    nodes:
+      - {id: d, label: "Geo routing / anycast", sub: "nearest region · each client has a home cell", x: 580, y: 45, w: 470, h: 66}
+      - {id: eu, label: "Cell Europe", sub: "the whole 10M pipeline · raw stays here", x: 195, y: 185, w: 330, h: 84}
+      - {id: us, label: "Cell America", sub: "the whole 10M pipeline · raw stays here", x: 580, y: 185, w: 330, h: 84}
+      - {id: ap, label: "Cell Asia", sub: "the whole 10M pipeline · raw stays here", x: 965, y: 185, w: 330, h: 84}
+      - {id: g, label: "Global rollup = SUM over cells", sub: "final only when every cell passed its watermark", x: 580, y: 330, w: 520, h: 76, shape: db, tone: ok, at: 1}
+    edges:
+      - {a: d, b: eu}
+      - {a: d, b: us}
+      - {a: d, b: ap}
+      - {a: eu, b: g, label: "counts only", dashed: true, at: 1}
+      - {a: us, b: g, dashed: true, at: 1}
+      - {a: ap, b: g, dashed: true, at: 1}
+    lines:
+      - emma: "The design move is cells. Clients go to the nearest region, and each client has a home cell, like the user-to-cell routing at rung L4 of phase one. Each cell runs the complete ten-million pipeline, and raw data never leaves its region."
+        focus: 0
+      - emma: "Only aggregated counts travel, a few rows per tenant per minute. The global number is the sum over cells, and it's final only when every cell has passed its watermark."
+        focus: 1
+
+  - kind: table
+    chapter: "Five changes"
+    heading: "Five changes from the 10-million design (1/2)"
+    columns: ["Change", "Why (number)", "The trade-off"]
+    widths: [2.8, 3.4, 3.0]
+    build: true
+    points: [h-changes]
+    rows:
+      - ["Regional cells, summed globally", "one region down no longer means everyone down; counts merge by adding", "global “final” waits for the slowest cell"]
+      - ["Dedup by (client_id, seq)", "state grows with active clients, not with 1.5 billion batch_ids in 15 min", "clients keep a sequence; a restart starts a new epoch"]
+      - ["Binary, compressed wire; client-side batching when clients are few and chatty", "13 Gbit/s of JSON shrinks several times", "a new contract; per-event audit needs raw sent separately"]
+    lines:
+      - emma: "Five changes. One, the cells, summed globally. The cost: the global final number waits for the slowest cell."
+        focus: 0
+      - emma: "Two, deduplicate by client and sequence number instead of by batch. A hundred million a minute means one point five billion batch IDs in fifteen minutes. A sequence per client is the trick Kafka's idempotent producer uses: state grows with active clients, not with requests."
+        focus: 1
+      - emma: "Three, a binary, compressed wire format, and when clients are few and chatty, let them batch: send counts every ten seconds. That changes the contract with clients."
+        focus: 2
+
+  - kind: table
+    heading: "Five changes from the 10-million design (2/2)"
+    columns: ["Change", "Why (number)", "The trade-off"]
+    widths: [2.8, 3.4, 3.0]
+    build: true
+    points: [h-raw, h-sketch]
+    rows:
+      - ["Packed raw, compressed, kept in its region", "173 → about 18 TB a day, before compression", "old raw is cold and slow to query"]
+      - ["Sketches only for distinct and top-K", "HyperLogLog ≈ 12 KB, ≈ 0.81% error, mergeable", "approximate: never for billing"]
+    lines:
+      - emma: "Four, packed raw that stays in its region: from a hundred seventy-three terabytes a day to about eighteen, before compression. Older raw moves to cold storage, so a new question about it is slow to answer."
+        focus: 0
+      - emma: "Five, sketches, but only for distinct counts and top-K. HyperLogLog takes about twelve kilobytes for under one percent error, and it merges across buckets and cells. Totals stay exact, because four integers per bucket are cheap at any scale."
+        say: "Five, sketches, but only for distinct counts and top-K. HyperLogLog takes about twelve kilobytes for under one percent error, and it merges across buckets and cells. Totals stay exact, because four integers per bucket are cheap at any scale."
+        focus: 1
+
+  - kind: compare
+    chapter: "Counts versus money"
+    heading: "Why counters can be active everywhere, and money can't"
+    points: [h-counts-vs-money]
+    items:
+      - title: "Family A · counts"
+        tone: ok
+        lines:
+          - "No invariant across cells"
+          - "Each cell owns its own counter; the total is a sum: a CRDT G-counter"
+          - "Duplicates at a cell border → the reconcile catches them"
+      - title: "Family G · a wallet balance"
+        tone: warn
+        lines:
+          - "An invariant: the balance never goes below zero"
+          - "Two regions spending the same balance must agree first"
+          - "One writer per account, or consensus — not a sum"
+    lines:
+      - emma: "Why can counts be written in every region at once, when phase one said a ledger should be active-passive? Because counts have no invariant between cells. Each cell owns its counter, and the total is a sum. That's a CRDT, a grow-only counter, from phase two."
+        focus: 0
+      - emma: "A balance has an invariant: never below zero. Two regions spending the same money must agree first. That needs one writer per account, or consensus. Counting and money are different families for exactly this reason."
+        focus: 1
+
+  - kind: table
+    chapter: "Not at 100M"
+    heading: "What I still don't build at a hundred million"
+    columns: ["Not building", "Why"]
+    widths: [3.6, 5.6]
+    points: [h-not]
+    rows:
+      - ["Exactly-once across regions", "counts merge by adding; border duplicates go to the reconcile · cross-region 2PC is what phase 2 taught to avoid"]
+      - ["One global Kafka cluster", "every byte would cross regions, and one cluster down is everyone down"]
+      - ["Sketches or sampling for totals", "totals are 4 integers per bucket: exact is cheap"]
+      - ["A row per event in any database", "2,880 billion rows a day"]
+    lines:
+      - emma: "And the not-yet sentence, even here. No exactly-once across regions: it would be two-phase commit across the planet, which phase two taught us to avoid. No single global Kafka. No sketches for totals. And no row per event in any database."
+        focus: 3
+
+  - kind: speech
+    chapter: "The 2-minute answer"
+    heading: "“And a hundred million?” — two minutes"
+    points: [h-answer]
+    items:
+      - {t: "“1.67 million requests and 33 million events per second; 13 Gbit/s coming in, three times that at the peak.”"}
+      - {t: "“It's no longer about a database: each microsecond of CPU per request is 1.7 cores, raw copied across zones is a bill, and dedup by batch_id is 1.5 billion keys.”"}
+      - {t: "“So: regional cells running the 10-million pipeline, only counts summed globally; dedup by client and sequence; a binary, compressed wire; packed raw kept in its region.”"}
+      - {t: "“Sketches only for distinct and top-K; totals stay exact.”"}
+      - {t: "“Not doing: exactly-once across regions, or one global Kafka. Every answer says whether it is final.”"}
+    lines:
+      - tom: "Your two-minute answer."
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+      - read: emma
+        focus: 3
+      - read: emma
+        focus: 4
+
+  - kind: table
+    chapter: "Built on"
+    heading: "Built on: phase 1 and phase 2"
+    columns: ["In this video", "Where you learned it"]
+    widths: [4.2, 5.0]
+    points: [h-built-on]
+    rows:
+      - ["CPU per request × requests per second", "Phase 1 · Ep04, Ep05 · Track P, measure before you fix"]
+      - ["Cells, user → cell routing", "Phase 1 · file 02 · rung L4 (video Ep25, planned)"]
+      - ["Multi-leader writes, CRDT counters", "Phase 2 · Ep01 · replication"]
+      - ["No two-phase commit across services or regions", "Phase 2 · Ep07 · sagas instead"]
+      - ["Producer id + sequence numbers", "Phase 2 · Ep12–Ep13 · Kafka durability and delivery"]
+    lines:
+      - emma: "Built on: Track P of phase one, episodes four and five, is where every microsecond became cores. Cells are rung L4 of the ladder."
+        focus: 1
+      - emma: "From phase two: CRDT counters in episode one, no two-phase commit in episode seven, and Kafka's producer sequence numbers in episodes twelve and thirteen."
+        focus: 4
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: dot
+    items:
+      - {t: "1.67 million requests/s · 33 million events/s · 13 Gbit/s"}
+      - {t: "1 µs per request = 1.7 cores; bytes across zones and raw storage are bills"}
+      - {t: "Cells summed globally · (client_id, seq) · packed raw in region · sketches only for distinct and top-K"}
+      - {t: "Next, K06: family C at scale"}
+    lines:
+      - tom: "You keep saying the clients behave. They don't."
+      - emma: "Then K06: collecting from sources you don't control. Family C at scale."
+        focus: 3

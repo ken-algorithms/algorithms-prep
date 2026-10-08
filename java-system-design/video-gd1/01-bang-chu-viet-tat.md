@@ -51,7 +51,7 @@
 | **DR** | Disaster Recovery | Khôi phục sau thảm hoạ, thường là một region dự phòng | ✓ | Ep25 |
 | **RPO** | Recovery Point Objective | Tối đa được mất bao nhiêu dữ liệu (tính bằng thời gian) khi có sự cố | ✓ | Ep25 |
 | **RTO** | Recovery Time Objective | Tối đa bao lâu thì hệ thống phải chạy lại | ✓ | Ep25 |
-| **MVP** | Minimum Viable Product | Bản sản phẩm nhỏ nhất dùng được; bậc L0 của thang | ✓ | Ep06 |
+| **MVP** | Minimum Viable Product | Bản sản phẩm nhỏ nhất dùng được; bậc L0 của thang | ✓ | Ep00 |
 | L = λ × W | Little's Law | Số thứ đang trong hệ thống = throughput × thời gian mỗi thứ ở lại | ✓ (*L equals lambda times W*) | Ep01 |
 
 ## 2. Java, JVM, Spring, code — ôn ở Ep27
