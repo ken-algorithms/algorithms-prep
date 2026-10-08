@@ -17,6 +17,21 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import markdown
+import markdown.extensions.toc as md_toc
+
+
+def gh_unique(id: str, ids: set) -> str:
+    """Heading trùng tên: GitHub thêm -1, -2… (python-markdown mặc định thêm _1). Làm giống GitHub để anchor
+    viết trong file .md (ví dụ #đọc-1 của tuần 7) mở được cả trên GitHub lẫn ở bản dựng này."""
+    base, n = id, 0
+    while id in ids or not id:
+        n += 1
+        id = f"{base}-{n}"
+    ids.add(id)
+    return id
+
+
+md_toc.unique = gh_unique  # toc gọi unique() qua biến toàn cục của module, nên thay ở đây là đủ
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "site"

@@ -51,10 +51,13 @@ jobs:
           cp -R site/. _deploy/docs/
           (cd leetcode-38-bai-video && find . -path '*/nhom-*/bai-*/*' \( -name 'bai-*-full.mp4' -o -name 'bai-*.gif' \) \
             -exec cp --parents {} ../_deploy/media/ \;)
-          # video bài giảng Java System Design (tab Video của app): web/build.py trỏ vào media/jsd/
-          mkdir -p _deploy/media/jsd
-          find java-system-design/video-gd1/lessons -maxdepth 1 \( -name 'ep*.mp4' -o -name 'ep*.jpg' \) \
-            -exec cp {} _deploy/media/jsd/ \;
+          # video bài giảng Java System Design (tab Video của app): mỗi bộ java-system-design/<bộ>/lessons
+          # sang media/jsd/<bộ>/, đúng chỗ web/build.py trỏ tới
+          for d in java-system-design/video-gd*/lessons; do
+            s=$(basename "$(dirname "$d")")
+            mkdir -p "_deploy/media/jsd/$s"
+            find "$d" -maxdepth 1 \( -name 'ep*.mp4' -o -name 'ep*.jpg' \) -exec cp {} "_deploy/media/jsd/$s/" \;
+          done
           echo "— media —"
           find _deploy/media -type f | sort
           touch _deploy/.nojekyll
@@ -72,10 +75,10 @@ jobs:
           # mọi video trong lessons.json phải có file đi kèm, nếu không tab Video hiện ô lỗi
           python3 - <<'PY'
           import json, pathlib, sys
-          m = pathlib.Path("java-system-design/video-gd1/lessons/lessons.json")
-          if not m.exists():
-              sys.exit(0)
-          need = [f for x in json.loads(m.read_text())["lessons"] for f in (x["file"], x.get("poster")) if f]
+          need = []
+          for m in sorted(pathlib.Path("java-system-design").glob("video-gd*/lessons/lessons.json")):
+              s = m.parent.parent.name
+              need += [f"{s}/{f}" for x in json.loads(m.read_text())["lessons"] for f in (x["file"], x.get("poster")) if f]
           miss = [f for f in need if not pathlib.Path("_deploy/media/jsd", f).exists()]
           print(f"video bài giảng: {len(need) - len(miss)}/{len(need)} file có trong _deploy/media/jsd")
           sys.exit(f"thiếu: {miss}" if miss else 0)
