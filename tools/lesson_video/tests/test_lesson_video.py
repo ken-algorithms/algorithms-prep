@@ -89,6 +89,8 @@ scenes:
     ("R + W > N, max.poll.records", "R plus W greater than N, max poll records"),
     ("ISR, eKYC, etcd", "I S R, e K Y C, et-see-dee"),
     ("lab 5B and lab 10B, 1B clicks", "lab 5-B and lab 10-B, 1 billion clicks"),
+    ("DDIA, chapter 11", "D D I eigh, chapter 11"),
+    ("Client A locks it. A poll returns; then A's write and topic A.", "Client eigh locks it. A poll returns; then A's write and topic eigh."),
 ])
 def test_speakable(text, spoken):
     assert speakable(text) == spoken
@@ -148,3 +150,18 @@ def test_acronym_starting_with_digit_is_checked():
     problems = coverage.acronym_report(lesson, {"RPS", "2PC"})
     assert any("'2PC'" in m and "thẻ" in m for m in problems)
     assert not any("MB" in m for m in problems)
+
+
+def test_table_font_shrinks_instead_of_overflowing_a_column():
+    from PIL import Image, ImageDraw
+    from lesson_video.slides import font, wrap
+    name = "consumerCrashBeforeOffsetCommit_noDoubleEffect"
+    lesson = sc.Lesson.model_validate({"id": "x", "ep": 1, "title": "t", "scenes": [
+        {"kind": "table", "columns": ["Test", "Assert"], "widths": [4.6, 4.6],
+         "rows": [[name, "the message comes back and is skipped"]], "lines": [{"tom": "ok"}]}]})
+    slides = Slides(lesson)
+    d = ImageDraw.Draw(Image.new("RGB", (W, H)))
+    widths = [(W - 120) / 2] * 2
+    size, _, _ = slides._table_layout(d, lesson.scenes[0], widths, 400, True)
+    f = font("bold", size)
+    assert all(d.textlength(ln, font=f) <= widths[0] - 22 for ln in wrap(d, name, f, widths[0] - 22))

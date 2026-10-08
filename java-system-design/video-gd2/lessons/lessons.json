@@ -813,6 +813,544 @@
      "section": "20 · Bài nói 2 phút tuần 7"
     }
    ]
+  },
+  {
+   "id": "ep08-outbox-ledger",
+   "ep": 8,
+   "week": 7,
+   "title": "Outbox, idempotency at three layers, and the double-entry ledger",
+   "subtitle": "Why “save, then send” breaks, how an outbox fixes it, and the two queries that prove the ledger is right",
+   "file": "ep08-outbox-ledger.mp4",
+   "poster": "ep08-outbox-ledger.jpg",
+   "source": "ep08-outbox-ledger.yaml",
+   "duration": 337.8,
+   "bytes": 4774789,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 19.3,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 44.0,
+     "title": "Dual write"
+    },
+    {
+     "t": 152.6,
+     "title": "Idempotency, three layers"
+    },
+    {
+     "t": 191.3,
+     "title": "Double-entry ledger"
+    },
+    {
+     "t": 250.9,
+     "title": "Exercise 7.6"
+    },
+    {
+     "t": 307.3,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+    "20-implement-gd2-du-lieu-phan-tan.md#75-idempotency-ở-ba-tầng",
+    "20-implement-gd2-du-lieu-phan-tan.md#76-sổ-cái-kép-double-entry",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7"
+   ],
+   "points": [
+    {
+     "id": "dual-write",
+     "t": 44.0,
+     "text": "Dual write: db.save(transfer); kafka.send(event) là hai hệ thống không commit cùng nhau, hỏng được ở giữa: DB commit mà event mất, hoặc event đi mà DB rollback",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+     "section": "20 §7.4 · Dual write và outbox"
+    },
+    {
+     "id": "outbox-pattern",
+     "t": 74.7,
+     "text": "Outbox: ghi event vào bảng outbox trong cùng transaction với dữ liệu nghiệp vụ (một lần commit), rồi một relay đọc bảng đó, gửi và đánh dấu đã gửi",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+     "section": "20 §7.4 · Dual write và outbox"
+    },
+    {
+     "id": "relay-vs-cdc",
+     "t": 95.7,
+     "text": "Polling relay (không thêm hạ tầng, trễ bằng chu kỳ poll 100–500 ms, query poll liên tục, giữ thứ tự chỉ khi một relay) so với CDC Debezium đọc WAL (Kafka Connect + Debezium, quyền replication slot, trễ vài chục ms, gần như không thêm tải, theo thứ tự commit)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+     "section": "20 §7.4 · Dual write và outbox"
+    },
+    {
+     "id": "at-least-once",
+     "t": 135.9,
+     "text": "Cả hai đều at-least-once: relay gửi xong rồi chết trước khi đánh dấu thì gửi lại; vì vậy consumer luôn phải idempotent",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+     "section": "20 §7.4 · Dual write và outbox"
+    },
+    {
+     "id": "idem-three",
+     "t": 152.6,
+     "text": "Idempotency ở ba tầng: API (Idempotency-Key, bài 2.4 giai đoạn 1); consumer (bảng processed_event(event_id primary key) insert trong cùng transaction với tác dụng phụ, lab 8); gọi ra ngoài (gửi khoá idempotency sang ngân hàng, PSP để khi timeout còn hỏi lại)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#75-idempotency-ở-ba-tầng",
+     "section": "20 §7.5 · Idempotency ở ba tầng"
+    },
+    {
+     "id": "double-entry",
+     "t": 191.3,
+     "text": "Sổ cái kép: mỗi giao dịch ít nhất hai bút toán, tổng bằng 0; bút toán chỉ thêm, không sửa, không xoá; sai thì ghi bút toán đảo; số dư là tổng bút toán (hoặc cột duy trì cùng transaction và đối soát với tổng)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#76-sổ-cái-kép-double-entry",
+     "section": "20 §7.6 · Sổ cái kép"
+    },
+    {
+     "id": "double-entry-example",
+     "t": 221.7,
+     "text": "Sửa sai không xoá gì: chuyển nhầm thì ghi bút toán đảo (cùng bút toán, đổi dấu) rồi ghi giao dịch đúng; số dư vẫn là tổng bút toán, mọi giao dịch tổng bằng 0",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#76-sổ-cái-kép-double-entry",
+     "section": "20 §7.6 · Sổ cái kép"
+    },
+    {
+     "id": "ex76",
+     "t": 274.7,
+     "text": "BT 7.6: query (a) group by transfer_id having sum(amount) <> 0 phải rỗng; (b) balance khác opening_balance + coalesce(sum(amount), 0) phải rỗng; chạy như job đối soát mỗi giờ, alert khi khác rỗng; lab 8 in đúng hai con số này",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7"
+    }
+   ]
+  },
+  {
+   "id": "ep09-lab7-saga",
+   "ep": 9,
+   "week": 7,
+   "title": "Lab 7: an interbank transfer saga that survives crashes",
+   "subtitle": "Five steps, a state table, a recovery job, a pivot that never compensates blindly, and six tests",
+   "file": "ep09-lab7-saga.mp4",
+   "poster": "ep09-lab7-saga.jpg",
+   "source": "ep09-lab7-saga.yaml",
+   "duration": 297.3,
+   "bytes": 4372304,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 22.6,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 45.7,
+     "title": "Five steps"
+    },
+    {
+     "t": 78.6,
+     "title": "The rules"
+    },
+    {
+     "t": 161.6,
+     "title": "Six tests"
+    },
+    {
+     "t": 207.4,
+     "title": "The core, already run"
+    },
+    {
+     "t": 247.1,
+     "title": "Track P and Track S"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+    "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-7--p09-nhìn-qua-ranh-giới-saga",
+    "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-7"
+   ],
+   "points": [
+    {
+     "id": "lab7-steps",
+     "t": 45.7,
+     "text": "Năm bước: (1) giữ tiền available −= x, held += x — compensatable, bù = nhả tiền; (2) kiểm tra gian lận/hạn mức — compensatable chỉ đọc; (3) gửi lệnh sang ngân hàng đối tác kèm idempotency key — pivot; (4) ghi sổ cái held −= x, hai bút toán — retriable; (5) gửi thông báo — retriable",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+     "section": "20 · Lab 7 — Saga chuyển tiền liên ngân hàng"
+    },
+    {
+     "id": "lab7-must",
+     "t": 78.6,
+     "text": "Bắt buộc: bảng saga_instance(id, type, state, current_step, payload jsonb, version, updated_at); mỗi bước một transaction, cập nhật current_step cùng transaction với tác dụng phụ; không gọi đối tác trong transaction (P09); recovery job mỗi 10 s chạy tiếp saga đứng quá 30 s từ current_step nên mỗi bước phải chạy lại an toàn; timeout ở bước 3 không bù mù, hỏi lại bằng idempotency key",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+     "section": "20 · Lab 7 — Saga chuyển tiền liên ngân hàng"
+    },
+    {
+     "id": "lab7-tests",
+     "t": 161.6,
+     "text": "Sáu test: happyPath (COMPLETED, 2 bút toán tổng 0, held = 0), fraudRejects_releasesHold, partnerRejects_compensatesInReverse (bù 2 rồi 1), partnerTimeout_queriesBeforeCompensating (đối tác đã nhận → đi tiếp, không bù), crashAfterStep3_recoveryResumes (không gửi bước 3 lần hai), duplicateCommand_singleSaga",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+     "section": "20 · Lab 7 — Saga chuyển tiền liên ngân hàng"
+    },
+    {
+     "id": "lab7-core",
+     "t": 207.4,
+     "text": "Khung Saga.java đã chạy (trong bộ nhớ): chạy từng bước, lỗi thì bù theo thứ tự ngược; output COMPLETED (ví 700, merchant 300) và COMPENSATED khi merchant bank timeout (UNDO fraud check, UNDO reserve → ví 1.000, merchant 0); phần lưu trạng thái, recovery, pivot timeout là việc của lab",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+     "section": "20 · Lab 7 — Saga chuyển tiền liên ngân hàng"
+    },
+    {
+     "id": "trackp-w7",
+     "t": 247.1,
+     "text": "P09 nhìn qua saga: mỗi bước một transaction ngắn, lời gọi ra ngoài nằm giữa hai transaction, trạng thái saga thay cho một transaction dài; bài tập: viết lại transfer() của P09 thành 3 bước saga, chỉ rõ transaction nào giữ khoá dòng nào, bao lâu",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-7--p09-nhìn-qua-ranh-giới-saga",
+     "section": "20 · Track P tuần 7 — P09 qua ranh giới saga"
+    },
+    {
+     "id": "tracks-w7",
+     "t": 247.1,
+     "text": "Phác V7: luồng lệnh và sự kiện giữa orchestrator, ledger, fraud, cổng ngân hàng đối tác, notification; chỉ cần đúng các mũi tên và chỗ nào là pivot",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-7",
+     "section": "20 · Track S tuần 7"
+    }
+   ]
+  },
+  {
+   "id": "ep10-saga-drills",
+   "ep": 10,
+   "week": 7,
+   "title": "Saga drills: step order, isolation, and the pivot timeout",
+   "subtitle": "Exercises 7.1–7.4: a wallet top-up, a balance mid-saga, a timeout at the point of no return, and picking a style",
+   "file": "ep10-saga-drills.mp4",
+   "poster": "ep10-saga-drills.jpg",
+   "source": "ep10-saga-drills.yaml",
+   "duration": 289.6,
+   "bytes": 3886409,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 11.5,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 26.4,
+     "title": "7.1 Order the steps"
+    },
+    {
+     "t": 88.9,
+     "title": "7.2 Missing isolation"
+    },
+    {
+     "t": 142.6,
+     "title": "7.3 Pivot timeout"
+    },
+    {
+     "t": 203.2,
+     "title": "7.4 Pick a style"
+    },
+    {
+     "t": 264.8,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7"
+   ],
+   "points": [
+    {
+     "id": "ex71",
+     "t": 51.8,
+     "text": "BT 7.1 nạp ví bằng thẻ: thứ tự (a) tạo bản ghi PENDING → (e) kiểm tra hạn mức → (b) trừ thẻ qua PSP là pivot → (c) cộng ví retriable, idempotent theo id lần nạp → (d) email; đặt (e) sau (b) là sai: vượt hạn mức thì phải hoàn tiền thẻ, chậm, có phí, khách thấy hai dòng sao kê",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.1–7.4)"
+    },
+    {
+     "id": "ex72",
+     "t": 112.9,
+     "text": "BT 7.2: tách hai con số: số dư sổ cái 10 triệu (chưa có bút toán), số dư khả dụng 5 triệu (đã trừ phần giữ); app hiện cả hai; lệnh 8 triệu kiểm trên số dư khả dụng nên bị từ chối; đây là semantic lock",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.1–7.4)"
+    },
+    {
+     "id": "ex73",
+     "t": 165.8,
+     "text": "BT 7.3 pivot timeout: bù ngay là sai (đối tác có thể đã chuyển tiền → mất tiền); gửi lại chỉ an toàn với cùng idempotency key và đối tác khử trùng; đúng: chuyển saga sang UNKNOWN, hỏi trạng thái theo idempotency key có backoff, vẫn không rõ thì vào hàng đợi đối soát (file đối soát cuối ngày), báo khách 'đang xử lý'",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.1–7.4)"
+    },
+    {
+     "id": "ex74",
+     "t": 229.7,
+     "text": "BT 7.4: chuyển tiền liên ngân hàng → orchestration; cập nhật điểm thưởng, thông báo, read model sau giao dịch → choreography (publish transfer.completed); mở tài khoản → orchestration cho eKYC → tạo tài khoản core → cấp thẻ, rồi choreography cho email chào mừng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.1–7.4)"
+    }
+   ]
+  },
+  {
+   "id": "ep11-payment-wallet",
+   "ep": 11,
+   "week": 7,
+   "title": "Timed designs: a payment system and a digital wallet",
+   "subtitle": "Exercises 7.5 and 7.7 — the payment flow, its three deep dives, and when the book's wallet design is overkill",
+   "file": "ep11-payment-wallet.mp4",
+   "poster": "ep11-payment-wallet.jpg",
+   "source": "ep11-payment-wallet.yaml",
+   "duration": 281.8,
+   "bytes": 3807786,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 15.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 38.9,
+     "title": "7.5 Payment system"
+    },
+    {
+     "t": 180.9,
+     "title": "7.7 Digital wallet"
+    },
+    {
+     "t": 253.4,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7"
+   ],
+   "points": [
+    {
+     "id": "ex75-flow",
+     "t": 68.7,
+     "text": "BT 7.5 Payment system: client → Payment API (Idempotency-Key) → payment service tạo payment CREATED → payment executor → PSP (kèm idempotency key, trang thanh toán do PSP host, không chạm số thẻ) → webhook/poll → SUCCEEDED/FAILED → ledger (double-entry) → wallet → outbox → thông báo; đối soát file settlement của PSP mỗi ngày với sổ cái, lệch vào hàng đợi xử lý tay",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.5, 7.7)"
+    },
+    {
+     "id": "ex75-states",
+     "t": 111.0,
+     "text": "BT 7.5: một dòng payment với trạng thái rõ: CREATED (lưu kèm idempotency key trước khi gọi ra ngoài) → gửi PSP cùng key mỗi lần retry → SUCCEEDED/FAILED qua webhook hoặc poll → chỉ SUCCEEDED mới ghi sổ cái; timeout thì UNKNOWN, hỏi lại theo key, rồi file settlement quyết định",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.5, 7.7)"
+    },
+    {
+     "id": "ex75-deep",
+     "t": 145.1,
+     "text": "BT 7.5 ba điểm đào sâu: exactly-once = retry at-least-once + idempotency key ở cả hai đầu; kết quả không rõ (như 7.3); đối soát là thứ chứng minh hệ thống đúng, không phải tin code; không lưu số thẻ để khỏi gánh phạm vi PCI DSS",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.5, 7.7)"
+    },
+    {
+     "id": "ex77",
+     "t": 211.5,
+     "text": "BT 7.7 Digital wallet: Postgres + sổ cái append-only + outbox; 250 TPS × 6 ghi = 1.500 ghi/giây vừa một primary; event sourcing + Raft (sách: 1 triệu TPS) giải bài toán vượt trần một primary; ngưỡng chuyển: ghi chạm ~50–70% năng lực đo được, hoặc khi audit cần replay lịch sử",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.5, 7.7)"
+    }
+   ]
+  },
+  {
+   "id": "ep12-kafka-order-durability",
+   "ep": 12,
+   "week": 8,
+   "title": "Kafka: ordering, keys, and durable writes",
+   "subtitle": "Order lives in one partition, which key to choose, and the producer and topic settings for money",
+   "file": "ep12-kafka-order-durability.mp4",
+   "poster": "ep12-kafka-order-durability.jpg",
+   "source": "ep12-kafka-order-durability.yaml",
+   "duration": 296.0,
+   "bytes": 4053081,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 11.5,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 25.2,
+     "title": "Weeks 8–9"
+    },
+    {
+     "t": 89.8,
+     "title": "Ordering"
+    },
+    {
+     "t": 129.6,
+     "title": "Durable writes"
+    },
+    {
+     "t": 191.2,
+     "title": "Exercise 8.1"
+    },
+    {
+     "t": 233.9,
+     "title": "Exercise 8.2"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#tuần-89--kafka-sâu-lab-outbox--consumer-idempotent-p20",
+    "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-9",
+    "20-implement-gd2-du-lieu-phan-tan.md#đọc-2",
+    "20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-2",
+    "20-implement-gd2-du-lieu-phan-tan.md#81-thứ-tự-chỉ-tồn-tại-trong-một-partition",
+    "20-implement-gd2-du-lieu-phan-tan.md#82-độ-bền-ghi",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89"
+   ],
+   "points": [
+    {
+     "id": "w89-outputs",
+     "t": 25.2,
+     "text": "Cuối tuần 9: lab 8 Spring Boot + Kafka + Postgres, 7 test có test tái hiện gửi trùng do relay crash và chứng minh consumer chỉ áp dụng một lần; chạy D20 (P20) và sửa một consumer; V7; đề Ad click aggregation; design doc capstone v1; bài nói 2 phút về exactly-once",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-9",
+     "section": "20 · Tuần 8–9: đầu ra"
+    },
+    {
+     "id": "w89-reading",
+     "t": 60.3,
+     "text": "Đọc: Kafka: The Definitive Guide bản 2 (ch. 3–4 producer, consumer; ch. 6–8 internals, reliable delivery, exactly-once); Alex Xu Vol 2 ch. 4 message queue, ch. 6 ad click aggregation; DDIA ch. 11 stream processing; 01 P20 kèm chạy D20",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đọc-2",
+     "section": "20 · Tuần 8–9: đọc"
+    },
+    {
+     "id": "kafka-order",
+     "t": 89.8,
+     "text": "Cùng key → cùng partition → đúng thứ tự; chọn key = thực thể cần thứ tự (account_id cho sự kiện tài khoản); tăng số partition làm hash(key) mod partitions đổi, sự kiện mới sang partition khác trong khi cũ còn ở partition cũ → thứ tự vỡ; chọn số partition đủ lớn từ đầu theo số consumer tối đa",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#81-thứ-tự-chỉ-tồn-tại-trong-một-partition",
+     "section": "20 §8.1 · Thứ tự chỉ tồn tại trong một partition"
+    },
+    {
+     "id": "kafka-durability",
+     "t": 129.6,
+     "text": "acks=1 mất khi leader ghi xong rồi chết trước khi follower chép; acks=all + replication.factor=3 + min.insync.replicas=2 phải mất 2/3 broker cùng lúc — cấu hình chuẩn cho tiền; unclean.leader.election.enable=false (mặc định): thà ngừng ghi còn hơn mất",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#82-độ-bền-ghi",
+     "section": "20 §8.2 · Độ bền ghi"
+    },
+    {
+     "id": "idem-producer",
+     "t": 166.4,
+     "text": "Idempotent producer bật mặc định từ Kafka 3.0: broker khử trùng khi producer retry; chỉ chống trùng do retry của producer, không chống trùng do relay outbox chết rồi chạy lại",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#82-độ-bền-ghi",
+     "section": "20 §8.2 · Độ bền ghi"
+    },
+    {
+     "id": "ex81",
+     "t": 212.3,
+     "text": "BT 8.1: key = accountId vì thứ tự cần giữ trong một tài khoản (khoá phải đến trước giao dịch bị từ chối); eventId đều nhưng mất thứ tự; customerId giữ thứ tự rộng hơn cần và tạo partition nóng với khách doanh nghiệp nhiều tài khoản",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập tuần 8–9"
+    },
+    {
+     "id": "ex82",
+     "t": 251.9,
+     "text": "BT 8.2: topic replication.factor=3, min.insync.replicas=2; producer acks=all, idempotence bật, delivery.timeout.ms hữu hạn kèm xử lý lỗi; broker unclean.leader.election.enable=false; acks=all một mình là 'mọi replica trong ISR': ISR co còn leader thì bằng acks=1",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập tuần 8–9"
+    }
+   ]
+  },
+  {
+   "id": "ep13-kafka-delivery",
+   "ep": 13,
+   "week": 8,
+   "title": "Kafka: delivery guarantees, consumer groups, and dead letters",
+   "subtitle": "At-most-once, at-least-once, “exactly-once” with a database; rebalancing; poison messages and backpressure",
+   "file": "ep13-kafka-delivery.mp4",
+   "poster": "ep13-kafka-delivery.jpg",
+   "source": "ep13-kafka-delivery.yaml",
+   "duration": 219.9,
+   "bytes": 3196585,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 13.1,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 33.5,
+     "title": "Three delivery levels"
+    },
+    {
+     "t": 94.2,
+     "title": "Consumer groups"
+    },
+    {
+     "t": 144.6,
+     "title": "Retry, DLT, backpressure"
+    },
+    {
+     "t": 190.1,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#83-ba-mức-giao-nhận",
+    "20-implement-gd2-du-lieu-phan-tan.md#84-consumer-group-rebalance-maxpollintervalms",
+    "20-implement-gd2-du-lieu-phan-tan.md#85-retry-dlt-backpressure"
+   ],
+   "points": [
+    {
+     "id": "delivery-levels",
+     "t": 33.5,
+     "text": "At-most-once: commit offset trước khi xử lý, crash giữa chừng → mất message; at-least-once: commit sau khi xử lý, crash → xử lý lại; 'exactly-once' có DB: at-least-once + consumer idempotent (dedup cùng transaction với tác dụng phụ) → đúng một lần về hiệu quả",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#83-ba-mức-giao-nhận",
+     "section": "20 §8.3 · Ba mức giao nhận"
+    },
+    {
+     "id": "kafka-tx",
+     "t": 69.4,
+     "text": "Kafka transaction (isolation.level=read_committed) cho exactly-once trong Kafka (đọc topic A, ghi topic B, commit offset cùng transaction); có ghi Postgres thì vẫn cần idempotency ở DB",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#83-ba-mức-giao-nhận",
+     "section": "20 §8.3 · Ba mức giao nhận"
+    },
+    {
+     "id": "consumer-group",
+     "t": 94.2,
+     "text": "Consumer phải poll() lại trước max.poll.interval.ms (mặc định 300 s), nếu không broker coi là chết, chia partition cho consumer khác và commit của nó thất bại; lô max.poll.records (mặc định 500) xử lý càng lâu càng dễ vượt — chính là P20; Kafka 4.0 đưa KIP-848 lên GA (rebalance do broker điều phối, không dừng cả group) nhưng giới hạn giữa hai lần poll vẫn còn",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#84-consumer-group-rebalance-maxpollintervalms",
+     "section": "20 §8.4 · Consumer group, rebalance"
+    },
+    {
+     "id": "retry-dlt",
+     "t": 144.6,
+     "text": "Poison message: retry vài lần có backoff rồi sang dead-letter topic kèm header lỗi để partition không kẹt; lỗi tạm thời (downstream chết): đừng đẩy vào DLT ngay, pause() partition, chờ, resume() hoặc retry topic có độ trễ; backpressure: giới hạn bằng max.poll.records và executor có giới hạn (P13), không phải BlockingQueue vô hạn",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#85-retry-dlt-backpressure",
+     "section": "20 §8.5 · Retry, DLT, backpressure"
+    }
+   ]
   }
  ]
 }

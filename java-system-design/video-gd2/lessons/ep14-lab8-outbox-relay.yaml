@@ -1,0 +1,192 @@
+id: ep14-lab8-outbox-relay
+ep: 14
+week: 8
+tag: "EP14 · WEEKS 8–9"
+title: "Lab 8, part 1: the outbox and its relay on real Kafka"
+subtitle: "Six tables, one transaction for the money and the event, and a relay that claims rows with SKIP LOCKED"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · lab 8, steps 1–3 (schema, transfer + outbox, relay); dist-lab OutboxLab.java"}
+      - {t: "Week 8 · Saturday lab · project my-work/w8-9-kafka-lab"}
+    lines:
+      - emma: "Episode fourteen is lab eight, part one. You build the outbox from week seven on real Kafka: a transfer that writes its event in the same transaction, and a relay that publishes it."
+      - emma: "Part two, next episode, is the consumer, and the tests that prove nothing is lost and nothing is applied twice."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: JDBC, full: "Java Database Connectivity", vi: "API cấp thấp để Java nói chuyện với database"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã 128 bit sinh không cần nơi cấp trung tâm"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu dạng văn bản"}
+      - {abbr: AZ, full: "availability zone", vi: "một trung tâm dữ liệu độc lập trong một region"}
+      - {abbr: CDC, full: "change data capture", vi: "đọc log thay đổi của database để phát sự kiện"}
+    lines:
+      - emma: "JDBC is Java Database Connectivity, the low-level way Java talks to a database. DB is the database, a UUID a universally unique identifier, and ID an identifier."
+        focus: 3
+      - emma: "JSON is the text format of the payload. An AZ is an availability zone, one data center in a region. And CDC is change data capture, reading the database's log to publish events."
+        focus: 6
+
+  - kind: bullets
+    chapter: "The project"
+    heading: "Lab 8: the project, and the reference that already ran"
+    style: check
+    points: [lab8-setup]
+    items:
+      - {t: "Spring Boot: spring-boot-starter-web, spring-kafka, spring-boot-starter-jdbc, Postgres"}
+      - {t: "Reference: OutboxLab.java, plain Java, no Spring", s: "already run on real Postgres 16.4 and Kafka 4.1.2 — read it to compare, not to copy"}
+      - {t: "Tests: Testcontainers if you have Docker", s: "no Docker → run Kafka from the tarball, as in section 0"}
+    lines:
+      - emma: "The project is a small Spring Boot app: the web starter, spring-kafka, the JDBC starter, and Postgres."
+        focus: 0
+      - emma: "The reference, OutboxLab.java in dist-lab, is plain Java without Spring, and it has already run against real Postgres 16.4 and Kafka 4.1.2. Read it to compare your work, not to copy it."
+        say: "The reference, Outbox Lab dot java in dist-lab, is plain Java without Spring, and it has already run against real Postgres sixteen point four and Kafka four point one point two. Read it to compare your work, not to copy it."
+        focus: 1
+      - emma: "Tests use Testcontainers if you have Docker. Without Docker, run Kafka from the tarball, as set up in section zero."
+        focus: 2
+
+  - kind: code
+    chapter: "Step 1 · Schema"
+    heading: "Step 1 · The schema: six tables (not-null constraints trimmed)"
+    points: [lab8-schema]
+    code: |
+      create table account(id bigint primary key, balance bigint not null check (balance >= 0));
+      create table transfer(id uuid primary key, from_acc bigint, to_acc bigint, amount bigint);
+      create table ledger_entry(id bigserial primary key, transfer_id uuid, account_id bigint, amount bigint);
+      create table outbox(
+          id           bigserial primary key,
+          event_id     uuid not null unique,
+          topic text, msg_key text, payload text,
+          created_at   timestamptz not null default now(),
+          published_at timestamptz);                    -- null = not sent yet
+      create index outbox_pending on outbox(id) where published_at is null;
+      create table processed_event(event_id uuid primary key, processed_at timestamptz);
+      create table notification(id bigserial primary key, transfer_id uuid, account_id bigint, body text);
+    items:
+      - {lines: [1, 3], t: "The money: balances can never go negative; the ledger records both sides"}
+      - {lines: [4, 9], t: "The outbox: one row per event; published_at is null until the relay sends it"}
+      - {lines: [10, 10], t: "A partial index: only the rows not sent yet"}
+      - {lines: [11, 12], t: "The consumer's side: dedup by event_id, then the effect"}
+    lines:
+      - emma: "Step one, the schema: six tables. An account table whose balance can never go negative, a transfer table, and ledger entries for both sides of each transfer."
+        focus: 0
+      - emma: "The outbox has one row per event, with a unique event ID, the topic, the message key and the payload. Published at stays null until the relay has sent it."
+        focus: 1
+      - emma: "A partial index covers only the rows not yet sent, so the relay's query stays fast however big the table grows."
+        focus: 2
+      - emma: "And two tables for the consumer in part two: processed event, keyed by event ID, for deduplication, and the notification it creates."
+        focus: 3
+
+  - kind: code
+    chapter: "Step 2 · One transaction"
+    heading: "Step 2 · The transfer and its event commit together"
+    points: [lab8-tx]
+    code: |
+      @Transactional
+      public boolean transfer(long from, long to, long amount) {
+          int debited = jdbc.update("update account set balance = balance - ?"
+                  + " where id = ? and balance >= ?", amount, from, amount);
+          if (debited == 0) return false;                   // not enough money: reject
+          jdbc.update("update account set balance = balance + ? where id = ?", amount, to);
+          UUID tid = UUID.randomUUID();
+          jdbc.update("insert into transfer values (?, ?, ?, ?)", tid, from, to, amount);
+          insertLedger(tid, from, -amount, to, amount);      // two entries, sum = 0
+          jdbc.update("insert into outbox(event_id, topic, msg_key, payload) values (?, ?, ?, ?)",
+                  UUID.randomUUID(), "transfer.completed", "acct-" + from, json(tid, from, to, amount));
+          return true;
+      }   // one commit: money, ledger and event, or none of them
+    items:
+      - {lines: [3, 5], t: "A conditional debit: 0 rows updated → not enough money, reject"}
+      - {lines: [6, 9], t: "Credit, the transfer row, two ledger entries"}
+      - {lines: [10, 11], t: "One outbox row, key = acct-{from}"}
+    lines:
+      - emma: "Step two: transfer, in one transaction. The debit is conditional: subtract the amount only where the balance is at least that amount. If no row was updated, there isn't enough money, and the transfer is rejected."
+        focus: 0
+      - emma: "Then credit the receiver, insert the transfer, and two ledger entries that sum to zero."
+        focus: 1
+      - emma: "And in the same transaction, one outbox row. Its key is acct, dash, the sender's account, so all events for one account land in one partition, in order."
+        focus: 2
+      - emma: "One commit: the money, the ledger and the event are saved together, or not at all. That's the gap from the dual write, closed."
+
+  - kind: code
+    chapter: "Step 3 · The relay"
+    heading: "Step 3 · The relay: claim → send → mark, in one short transaction"
+    sub: "@Scheduled(fixedDelay = 200) — the core of the version that already ran"
+    points: [lab8-relay]
+    code: |
+      select id, event_id, topic, msg_key, payload from outbox
+       where published_at is null order by id limit 100
+       for update skip locked;              -- another relay skips these rows, it doesn't wait
+
+      for each row:
+          producer.send(record).get();      // header "event-id"; wait for the broker's ack
+
+      update outbox set published_at = now() where id = any(?);
+      commit;
+    items:
+      - {lines: [1, 3], t: "Claim up to 100 pending rows; locked rows are skipped, not waited for"}
+      - {lines: [5, 6], t: "Send each one and wait for the ack; the event ID travels in a header"}
+      - {lines: [8, 9], t: "Mark them sent only after the broker has acked"}
+    lines:
+      - emma: "Step three, the relay, runs every two hundred milliseconds. In one short transaction, it claims up to a hundred pending rows, in order, with for update skip locked. A second relay doesn't wait for those rows. It skips them and takes the next ones."
+        focus: 0
+      - emma: "It sends each row to Kafka and waits for the broker's acknowledgement. The event ID travels in a header, so the consumer can deduplicate."
+        focus: 1
+      - emma: "Only after the ack does it set published at, and commit. Mark before sending, and a crash loses events. Mark after, and a crash only sends them again."
+        focus: 2
+
+  - kind: diagram
+    heading: "Two relays never send the same row — but a crash still means duplicates"
+    nodes:
+      - {id: o, label: "outbox", sub: "rows where published_at is null", x: 130, y: 160, w: 230, h: 90, shape: db}
+      - {id: a, label: "Relay A", sub: "locks rows 1–100", x: 560, y: 70, w: 250, h: 80}
+      - {id: b, label: "Relay B", sub: "skips them, locks 101–200", x: 560, y: 250, w: 250, h: 80}
+      - {id: k, label: "Kafka", sub: "transfer.completed", x: 990, y: 160, w: 230, h: 80, shape: queue}
+      - {id: x, label: "Relay A crashes after sending, before marking", sub: "rollback → rows 1–100 are pending again → sent twice", x: 600, y: 352, w: 560, h: 60, tone: bad, at: 1}
+    edges:
+      - {a: o, b: a, label: "1–100"}
+      - {a: o, b: b, label: "101–200"}
+      - {a: a, b: k}
+      - {a: b, b: k}
+    lines:
+      - emma: "Two relays together never publish the same row twice. Relay A locks rows one to a hundred, and relay B skips them and takes a hundred and one to two hundred."
+        focus: 0
+      - emma: "But if relay A crashes after sending and before marking, its transaction rolls back. Rows one to a hundred are pending again, and they're sent a second time. So delivery is at-least-once, and part two measures exactly how many duplicates that makes."
+        focus: 1
+
+  - kind: compare
+    chapter: "P09, on purpose"
+    heading: "The relay holds a connection while it sends: P09, small and accepted"
+    points: [lab8-relay-conn]
+    items:
+      - {title: "Why it's acceptable here", tone: ok, lines: ["Kafka in the same AZ acks in a few ms", "Only 1–2 relay instances, with their own pool", "delivery.timeout.ms caps how long it can hold"]}
+      - {title: "When it isn't", tone: warn, lines: ["The hold time or the pool can't take it", "→ switch to CDC: read the WAL, hold nothing"]}
+    lines:
+      - emma: "Notice that the relay holds a database connection while it sends a batch of a hundred messages. That's P09, a call out inside a transaction, on a small scale."
+        focus: 0
+      - emma: "It's accepted here for three reasons. Kafka in the same availability zone acknowledges within a few milliseconds. There are only one or two relay instances, each with its own pool. And delivery timeout puts an upper bound on how long the connection can be held."
+        focus: 0
+      - emma: "If that's still not acceptable, switch to change data capture, which reads the write-ahead log and holds nothing."
+        focus: 1
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    items:
+      - {t: "“The transfer and its event commit in one transaction, through an outbox table.”"}
+      - {t: "“The relay claims rows with FOR UPDATE SKIP LOCKED and marks them only after Kafka acks, so nothing is lost.”"}
+      - {t: "“A crash between send and mark means duplicates, so every consumer is idempotent.”"}
+    lines:
+      - emma: "In an interview: the transfer and its event commit in one transaction, through an outbox table."
+        focus: 0
+      - emma: "The relay claims rows with for update skip locked, and marks them only after Kafka acknowledges, so nothing is lost."
+        focus: 1
+      - emma: "And a crash between sending and marking means duplicates, so every consumer is idempotent. Next episode: lab eight, part two, the idempotent consumer and the seven tests."
+        focus: 2

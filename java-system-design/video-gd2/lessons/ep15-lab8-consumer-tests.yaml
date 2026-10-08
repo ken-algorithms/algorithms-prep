@@ -1,0 +1,234 @@
+id: ep15-lab8-consumer-tests
+ep: 15
+week: 8
+tag: "EP15 · WEEKS 8–9"
+title: "Lab 8, part 2: the idempotent consumer, and seven tests that prove it"
+subtitle: "Dedup in the same transaction, retry and a dead-letter topic, the measured duplicates, and how two relays break the order"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-2
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · lab 8, steps 4–7 (consumer, retry and DLT, tests, breaking the order); exercise 8.3; the 2-minute talk for weeks 8–9"}
+      - {t: "Weeks 8–9 · Saturday lab, second half · OutboxLab.java output of 7 Oct 2026"}
+    lines:
+      - emma: "Episode fifteen is lab eight, part two. The relay from part one delivers every event at least once. Now the consumer has to apply each one exactly once, and seven tests have to prove it."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: DLT, full: "dead-letter topic", vi: "topic chứa message xử lý lỗi, kèm header lỗi"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu dạng văn bản"}
+    lines:
+      - emma: "DB is the database and ID an identifier. A DLT is a dead-letter topic, and JSON is the text format of the payload."
+        focus: 3
+
+  - kind: code
+    chapter: "Step 4 · Consumer"
+    heading: "Step 4 · Dedup and the effect, in one transaction"
+    points: [lab8-consumer]
+    code: |
+      @KafkaListener(topics = "transfer.completed")
+      @Transactional
+      public void on(ConsumerRecord<String, String> r) {
+          UUID eventId = UUID.fromString(header(r, "event-id"));
+          int inserted = jdbc.update(
+              "insert into processed_event(event_id) values (?) on conflict do nothing", eventId);
+          if (inserted == 0) return;                // seen before: a duplicate, skip it
+          jdbc.update("insert into notification(transfer_id, account_id, body) values (?, ?, ?)",
+                  transferId(r), accountId(r), "You just sent money");
+      }
+      // the DB commits first; Spring Kafka commits the offset after the listener returns
+    items:
+      - {lines: [4, 6], t: "Record the event ID; on conflict do nothing"}
+      - {lines: [7, 7], t: "0 rows inserted → already applied → skip"}
+      - {lines: [8, 9], t: "1 row inserted → apply the effect, same transaction"}
+      - {lines: [11, 11], t: "Offset commit after the DB commit"}
+    lines:
+      - emma: "Step four, the consumer. In one database transaction, insert the event ID into processed event, with on conflict do nothing."
+        focus: 0
+      - emma: "If no row was inserted, this event was applied before. It's a duplicate, so skip it."
+        focus: 1
+      - emma: "If one row was inserted, apply the effect, here a notification, in the same transaction. Either both are saved or neither is."
+        focus: 2
+      - emma: "And the offset is committed after the database commit. That's Spring Kafka's default: it commits after the listener returns. Crash in between, and the message comes back, finds its event ID, and is skipped."
+        focus: 3
+
+  - kind: code
+    chapter: "Step 5 · Retry and DLT"
+    heading: "Step 5 · Three tries, then the dead-letter topic"
+    points: [lab8-dlt]
+    code: |
+      @Bean
+      DefaultErrorHandler errorHandler(KafkaTemplate<String, String> template) {
+          var recoverer = new DeadLetterPublishingRecoverer(template);  // → <topic>.DLT + error headers
+          var handler = new DefaultErrorHandler(recoverer, new FixedBackOff(1000, 2));
+          handler.addNotRetryableExceptions(JsonProcessingException.class);  // broken JSON: DLT at once
+          return handler;
+      }
+    items:
+      - {lines: [3, 3], t: "Failed records go to <topic>.DLT, with headers that describe the error"}
+      - {lines: [4, 4], t: "1 second apart, 2 retries: 3 failures → DLT"}
+      - {lines: [5, 5], t: "Will never succeed → not retryable → straight to the DLT"}
+    lines:
+      - emma: "Step five, retries and the dead-letter topic. A dead-letter publishing recoverer sends failed records to the topic's DLT, by default the topic name plus dot DLT, with headers describing the error."
+        say: "Step five, retries and the dead-letter topic. A dead-letter publishing recoverer sends failed records to the topic's D L T, by default the topic name plus dot D L T, with headers describing the error."
+        focus: 0
+      - emma: "The default error handler retries with a fixed backoff: one second apart, two retries. After three failures, the record goes to the DLT."
+        focus: 1
+      - emma: "And separate the errors that will never succeed. Broken JSON is registered as not retryable, so it goes straight to the DLT instead of wasting three tries."
+        focus: 2
+
+  - kind: table
+    chapter: "Step 6 · Seven tests"
+    heading: "Step 6 · Four tests, with the numbers the reference measured"
+    columns: ["Test", "Assert", "Measured"]
+    widths: [4.4, 4.4, 2.4]
+    build: true
+    points: [lab8-tests]
+    rows:
+      - ["relayCrashAfterSend_\nproducesDuplicates", "the relay throws after sending, before marking → more messages in the topic than outbox rows", "1,000 rows → 1,100 messages"]
+      - ["idempotentConsumer_\nappliesEachEventOnce", "read the whole topic, duplicates included → notifications = transfers, skipped = duplicates", "applied 1,000, skipped 100"]
+      - ["twoRelaysWithSkipLocked_\ndoNotDoublePublish", "two relays in parallel on the rest → sent = rows left", "800 / 800"]
+      - ["ledgerInvariantsHold", "exercise 7.6's queries return nothing; the total balance is unchanged", "sum(ledger) = 0, total 100,000,000"]
+    lines:
+      - emma: "Step six, seven tests. The first makes the relay throw after sending and before marking. The topic then holds more messages than the outbox has rows. The reference measured a thousand rows and eleven hundred messages."
+        focus: 0
+      - emma: "The second reads the whole topic, duplicates included. Notifications must equal transfers, and skipped messages must equal duplicates: a thousand applied, a hundred skipped."
+        focus: 1
+      - emma: "The third runs two relays in parallel on the remaining rows. Eight hundred rows left, eight hundred sent: skip locked prevents double publishing."
+        focus: 2
+      - emma: "The fourth checks the ledger: the queries from exercise 7.6 return nothing, the ledger sums to zero, and the total balance is still a hundred million."
+        say: "The fourth checks the ledger: the queries from exercise seven point six return nothing, the ledger sums to zero, and the total balance is still a hundred million."
+        focus: 3
+
+  - kind: table
+    heading: "Step 6 · Three more tests, only in your Spring lab"
+    columns: ["Test", "Assert"]
+    widths: [4.6, 4.6]
+    build: true
+    points: [lab8-tests-2]
+    rows:
+      - ["poisonMessage_goesToDlt", "a broken payload ends up in the DLT with error headers; the message after it is still processed"]
+      - ["consumerCrashBeforeOffsetCommit_\nnoDoubleEffect", "throw after the DB commit, before the offset commit → the message comes back and is skipped"]
+      - ["eventsForOneAccountArriveInOrder", "with one relay, events for the same account_id reach the consumer in the order they were created"]
+    lines:
+      - emma: "Three more tests exist only in your Spring version. A poison message ends up in the DLT with its error headers, and the message after it is still processed. The partition isn't stuck."
+        focus: 0
+      - emma: "A consumer that crashes after the database commit but before the offset commit gets the message again, and skips it. No double effect."
+        focus: 1
+      - emma: "And with one relay, events for the same account reach the consumer in the order they were created."
+        focus: 2
+
+  - kind: code
+    heading: "What the reference printed (OutboxLab, run twice, same output)"
+    sub: "Vietnamese in the log: “sau khi gui, truoc khi danh dau” = after sending, before marking; “ban dau” = at the start"
+    points: [lab8-output]
+    code: |
+      >>> PostgreSQL 16.4 on x86_64-pc-linux-gnu
+      transfers committed: 1000
+      relay A: relay crash sau khi gui, truoc khi danh dau
+      relay A published+marked: 200
+      relay B+C published+marked: 800
+      messages in topic: 1100 (outbox rows: 1000)
+      consumer: applied=1000 duplicates skipped=100
+      sum(balance) = 100000000 (ban dau 100000000)
+      sum(ledger)  = 0
+      outbox pending = 0
+      notifications = 1000, distinct transfers notified = 1000
+    items:
+      - {lines: [3, 6], t: "One crash after a batch of 100 → 100 extra messages", lang: text}
+      - {lines: [7, 7], t: "The consumer applied 1,000 and skipped exactly the 100 duplicates"}
+      - {lines: [8, 11], t: "No money created or lost; nothing left pending; one notification per transfer"}
+    lines:
+      - emma: "Here's the real output. A thousand transfers. Relay A sends its third batch and crashes before marking it, so those hundred rows are sent again by relays B and C. Eleven hundred messages for a thousand rows."
+        focus: 0
+      - emma: "The consumer applied a thousand and skipped exactly the hundred duplicates."
+        focus: 1
+      - emma: "The total balance is unchanged, the ledger sums to zero, nothing is left pending, and there's exactly one notification per transfer. The reference doesn't test ordering or the DLT. Those two exist only in your Spring lab."
+        focus: 2
+
+  - kind: flow
+    chapter: "Step 7 · Break the order"
+    heading: "Step 7 · Two relays in parallel: no duplicates, but no order either"
+    points: [lab8-order]
+    items:
+      - {t: "Relay B", s: "claims rows 101–200"}
+      - {t: "Relay C", s: "claims rows 201–300"}
+      - {t: "C finishes first", s: "its batch reaches Kafka before B's"}
+      - {t: "acct-42 out of order", s: "event 250 arrives before event 150 → the order test can go red", tone: bad}
+    note: "SKIP LOCKED stops double sending. It does not keep the order."
+    lines:
+      - emma: "Step seven: break it on purpose. Run two relays in parallel and rerun the order test. Relay B claims rows one hundred one to two hundred, and relay C claims two hundred one to three hundred."
+        focus: 1
+      - emma: "C finishes first, so its batch reaches Kafka before B's. If account forty-two has an event in each batch, the later event arrives first, and the order test can go red."
+        focus: 3
+      - emma: "Skip locked stops double sending. It doesn't keep the order."
+
+  - kind: table
+    heading: "Three ways to keep the order — write them in your bug log"
+    columns: ["Fix", "How", "Cost"]
+    widths: [2.4, 4.4, 2.6]
+    build: true
+    points: [lab8-order-fix]
+    rows:
+      - ["One relay only", "a leader lock: a Postgres advisory lock, or ShedLock", "no parallel relays"]
+      - ["Split the outbox", "hash(key) mod K parts, one relay per part", "K relays to run"]
+      - ["Accept the disorder", "the consumer checks a version per account and handles events out of order", "logic in every consumer"]
+    lines:
+      - emma: "Write three fixes in your bug log. One: run only one relay, elected with a leader lock, a Postgres advisory lock or ShedLock."
+        focus: 0
+      - emma: "Two: split the outbox by the hash of the key mod K, with one relay per part. Order is kept per key, and you still get K relays."
+        focus: 1
+      - emma: "Three: let the consumer accept events out of order, using a version number per account."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 8.3"
+    n: "8.3"
+    q: "Count the duplicates. The relay sends a batch of 100 messages every 200 ms. A deploy kills it about 3 times a day, each time right after it sent a batch. How many duplicates a day? And if the consumer isn't idempotent, what does the customer get?"
+    items:
+      - {t: "Use the lab's number: one crash after one batch"}
+    lines:
+      - emma: "Exercise 8.3. The relay sends a batch of a hundred messages every two hundred milliseconds. Deploys kill it about three times a day, each time right after it sent a batch. How many duplicates a day? And if the consumer isn't idempotent, what does the customer get?"
+        say: "Exercise eight point three. The relay sends a batch of a hundred messages every two hundred milliseconds. Deploys kill it about three times a day, each time right after it sent a batch. How many duplicates a day? And if the consumer isn't idempotent, what does the customer get?"
+      - wait: 6
+
+  - kind: stats
+    heading: "Answer 8.3 — smaller batches shrink the number; only idempotency removes the harm"
+    points: [ex83]
+    items:
+      - {v: "≤ 300 a day", l: "100 × 3 crashes", s: "the lab measured exactly 100 for one crash", tone: warn}
+      - {v: "300 × 2", l: "“You just sent money” notifications", s: "if the consumer isn't idempotent", tone: bad}
+      - {v: "posted twice", l: "if that consumer is the ledger", s: "the money itself is wrong", tone: bad}
+    lines:
+      - emma: "At most a hundred times three: three hundred duplicate messages a day. The lab measured exactly a hundred for one crash."
+        focus: 0
+      - emma: "Without an idempotent consumer, three hundred customers get their notification twice. Worse, if the consumer is the ledger, those transfers are posted twice."
+        focus: 2
+      - emma: "Smaller batches only reduce the number of duplicates. Only idempotency removes the harm."
+
+  - kind: bullets
+    chapter: "2-minute talk"
+    heading: "2-minute talk: “How do you get exactly-once processing with Kafka and a database?”"
+    style: check
+    points: [talk-w89]
+    items:
+      - {t: "Kafka transactions only cover what stays inside Kafka"}
+      - {t: "With a DB: at-least-once + dedup by event_id in the same transaction as the effect; commit the offset after"}
+      - {t: "On the sending side: an outbox"}
+      - {t: "The lab's numbers: 1,100 messages, 1,000 applied"}
+      - {t: "The trade-off: one more DB write per message; the dedup table must be cleaned up over time"}
+    lines:
+      - emma: "The two-minute talk: how do you get exactly-once processing with Kafka and a database? Say that Kafka transactions only cover what stays inside Kafka."
+        focus: 0
+      - emma: "With a database, it's at-least-once delivery plus deduplication by event ID, in the same transaction as the side effect, and the offset committed after. On the sending side, an outbox."
+        focus: 2
+      - emma: "Quote the lab: eleven hundred messages, a thousand applied. And the trade-off: one more database write per message, and a dedup table you must clean up over time. Next episode: P20, the slow consumer and the rebalance storm."
+        focus: 4

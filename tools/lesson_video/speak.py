@@ -11,7 +11,7 @@ import re
 
 # chữ viết tắt / tên riêng Kokoro đọc sai → cách viết cho đúng (đã kiểm phiên âm)
 WORDS = {
-    "OIDC": "O I D C", "DDIA": "dee dee eye ay", "PACELC": "pass-elk", "ReDoS": "ree-doss", "DDoS": "dee-doss",
+    "OIDC": "O I D C", "SLO": "S L O", "DDIA": "D D I eigh", "PACELC": "pass-elk", "ReDoS": "ree-doss", "DDoS": "dee-doss",
     "SaaS": "sass", "RAM": "ram", "Alex Xu": "Alex Shoo", "regex": "reg-ex", "memtable": "mem table",
     "idempotency": "idem-potency", "Idempotency": "Idem-potency", "idempotent": "idem-potent",
     "I/O": "I O", "HTTP/1.1": "HTTP one point one", "HTTP/2": "HTTP two", "HTTP/3": "HTTP three",
@@ -54,6 +54,9 @@ def speakable(text: str) -> str:
     t = re.sub(r"\b(Version|version|Profile|profile|Family|family|Part|part|Option|option|Plan|plan|Step|step|"
                r"Exercise|exercise|Lab|lab|Group|group|level|Level) A\b", r"\1 eigh", t)
     t = re.sub(r"\bAZ-a\b", "AZ eigh", t)
+    # "A" viết hoa giữa câu là tên (Client A, relay A, then A pauses, fix A), mạo từ giữa câu luôn viết
+    # thường; đầu câu thì để nguyên vì "A poll returns…" là mạo từ. "A's" Kokoro đã đọc đúng.
+    t = re.sub(r"(?<=[^\s.!?“\"(])(\s+)A\b(?![’'/])", r"\1eigh", t)
     # mã của lộ trình: P01–P07 → P one to P seven; D09 → D nine; Ep03 → episode three
     t = re.sub(r"\b([PD])0(\d)\b", r"\1 \2", t)
     t = re.sub(r"\bEp0?(\d+)\b", r"episode \1", t)

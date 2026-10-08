@@ -1,0 +1,117 @@
+id: ep18-v7-payments-kafka-saga
+ep: 18
+week: 9
+tag: "EP18 · WEEKS 8–9"
+title: "V7: an interbank transfer with Kafka and a saga"
+subtitle: "The drawing for Sunday of week 9 — who sends which command, where the pivot is, and five points you must say"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-89--v7-paymentwallet-có-kafka--saga-chủ-nhật-tuần-9-40-phút
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · Track S weeks 8–9: V7, payment and wallet with Kafka and a saga (the reference drawing and the five points)"}
+      - {t: "Week 9 · Sunday drawing, 40 minutes · finishes the sketch from week 7"}
+    lines:
+      - emma: "Episode eighteen is V7, the drawing for Sunday of week nine. Forty minutes. You sketched its arrows in week seven. Now everything from weeks seven to nine goes into one picture: the saga, the outbox, Kafka, idempotency and reconciliation."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "Just two today. API is an application programming interface, and ID an identifier: a transfer ID, an account ID."
+        focus: 1
+
+  - kind: diagram
+    chapter: "The drawing"
+    heading: "V7 · An interbank transfer: a saga over Kafka"
+    sub: "Commands and replies go through Kafka; the orchestrator keeps the saga state"
+    points: [v7-diagram]
+    nodes:
+      - {id: app, label: "Mobile app", x: 90, y: 40, w: 140, h: 56, shape: user}
+      - {id: api, label: "Transfer API", sub: "Idempotency-Key", x: 320, y: 40, w: 200, h: 66}
+      - {id: orc, label: "Transfer orchestrator", sub: "saga_instance + outbox", x: 320, y: 185, w: 240, h: 76}
+      - {id: k, label: "Kafka", sub: "transfer.commands · transfer.events (replies)", x: 680, y: 185, w: 270, h: 80, shape: queue}
+      - {id: frd, label: "Fraud / limit", x: 1010, y: 40, w: 220, h: 56, at: 1}
+      - {id: gw, label: "Interbank gateway", sub: "the pivot · idempotency key · may reply unknown", x: 1010, y: 140, w: 250, h: 76, tone: warn, at: 1}
+      - {id: led, label: "Ledger service", sub: "append-only ledger", x: 680, y: 340, w: 220, h: 66, at: 1}
+      - {id: pb, label: "Partner bank", x: 1010, y: 245, w: 200, h: 56, at: 2}
+      - {id: noti, label: "Notification", sub: "idempotent consumer", x: 320, y: 340, w: 230, h: 66, at: 2}
+      - {id: rec, label: "Reconciliation job", sub: "partner file vs ledger", x: 1010, y: 345, w: 240, h: 66, tone: ok, at: 3}
+    edges:
+      - {a: app, b: api}
+      - {a: api, b: orc}
+      - {a: orc, b: k, label: "commands", dashed: true}
+      - {a: k, b: frd, dashed: true, at: 1}
+      - {a: k, b: gw, dashed: true, at: 1}
+      - {a: k, b: led, dashed: true, at: 1}
+      - {a: gw, b: pb, at: 2}
+      - {a: k, b: noti, label: "transfer.completed", dashed: true, at: 2}
+      - {a: rec, b: led, dashed: true, at: 3}
+      - {a: rec, b: pb, dashed: true, at: 3}
+    lines:
+      - emma: "The app calls the transfer API with an idempotency key. The transfer orchestrator stores the saga instance and writes its commands to an outbox, in one transaction. The relay puts them on Kafka: hold the money, check fraud and limits, post to the ledger."
+        focus: 0
+      - emma: "The ledger service, fraud and limits, and the interbank gateway each consume their commands and reply through Kafka. The gateway's reply can also be: unknown."
+        focus: 1
+      - emma: "The gateway talks to the partner bank, again with an idempotency key. When the transfer completes, a transfer completed event reaches the notification service, an idempotent consumer."
+        focus: 2
+      - emma: "And a reconciliation job compares the partner bank's file with your ledger, every day."
+        focus: 3
+
+  - kind: table
+    chapter: "Five points"
+    heading: "V7 · Five points you must say"
+    columns: ["Point", "Why"]
+    widths: [4.6, 3.6]
+    build: true
+    points: [v7-points]
+    rows:
+      - ["The orchestrator saves its state and the outbox in the same transaction", "sending a command and changing state must never come apart"]
+      - ["Topic key = transferId for commands, accountId for account events", "order exactly on the thing that needs order"]
+      - ["The gateway is the pivot; it answers “unknown” on a timeout", "never compensate blindly (exercise 7.3)"]
+      - ["Every consumer is idempotent", "the outbox and Kafka are both at-least-once"]
+      - ["A reconciliation job", "the final proof that the money is right"]
+    lines:
+      - emma: "Five points to say out loud. One: the orchestrator saves its state and its outbox in the same transaction, because sending a command and changing state must never come apart."
+        focus: 0
+      - emma: "Two: the topic keys. Commands are keyed by transfer ID, account events by account ID, so order is kept exactly where it's needed."
+        focus: 1
+      - emma: "Three: the gateway is the pivot, and on a timeout it answers unknown. Never compensate blindly, as in exercise 7.3."
+        say: "Three: the gateway is the pivot, and on a timeout it answers unknown. Never compensate blindly, as in exercise seven point three."
+        focus: 2
+      - emma: "Four: every consumer is idempotent, because the outbox and Kafka both deliver at least once."
+        focus: 3
+      - emma: "And five: a reconciliation job, the final proof that the money is right."
+        focus: 4
+
+  - kind: compare
+    chapter: "Check yourself"
+    heading: "After 40 minutes, check your drawing"
+    items:
+      - {title: "It should have", tone: ok, lines: ["one place that knows the saga's state", "an outbox wherever a service sends a message", "the pivot marked, with its unknown state", "a dedup step in every consumer", "the reconciliation job"]}
+      - {title: "Common gaps", tone: warn, lines: ["a direct call to the partner from the API", "a “send to Kafka” inside the business transaction", "no key on the topics", "no way to find out the money is wrong"]}
+    lines:
+      - emma: "When your forty minutes are up, check the drawing. It should have one place that knows the saga's state, an outbox wherever a service sends a message, the pivot marked with its unknown state, deduplication in every consumer, and the reconciliation job."
+        focus: 0
+      - emma: "The common gaps: calling the partner directly from the API, sending to Kafka inside the business transaction, topics without a key, and no way to find out that the money is wrong."
+        focus: 1
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    items:
+      - {t: "“An orchestrator keeps the saga state and sends commands through an outbox, so a command is never lost or sent without its state.”"}
+      - {t: "“The interbank gateway is the pivot; a timeout is unknown, resolved by asking with the idempotency key, then by reconciliation.”"}
+      - {t: "“Every consumer dedups, and a daily reconciliation proves the money is right.”"}
+    lines:
+      - emma: "In an interview: an orchestrator keeps the saga state and sends commands through an outbox, so a command is never lost, or sent without its state."
+        focus: 0
+      - emma: "The interbank gateway is the pivot. A timeout means unknown, resolved by asking with the idempotency key, then by reconciliation."
+        focus: 1
+      - emma: "And every consumer deduplicates, while a daily reconciliation proves the money is right. Next episode: week ten, clocks and Raft."
+        focus: 2

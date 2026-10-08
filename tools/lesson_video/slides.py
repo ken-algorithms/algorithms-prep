@@ -350,12 +350,17 @@ class Slides:
             fonts = {k: font(k, size) for k in ("regular", "bold")}
             mono = font("mono", size - 1)
             lines = []
+            too_wide = False  # một từ dài (tên test, tên hàm) không xuống dòng được: thu nhỏ chữ thay vì tràn cột
             for r in sc.rows:
                 n = 1
                 for ci, cell in enumerate(r):
                     f = mono if ci in sc.mono else (fonts["bold"] if ci in sc.accent or ci == 0 else fonts["regular"])
-                    n = max(n, len(wrap(d, str(cell), f, widths[ci] - 22)))
+                    wrapped = wrap(d, str(cell), f, widths[ci] - 22)
+                    n = max(n, len(wrapped))
+                    too_wide = too_wide or any(d.textlength(ln, font=f) > widths[ci] - 22 for ln in wrapped)
                 lines.append(n)
+            if too_wide and size > 13:
+                continue
             hb = font("bold", size - 1)
             hl = max([len(wrap(d, str(c), hb, widths[ci] - 22)) for ci, c in enumerate(sc.columns)] or [1])
             head = (hl * (size - 1) * 1.18 + 16) if has_header else 0

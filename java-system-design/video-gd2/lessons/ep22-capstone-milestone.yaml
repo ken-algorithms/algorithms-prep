@@ -1,0 +1,216 @@
+id: ep22-capstone-milestone
+ep: 22
+week: 10
+tag: "EP22 · WEEK 10"
+title: "Capstone kickoff and the week-10 milestone"
+subtitle: "Pick A or B, write the design doc and the first ADR, build the MVP skeleton — then check the ten criteria that end phase 2"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#capstone-khởi-động--tuần-910
+  - 20-implement-gd2-du-lieu-phan-tan.md#mẫu-design-doc-my-workcapstonedesign-docmd
+  - 20-implement-gd2-du-lieu-phan-tan.md#phạm-vi-mvp-gợi-ý
+  - 20-implement-gd2-du-lieu-phan-tan.md#mốc-tuần-10--tiêu-chí-qua-giai-đoạn
+  - 20-implement-gd2-du-lieu-phan-tan.md#ranh-giới-trung-thực
+  - 00-lo-trinh-6-thang.md#dự-án-thực-hành-capstone
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · capstone kickoff (design doc template, ADR, MVP scope), week-10 milestone, honest boundaries; 00 · the capstone"}
+      - {t: "Weeks 9–10 · design doc v1 in week 9, a running MVP skeleton in week 10"}
+    lines:
+      - emma: "Episode twenty-two, the last one of phase two. The capstone starts now and runs until week sixteen. It's the main story you'll tell in interviews. Phase two asks for just two things: the design doc, version one, in week nine, and a running MVP skeleton in week ten."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: MVP, full: "minimum viable product", vi: "bản sản phẩm nhỏ nhất dùng được"}
+      - {abbr: ADR, full: "architecture decision record", vi: "một trang ghi một quyết định kiến trúc"}
+      - {abbr: SLO, full: "service level objective", vi: "mục tiêu nội bộ cho một chỉ số"}
+      - {abbr: RPO / RTO, full: "recovery point / recovery time objective", vi: "mất tối đa bao nhiêu dữ liệu / bao lâu phải chạy lại"}
+      - {abbr: C4, full: "the C4 model: context, containers, components, code", vi: "cách vẽ kiến trúc theo bốn mức"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: TPS, full: "transactions per second", vi: "số giao dịch nghiệp vụ mỗi giây"}
+      - {abbr: 2PC, full: "two-phase commit", vi: "commit hai pha giữa nhiều hệ thống"}
+      - {abbr: NAB, full: "National Australia Bank", vi: "ngân hàng Úc, có trung tâm công nghệ ở Việt Nam"}
+      - {abbr: SaaS, full: "software as a service", vi: "phần mềm bán dưới dạng dịch vụ"}
+    lines:
+      - emma: "MVP is a minimum viable product, and an ADR an architecture decision record. An SLO is a service level objective. RPO and RTO are how much data you may lose, and how fast you must recover."
+        focus: 3
+      - emma: "C4 is a way to draw architecture at four levels. API is an application programming interface, TPS means transactions per second, and 2PC is two-phase commit."
+        say: "C four is a way to draw architecture at four levels. API is an application programming interface, TPS means transactions per second, and two P C is two-phase commit."
+        focus: 7
+      - emma: "NAB is National Australia Bank, and SaaS means software as a service."
+        focus: 9
+
+  - kind: table
+    chapter: "The capstone"
+    heading: "Choose one capstone, by the company you're aiming for"
+    columns: ["", "A. Mini Core Transfer (bank)", "B. Distributed Test Runner (SaaS)"]
+    widths: [1.6, 3.9, 3.9]
+    build: true
+    points: [capstone-ab]
+    rows:
+      - ["Fits", "NAB, digital banks, e-wallets", "Katalon, SaaS and developer-tool companies"]
+      - ["Must have", "double-entry ledger, idempotency key, saga + outbox, no double spend, end-of-day reconciliation, audit log", "queue + autoscaled workers, fair sharing between tenants, timeouts and retries for stuck jobs, realtime logs, webhooks with retry"]
+      - ["Prove it", "send one request 100 times → 1 transaction; kill a consumer mid-way → no money lost or duplicated; load test 500 TPS", "one tenant pushes 10,000 jobs without blocking the others; kill a worker mid-way → the job reruns correctly"]
+    lines:
+      - emma: "Choose one capstone by the company you're aiming for. A, Mini Core Transfer, fits banks and e-wallets. B, Distributed Test Runner, fits Katalon and other SaaS and developer-tool companies."
+        focus: 0
+      - emma: "Each has must-have design points. For A: a double-entry ledger, idempotency keys, a saga with an outbox, no double spending, end-of-day reconciliation and an audit log. For B: a queue with autoscaled workers, fair sharing between tenants, retries for stuck jobs, and realtime logs."
+        focus: 1
+      - emma: "And each must be proven by an experiment. For A: send one request a hundred times and get one transaction, kill a consumer half-way and lose nothing. For B: one tenant pushes ten thousand jobs without blocking the others."
+        focus: 2
+
+  - kind: code
+    chapter: "Design doc"
+    heading: "The design doc: my-work/capstone/design-doc.md, 11 sections"
+    points: [design-doc-11]
+    items:
+      - {lines: [1, 4], t: "Problem, scope, numbers first", lang: text}
+      - {lines: [5, 7], t: "Architecture, data, and the failure flows"}
+      - {lines: [8, 11], t: "Options, operations, risks, plan"}
+    code: |
+      Context and problem           (5 lines, no architecture)
+      Goals / Non-goals             (say clearly what you will NOT do)
+      Non-functional requirements   (SLO: p99, availability, RPO/RTO, consistency per flow)
+      Load at three tiers           (100k / 1M / 10M from 02 §1; the tier the MVP targets)
+      Architecture                  (C4 containers; mermaid in the repo)
+      Data model and API            (main schema and endpoints, idempotency)
+      Main and failure flows        (happy path + 3 failures: partner timeout, crash mid-saga, duplicate)
+      Options considered            (≥ 2 per big decision, and why each was rejected)
+      Operations                    (deploy, schema migration, rollback, metrics, alerts)
+      Risks, open questions
+      Plan                          (MVP weeks 10–14; load tests and breaking it in weeks 15–16)
+    lines:
+      - emma: "The design doc has eleven sections. Start with the problem in five lines and no architecture, then goals and, just as important, non-goals. Then non-functional requirements with numbers: p99, availability, RPO and RTO, and the consistency each flow needs. Then the load at three tiers, a hundred thousand, one million and ten million users, marking the one the MVP targets."
+        focus: 0
+      - emma: "Then the architecture as C4 containers, the data model and API with idempotency, and the flows: the happy path plus three failures, a partner timeout, a crash in the middle of a saga, and a duplicate message."
+        focus: 1
+      - emma: "Then options considered, at least two per big decision, with the reason each was rejected. Operations, risks, and the plan: MVP in weeks ten to fourteen, load tests and breaking it in weeks fifteen and sixteen."
+        focus: 2
+
+  - kind: bullets
+    heading: "Every big decision in section 8 becomes a one-page ADR"
+    style: check
+    points: [adr]
+    items:
+      - {t: "Context · Decision · Consequences · Rejected options"}
+      - {t: "One page, kept in the repo", s: "e.g. adr/0001-outbox-polling-instead-of-cdc.md"}
+      - {t: "Example 0001: an outbox polling relay instead of change data capture", s: "consequence: 100–500 ms of delay; rejected: Debezium, which needs Kafka Connect and a replication slot"}
+    lines:
+      - emma: "And every big decision in section eight becomes an ADR, one page with four parts: context, decision, consequences, and the options you rejected. Keep them in the repo."
+        focus: 1
+      - emma: "For example, the first one: an outbox polling relay instead of change data capture. The consequence is a hundred to five hundred milliseconds of delay. The rejected option is Debezium, which needs Kafka Connect and a replication slot."
+        focus: 2
+
+  - kind: table
+    chapter: "MVP scope"
+    heading: "Suggested MVP scope"
+    columns: ["", "A. Mini Core Transfer", "B. Distributed Test Runner"]
+    widths: [1.5, 4.0, 4.0]
+    build: true
+    points: [mvp-scope]
+    rows:
+      - ["Week 10 (skeleton)", "open account + internal transfer API with an idempotency key; double-entry ledger; outbox → Kafka; idempotent notification consumer (reuse lab 8)", "job API + job table; workers claim with SKIP LOCKED + a lease (reuse lab 10B); results in Postgres"]
+      - ["Weeks 11–14", "interbank saga (lab 7) with a simulated partner; reconciliation job; Keycloak (week 14)", "per-tenant queues + fair sharing; logs streamed live; pre-signed upload links to MinIO"]
+      - ["Weeks 15–16", "load test at 500 TPS; break it (kill a consumer, kill the relay, a slow partner); deploy to the cloud", "10,000 jobs from one tenant don't block others; kill workers mid-way; autoscale on queue length"]
+    lines:
+      - emma: "The MVP scope. In week ten, only a skeleton, and it reuses your labs. For A: the account and transfer API with idempotency keys, the double-entry ledger, the outbox to Kafka, and the idempotent notification consumer from lab eight. For B: the job API and job table, with workers that claim jobs using skip locked and a lease, from lab 10B."
+        say: "The MVP scope. In week ten, only a skeleton, and it reuses your labs. For A: the account and transfer API with idempotency keys, the double-entry ledger, the outbox to Kafka, and the idempotent notification consumer from lab eight. For B: the job API and job table, with workers that claim jobs using skip locked and a lease, from lab ten B."
+        focus: 0
+      - emma: "Weeks eleven to fourteen add the interbank saga and reconciliation for A, and fair per-tenant queues and live logs for B."
+        focus: 1
+      - emma: "And weeks fifteen and sixteen are for load tests and breaking it on purpose: five hundred transactions per second for A, ten thousand jobs from one tenant for B."
+        focus: 2
+
+  - kind: table
+    chapter: "The milestone"
+    heading: "Week-10 milestone (1/2)"
+    columns: ["#", "Criterion", "Required"]
+    widths: [0.5, 7.6, 1.3]
+    build: true
+    points: [milestone-1]
+    rows:
+      - ["1", "Answer without notes, ≤ 2 minutes each: sync/async replication and failover; quorums; why not 2PC; outbox + idempotent consumer; Kafka's three delivery levels; fencing tokens", "✓"]
+      - ["2", "Lab 8: 7 green tests, including the one that reproduces duplicates after a relay crash", "✓"]
+      - ["3", "Lab 7: a saga that recovers after a crash and handles the pivot timeout correctly", "✓"]
+      - ["4", "Labs 5A and 10A", "✓"]
+      - ["5", "Labs 5B and 10B", "optional"]
+    lines:
+      - emma: "Now the milestone that ends phase two: ten criteria. One: answer six topics without notes, two minutes each. Replication and failover, quorums, why not two-phase commit, outbox with an idempotent consumer, Kafka's delivery levels, and fencing tokens."
+        focus: 0
+      - emma: "Two: lab eight with seven green tests. Three: lab seven, recovering after a crash and handling the pivot timeout."
+        focus: 2
+      - emma: "Four: labs 5A and 10A. Labs 5B and 10B are optional."
+        say: "Four: labs five A and ten A. Labs five B and ten B are optional."
+        focus: 4
+
+  - kind: table
+    heading: "Week-10 milestone (2/2)"
+    columns: ["#", "Criterion", "Required"]
+    widths: [0.5, 7.6, 1.3]
+    build: true
+    points: [milestone-2]
+    rows:
+      - ["6", "D20 run, one consumer fixed, numbers before and after written down", "✓"]
+      - ["7", "V6 (with the “× 10” part and real numbers from lab 8), V7", "✓"]
+      - ["8", "6 timed designs (key-value store, cache, payment, wallet, ad click, hotel or scheduler), self-scored ≥ 7/10 with the phase-1 rubric", "✓"]
+      - ["9", "Capstone design doc v1 with all 11 sections; a running MVP skeleton", "✓"]
+      - ["10", "4 two-minute talks, recorded", "✓"]
+    lines:
+      - emma: "Six: D20, with one consumer fixed and the numbers before and after. Seven: the drawings V6, with the times-ten part and real lab numbers, and V7."
+        say: "Six: D twenty, with one consumer fixed and the numbers before and after. Seven: the drawings V six, with the times-ten part and real lab numbers, and V seven."
+        focus: 1
+      - emma: "Eight: six timed designs, each self-scored at least seven out of ten with the phase-one rubric. Nine: the design doc with all eleven sections, and a running skeleton. Ten: four recorded two-minute talks."
+        focus: 4
+
+  - kind: compare
+    heading: "Running late by more than 2 weeks?"
+    points: [late-rule]
+    items:
+      - {title: "Cut", tone: warn, lines: ["the optional labs (5B, 10B)", "one timed design"]}
+      - {title: "Never cut", tone: bad, lines: ["lab 8", "the design doc", "→ the capstone depends on both"]}
+    lines:
+      - emma: "Running more than two weeks late? Cut the optional labs and one timed design."
+        focus: 0
+      - emma: "But never cut lab eight or the design doc. The capstone depends on both."
+        focus: 1
+
+  - kind: table
+    chapter: "Honest boundaries"
+    heading: "Honest boundaries: what really ran, and what didn't"
+    columns: ["What", "Status"]
+    widths: [3.0, 6.4]
+    build: true
+    points: [honest]
+    rows:
+      - ["ConsistentHash, Fencing, Saga", "ran (Java 21); output in dist-lab/results"]
+      - ["OutboxLab", "ran twice on real PostgreSQL 16.4 and Apache Kafka 4.1.2 (single-node KRaft): identical results"]
+      - ["D20 (P20)", "ran twice on the same broker; max.poll.interval.ms lowered to 6 s"]
+      - ["Spring labs 7 and 8, 5B, 10A on Postgres, 10B", "not done in this workspace; lab 8 steps 5 (dead-letter topic) and 7 (order) are inferred, not tested"]
+      - ["Timed-design answers", "a reasonable framework, not the only answer; their numbers are assumptions"]
+    lines:
+      - emma: "Finally, honest boundaries. The consistent hashing ring, the fencing simulation and the saga core ran on Java 21. OutboxLab ran twice on real Postgres and real Kafka with identical results, and D20 ran twice."
+        focus: 2
+      - emma: "The Spring versions of labs seven and eight, lab 5B, the Postgres version of lab 10A, and lab 10B were not built here. Steps five and seven of lab eight are reasoned from how Spring Kafka and skip locked behave, not tested. Check those class names against the Spring Kafka version you use."
+        say: "The Spring versions of labs seven and eight, lab five B, the Postgres version of lab ten A, and lab ten B were not built here. Steps five and seven of lab eight are reasoned from how Spring Kafka and skip locked behave, not tested. Check those class names against the Spring Kafka version you use."
+        focus: 3
+      - emma: "And the timed-design answers are reasonable frameworks, not the only answers. Their numbers, like a billion clicks a day or ten percent overbooking, are assumptions."
+        focus: 4
+
+  - kind: bullets
+    chapter: "What's next"
+    heading: "Phase 2, done — what you can now say with numbers"
+    style: check
+    items:
+      - {t: "Replication, quorums and partitioning — with the ring and the quorum simulation"}
+      - {t: "Sagas, the outbox and idempotency — 1,100 messages, 1,000 applied"}
+      - {t: "Kafka in depth — and a consumer that never finished until you fixed it"}
+      - {t: "Clocks, Raft and fencing tokens — A's late write rejected"}
+      - {t: "Next: phase 3, weeks 11–16, and the capstone keeps growing"}
+    lines:
+      - emma: "That's phase two. You can now explain replication, quorums and partitioning, sagas with an outbox, Kafka in depth, and clocks, Raft and fencing tokens."
+        focus: 3
+      - emma: "And every one of them comes with a number you measured yourself. Next comes phase three, weeks eleven to sixteen, and the capstone keeps growing. Good luck."
+        focus: 4
