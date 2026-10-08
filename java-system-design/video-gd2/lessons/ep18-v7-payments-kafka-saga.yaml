@@ -1,6 +1,6 @@
 id: ep18-v7-payments-kafka-saga
 ep: 18
-week: 9
+week: 8
 tag: "EP18 · WEEKS 8–9"
 title: "V7: an interbank transfer with Kafka and a saga"
 subtitle: "The drawing for Sunday of week 9 — who sends which command, where the pivot is, and five points you must say"

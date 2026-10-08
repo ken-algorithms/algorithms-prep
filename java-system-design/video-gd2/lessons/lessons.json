@@ -1671,7 +1671,7 @@
   {
    "id": "ep17-stream-ad-click",
    "ep": 17,
-   "week": 9,
+   "week": 8,
    "title": "Stream processing, and the ad click aggregation design",
    "subtitle": "Windows, event time versus processing time, watermarks and late events — then exercise 8.4 in 45 minutes",
    "file": "ep17-stream-ad-click.mp4",
@@ -1768,7 +1768,7 @@
   {
    "id": "ep18-v7-payments-kafka-saga",
    "ep": 18,
-   "week": 9,
+   "week": 8,
    "title": "V7: an interbank transfer with Kafka and a saga",
    "subtitle": "The drawing for Sunday of week 9 — who sends which command, where the pivot is, and five points you must say",
    "file": "ep18-v7-payments-kafka-saga.mp4",
@@ -1823,6 +1823,234 @@
      "text": "5 điểm phải nói: orchestrator lưu trạng thái + outbox cùng transaction; key topic = transferId cho lệnh, accountId cho sự kiện tài khoản; gateway là pivot, timeout trả unknown, không bù mù (7.3); mọi consumer idempotent vì outbox và Kafka at-least-once; job đối soát là bằng chứng cuối cùng tiền đúng",
      "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-89--v7-paymentwallet-có-kafka--saga-chủ-nhật-tuần-9-40-phút",
      "section": "20 · Track S tuần 8–9: V7"
+    }
+   ]
+  },
+  {
+   "id": "ep19-clocks-raft",
+   "ep": 19,
+   "week": 10,
+   "title": "Clocks lie, and Raft in five lines",
+   "subtitle": "Week 10 opens: wall clock versus monotonic time, why last-write-wins can pick the older write, and how Raft agrees on one log",
+   "file": "ep19-clocks-raft.mp4",
+   "poster": "ep19-clocks-raft.jpg",
+   "source": "ep19-clocks-raft.yaml",
+   "duration": 337.0,
+   "bytes": 4693228,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 14.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 41.0,
+     "title": "Week 10"
+    },
+    {
+     "t": 109.6,
+     "title": "Clocks lie"
+    },
+    {
+     "t": 155.6,
+     "title": "Exercise 10.1"
+    },
+    {
+     "t": 215.1,
+     "title": "Raft"
+    },
+    {
+     "t": 272.5,
+     "title": "Exercise 10.2"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#tuần-10--đồng-thuận-khoá-phân-tán-đồng-hồ",
+    "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-1",
+    "20-implement-gd2-du-lieu-phan-tan.md#đọc-3",
+    "20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-3",
+    "20-implement-gd2-du-lieu-phan-tan.md#101-đồng-hồ-nói-dối",
+    "20-implement-gd2-du-lieu-phan-tan.md#102-raft-trong-năm-dòng",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10"
+   ],
+   "points": [
+    {
+     "id": "w10-outputs",
+     "t": 41.0,
+     "text": "Cuối tuần 10: lab 10A fencing token trên Postgres thật có test client 'sống lại' sau pause; lab 10B job scheduler SKIP LOCKED + lease (tùy chọn); hai đề bấm giờ Hotel reservation, Distributed job scheduler; cập nhật V6 bằng số đo lab 8; qua mốc tuần 10; bài nói 2 phút về khoá phân tán và fencing token",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-1",
+     "section": "20 · Tuần 10: đầu ra"
+    },
+    {
+     "id": "w10-reading",
+     "t": 76.4,
+     "text": "Đọc: DDIA ch. 8 The Trouble with Distributed Systems, ch. 9 Consistency and Consensus; Kleppmann How to do distributed locking (2016); bài báo Raft + raft.github.io; Alex Xu Vol 2 ch. 7 Hotel reservation",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đọc-3",
+     "section": "20 · Tuần 10: đọc"
+    },
+    {
+     "id": "clocks",
+     "t": 109.6,
+     "text": "System.currentTimeMillis() là wall clock, NTP chỉnh được kể cả lùi; đo khoảng thời gian dùng System.nanoTime() (monotonic)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#101-đồng-hồ-nói-dối",
+     "section": "20 §10.1 · Đồng hồ nói dối"
+    },
+    {
+     "id": "lww-skew",
+     "t": 130.6,
+     "text": "Hai máy lệch vài ms tới vài chục ms là bình thường; LWW theo timestamp có thể để lệnh ghi cũ hơn thắng; thứ tự đáng tin: một log (một partition Kafka, một sequence DB) hoặc đồng hồ logic (Lamport, version vector)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#101-đồng-hồ-nói-dối",
+     "section": "20 §10.1 · Đồng hồ nói dối"
+    },
+    {
+     "id": "ex101",
+     "t": 184.4,
+     "text": "BT 10.1: X ghi timestamp 10:00:00.020, Y ghi 10:00:00.010; LWW chọn lệnh 1 (5tr) dù lệnh 2 xảy ra sau: sai và không có lỗi nào được báo; với hạn mức tiền dùng một nguồn thứ tự (một leader, một sequence) hoặc update có điều kiện theo version",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập tuần 10 (10.1, 10.2)"
+    },
+    {
+     "id": "raft-five",
+     "t": 215.1,
+     "text": "Node là follower/candidate/leader; thời gian chia term; hết hạn không nghe leader → candidate xin phiếu; đa số → leader term mới; leader nhận ghi, chép log, commit khi đa số đã chép; chỉ bầu cho candidate có log ít nhất mới bằng mình nên leader mới có mọi entry đã commit",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#102-raft-trong-năm-dòng",
+     "section": "20 §10.2 · Raft trong năm dòng"
+    },
+    {
+     "id": "raft-tolerance",
+     "t": 250.7,
+     "text": "5 node chịu được 2 node chết; mạng chia 2/3 thì phía 3 node vẫn chạy, phía 2 node không ghi được; dùng ở etcd, Consul, Kafka KRaft (từ Kafka 4.0 không còn ZooKeeper)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#102-raft-trong-năm-dòng",
+     "section": "20 §10.2 · Raft trong năm dòng"
+    },
+    {
+     "id": "ex102",
+     "t": 298.6,
+     "text": "BT 10.2: (a) 2; (b) leader cũ không chép tới đa số nên không commit, client timeout; phía 3 node bầu leader term lớn hơn; nối lại thì leader cũ xuống follower, bỏ entry chưa commit; (c) 4 node chịu 1 như 3 node nhưng tốn thêm máy, 6 chịu 2 như 5",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập tuần 10 (10.1, 10.2)"
+    }
+   ]
+  },
+  {
+   "id": "ep20-locks-fencing",
+   "ep": 20,
+   "week": 10,
+   "title": "Distributed locks and fencing tokens",
+   "subtitle": "A lock for efficiency or for correctness, the gap no client can close, labs 10A and 10B, and when you need no lock at all",
+   "file": "ep20-locks-fencing.mp4",
+   "poster": "ep20-locks-fencing.jpg",
+   "source": "ep20-locks-fencing.yaml",
+   "duration": 318.5,
+   "bytes": 4499273,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 12.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 44.2,
+     "title": "Two kinds of lock"
+    },
+    {
+     "t": 73.1,
+     "title": "The gap"
+    },
+    {
+     "t": 112.7,
+     "title": "Lab 10A"
+    },
+    {
+     "t": 173.3,
+     "title": "Lab 10B"
+    },
+    {
+     "t": 216.5,
+     "title": "Exercise 10.3"
+    },
+    {
+     "t": 281.3,
+     "title": "2-minute talk"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#103-khoá-phân-tán-cho-hiệu-năng-hay-cho-đúng-đắn",
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-10a--fencing-token-thứ-bảy-15-giờ",
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-10b--job-scheduler-phân-tán-tùy-chọn-thứ-bảy-2-giờ",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-3"
+   ],
+   "points": [
+    {
+     "id": "lock-purpose",
+     "t": 44.2,
+     "text": "Khoá cho hiệu năng (tránh hai worker làm trùng việc tốn kém): hỏng thì thỉnh thoảng làm trùng, tốn tiền không sai, Redis SET key value NX PX 30000 đủ; khoá cho đúng đắn (hai bên cùng ghi là sai dữ liệu): khoá + fencing token do chính nơi lưu trữ kiểm",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#103-khoá-phân-tán-cho-hiệu-năng-hay-cho-đúng-đắn",
+     "section": "20 §10.3 · Khoá phân tán"
+    },
+    {
+     "id": "lock-gap",
+     "t": 73.1,
+     "text": "Khoá có TTL luôn có kẽ hở: client giữ khoá bị GC pause hoặc mạng treo quá TTL, khoá hết hạn, client khác lấy khoá, client cũ tỉnh dậy vẫn tin mình giữ khoá và ghi; client không tự biết mình bị pause, chỉ nơi lưu trữ chặn được bằng cách từ chối token cũ; tài nguyên chính là Postgres thì dùng khoá dòng hoặc update có điều kiện",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#103-khoá-phân-tán-cho-hiệu-năng-hay-cho-đúng-đắn",
+     "section": "20 §10.3 · Khoá phân tán"
+    },
+    {
+     "id": "lab10a-sim",
+     "t": 112.7,
+     "text": "Bản mô phỏng Fencing.java đã chạy: không fencing thì A (token 1) và B (token 2) đều ghi, giá trị cuối là giá trị cũ của A; có fencing thì A bị từ chối (ghi=false), giá trị cuối là của B",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-10a--fencing-token-thứ-bảy-15-giờ",
+     "section": "20 · Lab 10A: fencing token"
+    },
+    {
+     "id": "lab10a-real",
+     "t": 135.7,
+     "text": "Bản thật trên Postgres: khoá = một dòng lock(name, owner, token, expires_at), cấp bằng update có điều kiện where expires_at < now() và token = token + 1 returning token; config(name, value, last_token), ghi where last_token <= token (0 dòng = bị từ chối); test A lấy khoá, pause quá TTL, B lấy khoá và ghi, A ghi → 0 dòng, giá trị cuối của B",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-10a--fencing-token-thứ-bảy-15-giờ",
+     "section": "20 · Lab 10A: fencing token"
+    },
+    {
+     "id": "lab10b",
+     "t": 173.3,
+     "text": "Lab 10B: worker claim job READY bằng update … for update skip locked, lease 30 s, lease_version + 1; gia hạn mỗi 10 s; reaper trả lease_until < now() về READY; ghi kết quả kèm where lease_version = :v: worker bị coi là chết mà vẫn chạy ghi 0 dòng; lease_version chính là fencing token",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-10b--job-scheduler-phân-tán-tùy-chọn-thứ-bảy-2-giờ",
+     "section": "20 · Lab 10B: job scheduler (tùy chọn)"
+    },
+    {
+     "id": "lab10b-test",
+     "t": 204.8,
+     "text": "Test lab 10B: 4 worker, 1.000 job, kill một worker giữa chừng: mọi job chạy ít nhất một lần, kết quả ghi đúng một lần",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-10b--job-scheduler-phân-tán-tùy-chọn-thứ-bảy-2-giờ",
+     "section": "20 · Lab 10B: job scheduler (tùy chọn)"
+    },
+    {
+     "id": "ex103",
+     "t": 248.0,
+     "text": "BT 10.3: (a) khoá cho hiệu năng (Redis hoặc ShedLock) + email idempotent theo (khách, ngày); (b) không cần khoá phân tán, tài nguyên là Postgres: update có điều kiện hoặc khoá dòng (giai đoạn 1 lab 3A); (c) gọi trùng chỉ tốn tiền: Redis lock đủ + idempotency key gửi nhà cung cấp nếu họ hỗ trợ",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.3"
+    },
+    {
+     "id": "talk-w10",
+     "t": 281.3,
+     "text": "Bài nói 'How can a distributed lock fail, and what is a fencing token?': TTL + process pause là kẽ hở không đóng được từ phía client; token tăng dần cấp cùng khoá; nơi lưu trữ từ chối token cũ; số của lab (A ghi bị từ chối); khi nào không cần khoá phân tán (tài nguyên chính là DB)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-3",
+     "section": "20 · Bài nói 2 phút tuần 10"
     }
    ]
   }

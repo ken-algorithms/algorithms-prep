@@ -1,6 +1,6 @@
 id: ep17-stream-ad-click
 ep: 17
-week: 9
+week: 8
 tag: "EP17 · WEEKS 8–9"
 title: "Stream processing, and the ad click aggregation design"
 subtitle: "Windows, event time versus processing time, watermarks and late events — then exercise 8.4 in 45 minutes"

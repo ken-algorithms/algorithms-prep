@@ -79,7 +79,7 @@ Cột **Nguồn**: `20 §5.1` là mục 5.1 của file 20; `BT 5.4` là bài t�
 
 | Mã | Tên (tiếng Anh) | Nội dung chính | Nguồn | Phút |
 |---|---|---|---|---:|
-| **Ep00** | Phase 2 orientation: data across many nodes | Vì sao giai đoạn này phân biệt senior; điều kiện vào (mốc tuần 4, lab 3A, lab 2); nhịp tuần và hai khối hai tuần; bản đồ 6 tuần; thư mục `my-work/`; chạy Kafka 4.x không Docker (KRaft) và Postgres nhúng; capstone tuần 9–16; mốc tuần 10 | 20 §0; 00 giai đoạn 2 | 8 |
+| **Ep00** | Phase 2 orientation | Vì sao giai đoạn này phân biệt senior; điều kiện vào (mốc tuần 4, lab 3A, lab 2); nhịp tuần và hai khối hai tuần; bản đồ 6 tuần; thư mục `my-work/`; chạy Kafka 4.x không Docker (KRaft) và Postgres nhúng; capstone tuần 9–16; mốc tuần 10 | 20 §0; 00 giai đoạn 2 | 8 |
 
 ### Tuần 5–6 — Replication, partitioning, consistent hashing
 
@@ -107,12 +107,12 @@ Cột **Nguồn**: `20 §5.1` là mục 5.1 của file 20; `BT 5.4` là bài t�
 | Mã | Tên (tiếng Anh) | Nội dung chính | Nguồn | Phút |
 |---|---|---|---|---:|
 | **Ep12** | Kafka: ordering, keys, and durable writes | Đầu ra, tài liệu đọc; thứ tự chỉ trong một partition; chọn key; thêm partition làm vỡ thứ tự; `acks`, ISR, `min.insync.replicas`, unclean leader election; idempotent producer; BT 8.1, 8.2 | 20 tuần 8–9 (đầu ra, đọc), §8.1–8.2; BT 8.1, 8.2 | 10 |
-| **Ep13** | Kafka: delivery semantics, consumer groups, dead letters | Ba mức giao nhận; Kafka transaction chỉ bao phần trong Kafka; consumer group, rebalance, `max.poll.interval.ms`, KIP-848; poison message → DLT; lỗi tạm thời → `pause()`; backpressure | 20 §8.3–8.5 | 10 |
-| **Ep14** | Lab 8, part 1: outbox and relay on real Kafka | Schema 6 bảng; chuyển tiền + outbox trong một transaction; relay `FOR UPDATE SKIP LOCKED`, gửi rồi mới đánh dấu; vì sao relay giữ connection vẫn chấp nhận được | 20 lab 8 bước 1–3 | 9 |
-| **Ep15** | Lab 8, part 2: idempotent consumer and exactly-once | Consumer với `processed_event`; retry + DLT; 7 test và số đã chạy (1.000 → 1.100 message, áp dụng 1.000, bỏ 100, 800/800, sổ cái = 0); bước 7 phá thứ tự và ba cách giữ; BT 8.3; bài nói 2 phút | 20 lab 8 bước 4–7; BT 8.3; bài nói tuần 8–9 | 11 |
+| **Ep13** | Kafka: delivery guarantees, consumer groups, and dead letters | Ba mức giao nhận; Kafka transaction chỉ bao phần trong Kafka; consumer group, rebalance, `max.poll.interval.ms`, KIP-848; poison message → DLT; lỗi tạm thời → `pause()`; backpressure | 20 §8.3–8.5 | 10 |
+| **Ep14** | Lab 8, part 1: the outbox and its relay on real Kafka | Schema 6 bảng; chuyển tiền + outbox trong một transaction; relay `FOR UPDATE SKIP LOCKED`, gửi rồi mới đánh dấu; vì sao relay giữ connection vẫn chấp nhận được | 20 lab 8 bước 1–3 | 9 |
+| **Ep15** | Lab 8, part 2: the idempotent consumer, and seven tests that prove it | Consumer với `processed_event`; retry + DLT; 7 test và số đã chạy (1.000 → 1.100 message, áp dụng 1.000, bỏ 100, 800/800, sổ cái = 0); bước 7 phá thứ tự và ba cách giữ; BT 8.3; bài nói 2 phút | 20 lab 8 bước 4–7; BT 8.3; bài nói tuần 8–9 | 11 |
 | **Ep16** | Track P: P20, the slow consumer and the rebalance storm | Code xấu và sửa; cơ chế storm; số đo D20 (chưa xong sau 45 s, 1.847–2.245 lần trùng; 24,6 s; 1,3 s); thứ tự sửa; bài tập P20 (600 ms, chọn 100, ba metric) | 01 P20, §7; 20 Track P tuần 8–9 | 9 |
-| **Ep17** | Stream processing and ad click aggregation | Window tumbling, hopping, session; event time và processing time; watermark; late event; đề Ad click aggregation (11.600/s, key `ad_id#0..7`, sink idempotent, raw để đối soát) | 20 §8.6; BT 8.4 | 9 |
-| **Ep18** | V7: payments with Kafka and a saga | Sơ đồ V7 (orchestrator, ledger, fraud, gateway, notification, đối soát); 5 điểm phải nói; key của topic | 20 Track S tuần 8–9 | 9 |
+| **Ep17** | Stream processing, and the ad click aggregation design | Window tumbling, hopping, session; event time và processing time; watermark; late event; đề Ad click aggregation (11.600/s, key `ad_id#0..7`, sink idempotent, raw để đối soát) | 20 §8.6; BT 8.4 | 9 |
+| **Ep18** | V7: an interbank transfer with Kafka and a saga | Sơ đồ V7 (orchestrator, ledger, fraud, gateway, notification, đối soát); 5 điểm phải nói; key của topic | 20 Track S tuần 8–9 | 9 |
 
 ### Tuần 10 — Đồng thuận, khoá phân tán, đồng hồ; capstone; mốc
 
@@ -120,7 +120,7 @@ Cột **Nguồn**: `20 §5.1` là mục 5.1 của file 20; `BT 5.4` là bài t�
 |---|---|---|---|---:|
 | **Ep19** | Clocks lie, and Raft in five lines | Đầu ra, tài liệu đọc; wall clock và monotonic; LWW để lệnh cũ thắng; nguồn thứ tự đáng tin; Raft: term, bầu đa số, chép log, commit; BT 10.1, 10.2 | 20 tuần 10 (đầu ra, đọc), §10.1–10.2; BT 10.1, 10.2 | 10 |
 | **Ep20** | Distributed locks and fencing tokens | Khoá cho hiệu năng hay cho đúng đắn; kẽ hở TTL + pause; fencing token do nơi lưu trữ kiểm; lab 10A (output mô phỏng, bản Postgres thật); lab 10B (lease, `lease_version`); BT 10.3; bài nói 2 phút | 20 §10.3, lab 10A, 10B; BT 10.3; bài nói tuần 10 | 11 |
-| **Ep21** | Timed designs: hotel reservation and a job scheduler | Bảng tồn kho theo ngày, update có điều kiện nhiều đêm, overbooking 10%, giữ `PENDING` 15 phút; scheduler: cron sinh một nơi, công bằng giữa tenant, lease, "exactly-once?" | 20 BT 10.4, 10.5 | 9 |
+| **Ep21** | Timed designs: hotel reservation and a distributed job scheduler | Bảng tồn kho theo ngày, update có điều kiện nhiều đêm, overbooking 10%, giữ `PENDING` 15 phút; scheduler: cron sinh một nơi, công bằng giữa tenant, lease, "exactly-once?" | 20 BT 10.4, 10.5 | 9 |
 | **Ep22** | Capstone kickoff and the week-10 milestone | Capstone A/B, design doc 11 mục, ADR; phạm vi MVP; 10 tiêu chí mốc tuần 10; trễ thì cắt gì; ranh giới trung thực | 20 capstone, mốc tuần 10, ranh giới; 00 capstone | 10 |
 
 ---
@@ -180,6 +180,12 @@ dùng lại nguyên vẹn (Emma và Tom dùng cùng bộ tách âm `en-us`). Ki�
 | GA (general availability) | *gah* | Lời đọc nói `generally available`, không dùng chữ tắt |
 | `1/(N+1)` | *one slash N plus one* | `say`: `one over N plus one` |
 | 5tr, 10:00:00.010 (kiểu Việt, giờ có mili giây) | sai | Viết kiểu Anh trên slide: `5 million`; giờ dùng `say` |
+| DDIA | *dee dee eye eye* (cách viết cũ `dee dee eye ay` của giai đoạn 1 bị đọc sai) | `speak.py`: `D D I eigh` — tìm ra khi dựng, dựng lại Ep00, Ep01, Ep03 |
+| Chữ A đứng riêng giữa câu: relay A, topic A, fix A, client A, JPA, SHA-512 | mạo từ *a* | `speak.py`: chữ A viết hoa giữa câu thành `eigh` (đầu câu giữ nguyên vì đó là mạo từ); dựng lại Ep13 và Ep04 của giai đoạn 1 |
+| SLO | *slow* | `speak.py`: `S L O` |
+| raft.github.io, draw.io | *… ee-oh* | `say`: `raft dot github dot I O`; `speak.py`: `draw dot I O` (dựng lại Ep06 của giai đoạn 1) |
+| retryable | *re-tri-AY-ble* | `speak.py`: `retry able` như `retriable`; dựng lại Ep15 |
+| Redis | *rih-deez* (`ɹᵻdiz`): âm đầu không nhấn | **Chưa sửa.** Viết `Reddis` thì gần đúng (`ɹˈɛdiz`), nhưng phải dựng lại 10 video của cả hai giai đoạn; để lúc duyệt quyết |
 
 Đọc đúng sẵn: 2PC (*two P C*), LWW, CRDT, DLT, PSP, PCI DSS, OLAP, WAL, KRaft (*K raft*), KIP-848,
 CDC, CQRS, Debezium, ZooKeeper, DynamoDB, Cassandra, ClickHouse, Lamport, Raft, ShedLock, MinIO,
@@ -203,6 +209,9 @@ giai đoạn 2:
 | `coverage --strict` báo lỗi cả khi còn mục nguồn chưa có video | Trước chỉ xét ý chính |
 | Web: tab Video có nhiều bộ (nút chọn giai đoạn), nhãn khối tuần `Tuần 5–6`, `Tuần 8–9` | Hai bộ video, hai giọng |
 | Pages: copy từng bộ vào `media/jsd/<bộ>/` | Tên file của hai bộ có thể trùng (`ep01-…`) |
+| Bảng tự thu nhỏ chữ khi một từ dài (tên test, tên hàm) không vừa cột | Tên test của lab 8 tràn sang cột bên cạnh (Ep15) |
+| `speak.py`: chữ A giữa câu, DDIA, SLO, draw.io (mục 5) | Lỗi đọc tìm ra lúc dựng; có test |
+| Test: mọi ý chính và mọi mục nguồn của giai đoạn 2 đều có video | Giữ độ phủ 100% khi sửa kịch bản về sau |
 
 Lệnh (chạy trong `tools/`, `L=../java-system-design/video-gd2/lessons`):
 
@@ -222,7 +231,7 @@ $R coverage $L --points $L/points.yaml --title "Độ phủ nội dung — video
 | Đợt | Phạm vi | Đầu ra | Điều kiện xong |
 |---|---|---|---|
 | **0** | Kế hoạch | File này, [bảng chữ viết tắt giai đoạn 2](01-bang-chu-viet-tat.md), kiểm phát âm, thay đổi công cụ và web | **Xong 08/10/2026** |
-| **1** | Cả giai đoạn 2 | Ep00–Ep22, [độ phủ](02-do-phu.md), tab Video có giai đoạn 2 | Người dùng yêu cầu làm hết một lần rồi tạo PR |
+| **1** | Cả giai đoạn 2 | Ep00–Ep22, [độ phủ](02-do-phu.md), tab Video có giai đoạn 2 | **Xong 08/10/2026**, chờ duyệt (người dùng yêu cầu làm hết một lần rồi tạo PR) |
 
 ---
 
@@ -293,6 +302,7 @@ Mỗi đợt thêm một mục ở **cuối** danh sách: ngày, làm gì, số 
 
 | Nội dung | Trạng thái |
 |---|---|
-| Số video, thời lượng | **Ước tính** theo số đo của tuần 1 (khoảng 125 từ mỗi phút ở tốc độ 0,9) |
-| Phát âm | **Đã kiểm** bằng bộ tách âm của Kokoro cho các thuật ngữ ở mục 5 |
+| Số video, thời lượng | Mục 0 và 3 là **ước tính** ban đầu; mục 8 là **số thật** đo từ file đã dựng (`lessons.json`) |
+| Phát âm | **Đã kiểm** bằng bộ tách âm của Kokoro cho các thuật ngữ ở mục 5 và mọi câu có số hoặc chữ viết tắt; chưa nghe lại toàn bộ bằng tai |
+| Âm thanh | Mọi video chuẩn hoá về −16 LUFS, đỉnh khoảng −1 dBFS; riêng Ep12 có 3 mẫu vượt 0 dBFS ở âm bật *P* của “P20” sau khi mã hoá AAC (0,07 ms, không nghe thấy) |
 | Số liệu trong video | Lấy từ file 20, 01, 02 và output đã chạy của dist-lab, perf-lab; lab Spring Boot (7, 8), lab 5B, 10A bản Postgres, 10B **chưa chạy** trong workspace này, video nói rõ điều đó |

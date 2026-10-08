@@ -20,7 +20,7 @@ WORDS = {
     "O(n)": "O of n", "-Xmx": "X M X ", "my-work/": "my work", "vs": "versus", "e.g.": "for example",
     "i.e.": "that is",
     # giai đoạn 2 (kiểm phiên âm 08/10/2026): ISR đọc "isser", eKYC "ee-kick", etcd "etkd", Tết thành chuỗi chữ cái
-    "ISR": "I S R", "eKYC": "e K Y C", "etcd": "et-see-dee", "retriable": "retry able", "Retriable": "Retry able",
+    "ISR": "I S R", "eKYC": "e K Y C", "etcd": "et-see-dee", "retriable": "retry able", "Retriable": "Retry able", "retryable": "retry able", "Retryable": "Retry able",
     "Tết": "Tet",
 }
 UNITS = {

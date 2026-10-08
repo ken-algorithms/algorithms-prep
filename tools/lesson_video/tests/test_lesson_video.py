@@ -91,6 +91,7 @@ scenes:
     ("lab 5B and lab 10B, 1B clicks", "lab 5-B and lab 10-B, 1 billion clicks"),
     ("DDIA, chapter 11", "D D I eigh, chapter 11"),
     ("an SLO; use draw.io at work", "an S L O; use draw dot I O at work"),
+    ("retriable or not retryable", "retry able or not retry able"),
     ("Client A locks it. A poll returns; then A's write and topic A.", "Client eigh locks it. A poll returns; then A's write and topic eigh."),
 ])
 def test_speakable(text, spoken):
