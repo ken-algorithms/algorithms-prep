@@ -25,6 +25,10 @@
 | Tuần 10 — đồng hồ, Raft, khoá phân tán, capstone, mốc tuần 10 | 4 | Ep19–Ep22 | 40 phút |
 | **Tổng** | **23** | | **≈ 224 phút** |
 
+**Thực tế (đợt 1, 08/10/2026): 23 video, tổng 2:03:02 (≈ 123 phút), mỗi video dài từ 3:02 (Ep18) đến 7:11 (Ep01),
+106 MB.** Ngắn hơn dự kiến khoảng 45%: Emma đọc nhanh hơn Tom chừng 10% ở cùng tốc độ 0,9, và
+kịch bản gọn hơn mức 8–11 phút đã ước tính. Số phút ở mục 3 là dự kiến ban đầu; số thật ở [mục 8](#8-bảng-trạng-thái).
+
 Vì sao là con số này:
 
 1. **Nguồn dài ngang giai đoạn 1.** File 20 có 1.179 dòng (file 10 có 1.211), cộng P20 của file 01,
@@ -242,31 +246,31 @@ kiểm · **Xong** người dùng đã duyệt.
 
 | Mã | Tuần | Trạng thái | Dài thật | MB | Chương | Đợt | Ghi chú |
 |---|:---:|:---:|---:|---:|---:|:---:|---|
-| Ep00 | — | — | | | | | |
-| Ep01 | 5–6 | — | | | | | |
-| Ep02 | 5–6 | — | | | | | |
-| Ep03 | 5–6 | — | | | | | |
-| Ep04 | 5–6 | — | | | | | |
-| Ep05 | 5–6 | — | | | | | |
-| Ep06 | 5–6 | — | | | | | |
-| Ep07 | 7 | — | | | | | |
-| Ep08 | 7 | — | | | | | |
-| Ep09 | 7 | — | | | | | |
-| Ep10 | 7 | — | | | | | |
-| Ep11 | 7 | — | | | | | |
-| Ep12 | 8–9 | — | | | | | |
-| Ep13 | 8–9 | — | | | | | |
-| Ep14 | 8–9 | — | | | | | |
-| Ep15 | 8–9 | — | | | | | |
-| Ep16 | 8–9 | — | | | | | |
-| Ep17 | 8–9 | — | | | | | |
-| Ep18 | 8–9 | — | | | | | |
-| Ep19 | 10 | — | | | | | |
-| Ep20 | 10 | — | | | | | |
-| Ep21 | 10 | — | | | | | |
-| Ep22 | 10 | — | | | | | |
+| Ep00 | — | **Chờ duyệt** | 6:02 | 5,5 | 9 | 1 | 9 ý chính · 13 chữ viết tắt |
+| Ep01 | 5–6 | **Chờ duyệt** | 7:11 | 6,1 | 7 | 1 | 7 ý chính · 10 chữ viết tắt |
+| Ep02 | 5–6 | **Chờ duyệt** | 6:16 | 5,3 | 7 | 1 | 6 ý chính · 3 chữ viết tắt |
+| Ep03 | 5–6 | **Chờ duyệt** | 5:50 | 5,0 | 7 | 1 | 5 ý chính · 4 chữ viết tắt |
+| Ep04 | 5–6 | **Chờ duyệt** | 5:26 | 5,0 | 8 | 1 | 6 ý chính · 3 chữ viết tắt |
+| Ep05 | 5–6 | **Chờ duyệt** | 6:14 | 5,3 | 6 | 1 | 6 ý chính · 11 chữ viết tắt |
+| Ep06 | 5–6 | **Chờ duyệt** | 5:57 | 5,3 | 6 | 1 | 7 ý chính · 17 chữ viết tắt |
+| Ep07 | 7 | **Chờ duyệt** | 6:12 | 5,6 | 7 | 1 | 8 ý chính · 8 chữ viết tắt |
+| Ep08 | 7 | **Chờ duyệt** | 5:38 | 4,8 | 7 | 1 | 8 ý chính · 7 chữ viết tắt |
+| Ep09 | 7 | **Chờ duyệt** | 4:57 | 4,4 | 7 | 1 | 6 ý chính · 6 chữ viết tắt |
+| Ep10 | 7 | **Chờ duyệt** | 4:50 | 3,9 | 7 | 1 | 4 ý chính · 3 chữ viết tắt |
+| Ep11 | 7 | **Chờ duyệt** | 4:42 | 3,8 | 5 | 1 | 4 ý chính · 5 chữ viết tắt |
+| Ep12 | 8–9 | **Chờ duyệt** | 4:56 | 4,1 | 7 | 1 | 7 ý chính · 4 chữ viết tắt |
+| Ep13 | 8–9 | **Chờ duyệt** | 3:40 | 3,2 | 6 | 1 | 4 ý chính · 6 chữ viết tắt |
+| Ep14 | 8–9 | **Chờ duyệt** | 4:57 | 4,7 | 8 | 1 | 5 ý chính · 7 chữ viết tắt |
+| Ep15 | 8–9 | **Chờ duyệt** | 6:08 | 5,6 | 8 | 1 | 9 ý chính · 4 chữ viết tắt |
+| Ep16 | 8–9 | **Chờ duyệt** | 4:57 | 4,2 | 8 | 1 | 7 ý chính · 2 chữ viết tắt |
+| Ep17 | 8–9 | **Chờ duyệt** | 4:27 | 3,7 | 6 | 1 | 7 ý chính · 3 chữ viết tắt |
+| Ep18 | 8–9 | **Chờ duyệt** | 3:02 | 2,6 | 6 | 1 | 2 ý chính · 2 chữ viết tắt |
+| Ep19 | 10 | **Chờ duyệt** | 5:37 | 4,7 | 7 | 1 | 8 ý chính · 7 chữ viết tắt |
+| Ep20 | 10 | **Chờ duyệt** | 5:19 | 4,5 | 8 | 1 | 8 ý chính · 7 chữ viết tắt |
+| Ep21 | 10 | **Chờ duyệt** | 4:25 | 3,6 | 5 | 1 | 5 ý chính · 1 chữ viết tắt |
+| Ep22 | 10 | **Chờ duyệt** | 6:24 | 5,9 | 8 | 1 | 9 ý chính · 10 chữ viết tắt |
 
-**Tổng đã xong: 0/23 video.**
+**Đã dựng 23/23 video, 2:03:02 (≈ 123 phút), 106 MB — chờ duyệt. Đã duyệt 0/23.**
 
 ---
 
@@ -284,6 +288,61 @@ Mỗi đợt thêm một mục ở **cuối** danh sách: ngày, làm gì, số 
 - **Chốt 23 video** (mục 0, 3) và phân công mục nguồn (mục 4).
 - **Kiểm phát âm** khoảng 90 thuật ngữ mới (mục 5); thêm quy tắc vào `speak.py`, có test.
 - **Công cụ và web** đổi theo mục 6.
+
+### Đợt 1 — 08/10/2026: dựng cả 23 video
+
+Yêu cầu: làm hết video giai đoạn 2 bằng giọng Emma `af_heart`, xong thì tạo PR.
+
+- **Kịch bản**: 23 file YAML ở [`lessons/`](lessons/), 616 câu, 16.820 từ. Emma khai báo một lần ở
+  [`series.yaml`](lessons/series.yaml).
+- **Ý chính**: [`lessons/points.yaml`](lessons/points.yaml) có **147 ý chính** lấy từ nguồn, mỗi ý có chữ
+  bắt buộc (`expect`) và mục nguồn. Phạm vi là **67 mục** (heading) của file 20, 00, 01 và 02.
+- **Kết quả kiểm** (`check` với hai bảng chữ viết tắt, `coverage --strict`): 147/147 ý chính và 67/67 mục
+  có video; mọi chữ viết tắt trên slide và trong lời đọc đều có trong bảng và trên thẻ của video. Chi
+  tiết ở [02 — Độ phủ nội dung](02-do-phu.md). Test `test_phase2_points_and_headings_all_covered` giữ
+  mức 100% này khi sửa kịch bản về sau.
+- **Dựng**: Kokoro `af_heart`, tốc độ 0,9, hai tiến trình song song. Tổng 2:03:02 (≈ 123 phút),
+  106 MB, mỗi file khoảng −16 LUFS.
+- **Soát bố cục**: xem ảnh cuối mỗi cảnh (ghép 4 ảnh một tấm) trước khi dựng. Các lỗi đã sửa:
+  - Code: dòng quá dài (Ep00); callout che dòng cuối (Ep04).
+  - Bảng: tên định danh dài tràn sang cột bên (Ep09, Ep15). Công cụ nay tự thu nhỏ chữ khi một từ không
+    vừa cột; ở Ep15 tên test xuống dòng tại dấu `_`.
+  - Bảng 8 dòng chữ quá nhỏ: tách hai slide (Ep05).
+  - Sơ đồ: mũi tên chồng lên hộp (Ep07); nhãn mũi tên bị cắt (Ep08); hộp tràn khung (Ep12). Sơ đồ V7
+    (Ep18) và sơ đồ scheduler (Ep21) xếp lại để đường nối không cắt qua hộp.
+  - Ô sơ đồ luồng chứa tên cấu hình dài: rút từ 5 ô xuống 4 ô (Ep13).
+  - "Raft in five lines": 5 ô chữ nhỏ đổi thành danh sách đánh số (Ep19).
+  - Khung design doc bị đánh số hai lần (Ep22).
+- **Phát âm** ([mục 5](#5-phát-âm)): kiểm lời đọc của mọi câu có số hoặc chữ viết tắt sau khi qua
+  `speak.py`, rồi phiên âm bằng bộ tách âm của Kokoro. Các lỗi tìm ra:
+  - "lab 5B" đọc thành *five billion*.
+  - DDIA đọc thành *dee dee eye eye*.
+  - Chữ A đứng riêng giữa câu (relay A, topic A, fix A, JPA, SHA-512) đọc thành mạo từ.
+  - SLO đọc thành *slow*; đuôi `.io` đọc thành *ee-oh*; "retryable" đọc thành *re-tri-AY-ble*.
+  - Còn lại chưa sửa: Redis đọc *rih-deez* (xem mục 5).
+
+  Đã sửa `speak.py` và thêm test. Dựng lại các video đã dựng trước khi sửa: Ep00, Ep01, Ep03, Ep13, Ep15, cùng
+  Ep04 và Ep06 của giai đoạn 1. Một script so lời đọc hiện tại của từng câu với tiếng mà file mp4 đã dùng.
+  Kết quả: cả 23 video và 7 video giai đoạn 1 đều dùng lời đọc mới nhất.
+- **Âm thanh**: đo từng file bằng `ffmpeg ebur128`. Ep12 và Ep14 có 2–3 mẫu vượt 0 dBFS ở âm bật *P*
+  sau khi mã hoá AAC 64 kbit/s; mỗi chỗ dưới 0,1 ms, không nghe thấy, giữ nguyên.
+- **Sửa nguồn**: ở lab 10A của file 20, điều kiện ghi đổi từ `last_token < ?` thành `last_token <= ?`.
+  Bản cũ chặn cả lần ghi thứ hai của chính người đang giữ token mới nhất.
+- **Sự cố**: container khởi động lại hai lần giữa lúc dựng (lúc Ep04–Ep05, rồi lúc Ep19–Ep20). Tiến
+  trình dựng mất nhưng file vẫn còn. Đưa hai video đó vào lại hàng đợi; tiếng đã đọc nằm trong bộ nhớ
+  đệm nên chỉ phải đọc những câu còn thiếu.
+- **App**: tab **Video** có nút chọn giai đoạn (lựa chọn được lưu) và nhãn khối tuần `Tuần 5–6`,
+  `Tuần 8–9`. Pages copy từng bộ vào `media/jsd/<bộ>/`.
+- **Kiểm app bằng Playwright**:
+  - Tab hiện đủ 30 video (23 + 7). Lựa chọn giai đoạn được giữ sau khi tải lại trang.
+  - Với từng video: tiêu đề, số chương, số ý chính, link mục nguồn, ảnh bìa và đường dẫn mp4 đều khớp
+    `lessons.json`.
+  - Tua theo chương và theo ý chính đúng giây. Ba nút tài liệu của giai đoạn 2 mở đúng file.
+  - Màn hình 390 px không tràn ngang. Không có lỗi JavaScript; chỉ có các yêu cầu ra ngoài bị proxy chặn.
+  - Chromium của Playwright không có H.264 nên test thay mọi mp4 bằng một file WebM.
+- **Chưa làm**: chưa có người nghe lại toàn bộ, đó là bước duyệt. Góp ý về giọng, tốc độ, độ dài hay bố
+  cục dựng lại nhanh vì tiếng đã nằm trong bộ nhớ đệm.
+- Commit trên nhánh `claude/wizardly-pascal-9yhum5`.
 
 ---
 

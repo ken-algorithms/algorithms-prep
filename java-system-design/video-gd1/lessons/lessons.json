@@ -670,8 +670,8 @@
    "file": "ep04-trackp-group1.mp4",
    "poster": "ep04-trackp-group1.jpg",
    "source": "ep04-trackp-group1.yaml",
-   "duration": 644.0,
-   "bytes": 9452615,
+   "duration": 644.1,
+   "bytes": 9439609,
    "engine": "kokoro",
    "voices": [
     "Tom (narrator) — Kokoro am_michael"
@@ -686,15 +686,15 @@
      "title": "Acronyms in this video"
     },
     {
-     "t": 88.3,
+     "t": 88.4,
      "title": "Four mechanisms"
     },
     {
-     "t": 188.9,
+     "t": 189.1,
      "title": "P01 to P07"
     },
     {
-     "t": 505.7,
+     "t": 505.8,
      "title": "Reading the numbers"
     },
     {
@@ -718,77 +718,77 @@
    "points": [
     {
      "id": "tp-mechanisms",
-     "t": 88.3,
+     "t": 88.4,
      "text": "Bốn cơ chế: nhân với QPS (CPU, GC), Little's Law (pool, thread, khoá), round trip (latency, CPU của DB), heap sống (GC, OOM); thêm pod chỉ cứu cơ chế đầu",
      "src": "01-java-code-cham-duoi-tai-cao.md#1-ba-cơ-chế-biến-code-xấu-thành-sự-cố-hệ-thống",
      "section": "01 §0–1 · Cơ chế và ba bài học"
     },
     {
      "id": "tp-lessons",
-     "t": 141.2,
+     "t": 141.4,
      "text": "Ba bài học: code giữ tài nguyên khan hiếm mới làm sập hệ thống; lãng phí CPU mỗi lần gọi thường vài µs; round trip là thuế cố định (N+1: 200 req/s → 20.200 query/s)",
      "src": "01-java-code-cham-duoi-tai-cao.md#1-ba-cơ-chế-biến-code-xấu-thành-sự-cố-hệ-thống",
      "section": "01 §0–1 · Cơ chế và ba bài học"
     },
     {
      "id": "p-measure",
-     "t": 188.9,
+     "t": 189.1,
      "text": "Đo bằng JMH -prof gc, 3 vòng warm-up + 5 vòng đo, 1 fork; B/op là byte cấp phát mỗi lần gọi",
      "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
      "section": "01 §2 · Nhóm 1: P01–P07"
     },
     {
      "id": "p01",
-     "t": 217.1,
+     "t": 217.2,
      "text": "P01 tạo lại object đắt: new ObjectMapper() 14,6 µs → 0,48 µs (30×), 19,6 KB → 688 B; cùng họ DateTimeFormatter, Pattern, HTTP client; thread-safe thì dùng chung",
      "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
      "section": "01 §2 · Nhóm 1: P01–P07"
     },
     {
      "id": "p02",
-     "t": 264.0,
+     "t": 264.2,
      "text": "P02 String.matches compile regex mỗi lần: 429 → 116 ns; precompile Pattern; ReDoS phải sửa regex hoặc giới hạn input",
      "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
      "section": "01 §2 · Nhóm 1: P01–P07"
     },
     {
      "id": "p03",
-     "t": 299.6,
+     "t": 299.8,
      "text": "P03 += trong vòng lặp O(n²): 10.000 dòng 639 ms → 0,35 ms, 2,23 GB rác; StringBuilder hoặc ghi thẳng ra stream",
      "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
      "section": "01 §2 · Nhóm 1: P01–P07"
     },
     {
      "id": "p04",
-     "t": 341.6,
+     "t": 341.7,
      "text": "P04 exception làm luồng điều khiển: 942 → 8,8 ns; chi phí theo độ sâu stack (stack Spring 100–200 frame); kiểm tra trước",
      "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
      "section": "01 §2 · Nhóm 1: P01–P07"
     },
     {
      "id": "p05",
-     "t": 387.5,
+     "t": 387.6,
      "text": "P05 autoboxing: Map<Integer,Integer>.merge 213 → 6,5 µs; Long total 50 → 3,1 µs, 240 KB rác; escape analysis không gỡ",
      "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
      "section": "01 §2 · Nhóm 1: P01–P07"
     },
     {
      "id": "p06",
-     "t": 427.0,
+     "t": 427.1,
      "text": "P06 dựng chuỗi log khi level tắt: 1.023 ns → ~1 ns; placeholder vẫn gọi describe(); guard isDebugEnabled hoặc Supplier",
      "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
      "section": "01 §2 · Nhóm 1: P01–P07"
     },
     {
      "id": "p07",
-     "t": 465.5,
+     "t": 465.7,
      "text": "P07 O(n²) ẩn: list.contains 10.000 phần tử 117 ms → 0,46 ms (255×); LinkedHashSet; hỏi 'n tối đa là bao nhiêu'",
      "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
      "section": "01 §2 · Nhóm 1: P01–P07"
     },
     {
      "id": "p-read-table",
-     "t": 505.7,
+     "t": 505.8,
      "text": "Đọc bảng đúng: P01, P02, P04, P06 vài µs (P01 ở 10k RPS = 0,14 core, dưới 0,2%; rác ~500 MB/s cả cụm) → sửa khi tiện; P03, P05, P07 tăng theo dữ liệu (export 10.000 dòng 0,64 s, 2,2 GB)",
      "src": "01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07",
      "section": "01 §2 · Nhóm 1: P01–P07"
@@ -963,8 +963,8 @@
    "file": "ep06-tracks-v1-v2.mp4",
    "poster": "ep06-tracks-v1-v2.jpg",
    "source": "ep06-tracks-v1-v2.yaml",
-   "duration": 595.3,
-   "bytes": 8893013,
+   "duration": 595.8,
+   "bytes": 8896898,
    "engine": "kokoro",
    "voices": [
     "Tom (narrator) — Kokoro am_michael"
@@ -1003,7 +1003,7 @@
      "title": "How to draw"
     },
     {
-     "t": 573.1,
+     "t": 573.6,
      "title": "Week 1 wrap-up"
     }
    ],
@@ -1082,7 +1082,7 @@
     },
     {
      "id": "self-grade",
-     "t": 536.3,
+     "t": 536.8,
      "text": "Tự chấm 6 câu: có số và giả định; bản sao ở AZ khác; chỗ nghẽn đầu tiên khi × 10; luồng tiền qua hộp nào; hộp thừa; ít nhất 3 câu 'đánh đổi là…'",
      "src": "02-ve-he-thong-100k-1m-10m.md#4-lộ-trình-vẽ--10-bản-vẽ-từ-cơ-bản-tới-microservices",
      "section": "02 §4 · Lộ trình 10 bản vẽ"
