@@ -5,6 +5,7 @@ Lấy từ `agents/lesson_video/video.py` của repo superken-ielts/ielts-target
 """
 from __future__ import annotations
 
+import fcntl
 import json
 import shutil
 import subprocess
@@ -128,10 +129,15 @@ def manifest_entry(lesson: Lesson, tl: Timeline, mp4: Path, yaml_name: str, voic
 
 
 def write_manifest(lessons_dir: Path, entry: dict) -> Path:
+    """Đọc–sửa–ghi lessons.json dưới khoá file: hai lượt dựng song song xong cùng lúc không ghi đè nhau."""
     path = lessons_dir / MANIFEST
-    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    rows = [x for x in data.get("lessons", []) if x.get("id") != entry["id"]] + [entry]
-    rows.sort(key=lambda x: (x["ep"], x["id"]))
-    data = {"schema": "jsd-lessons/1", "note": NOTE, "lessons": rows}
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    with open(lessons_dir / (MANIFEST + ".lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        rows = [x for x in data.get("lessons", []) if x.get("id") != entry["id"]] + [entry]
+        rows.sort(key=lambda x: (x["ep"], x["id"]))
+        data = {"schema": "jsd-lessons/1", "note": NOTE, "lessons": rows}
+        tmp = path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        tmp.replace(path)
     return path

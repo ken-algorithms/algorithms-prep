@@ -282,8 +282,25 @@ class Lesson(_M):
         return seen
 
 
+SERIES_KEYS = {"series", "speakers", "sources", "gap", "scene_gap"}
+
+
+def series_defaults(path: Path) -> dict:
+    """`series.yaml` cạnh kịch bản: giá trị chung của cả bộ video (tên bộ, người đọc…); kịch bản ghi đè được."""
+    p = Path(path).resolve().parent / "series.yaml"
+    if not p.exists():
+        return {}
+    raw = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+    bad = set(raw) - SERIES_KEYS
+    if bad:
+        raise SystemExit(f"{p}: khoá không dùng được ở series.yaml: {', '.join(sorted(bad))} (chỉ {', '.join(sorted(SERIES_KEYS))})")
+    return raw
+
+
 def load(path: Path) -> Lesson:
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    if isinstance(raw, dict):
+        raw = {**series_defaults(path), **raw}
     try:
         return Lesson.model_validate(raw)
     except ValidationError as e:

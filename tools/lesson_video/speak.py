@@ -19,6 +19,9 @@ WORDS = {
     "INCR": "increment", "PEXPIRE": "P expire", "X-Api-Key": "X API key", "O(n²)": "O of n squared",
     "O(n)": "O of n", "-Xmx": "X M X ", "my-work/": "my work", "vs": "versus", "e.g.": "for example",
     "i.e.": "that is",
+    # giai đoạn 2 (kiểm phiên âm 08/10/2026): ISR đọc "isser", eKYC "ee-kick", etcd "etkd", Tết thành chuỗi chữ cái
+    "ISR": "I S R", "eKYC": "e K Y C", "etcd": "et-see-dee", "retriable": "retry able", "Retriable": "Retry able",
+    "Tết": "Tet",
 }
 UNITS = {
     "ns/op": "nanoseconds per op", "B/op": "bytes per op", "req/s": "requests per second",
@@ -61,6 +64,8 @@ def speakable(text: str) -> str:
     t = re.sub(r"(?<=[\w%])\s?–\s?(?=[\w~≈])", " to ", t)
     t = re.sub(r"\s*—\s*", ", ", t)
     # số có hậu tố k/M/B viết liền: 100k, 1.5M, 6.7k (có dấu cách thì là đơn vị: "600 B" = bytes)
+    # mã lab "lab 5B", "lab 10B" là tên bài, không phải 5 tỷ hay 5 byte → "lab 5-B" (đọc "five B")
+    t = re.sub(r"\b([Ll]abs?) (\d+)([BC])\b", r"\1 \2-\3", t)
     t = re.sub(r"\b(\d+(?:\.\d+)?)([kKMB])\b(?!/)", lambda m: f"{m.group(1)} {SCALE[m.group(2)]}", t)
     # thập phân: 0.64 → 0 point 6 4 (dấu chấm làm Kokoro ngắt câu)
     t = re.sub(r"\b(\d+)\.(\d+)\b", _decimal, t)
@@ -76,6 +81,10 @@ def speakable(text: str) -> str:
     t = t.replace("≈", " about ").replace("~", " about ").replace("→", " to ").replace("÷", " divided by ")
     t = re.sub(r"(?<=\s)\+(?=\s)", "plus", t)
     t = re.sub(r"(?<=\d)\+", " plus", t)
-    t = t.replace("≤", " at most ").replace("≥", " at least ").replace("λ", "lambda")
+    t = t.replace("≤", " at most ").replace("≥", " at least ").replace("≠", " not equal to ").replace("λ", "lambda")
+    t = re.sub(r"(?<=\s)>(?=\s)", "greater than", t)          # R + W > N (dấu > đứng riêng bị bỏ khi đọc)
+    t = re.sub(r"(?<=\s)<(?=\s)", "less than", t)
+    # tên cấu hình có dấu chấm (max.poll.records, min.insync.replicas): dấu chấm làm Kokoro ngắt câu
+    t = re.sub(r"\b[a-z]+(?:\.[a-z]+)+\b", lambda m: m.group(0).replace(".", " "), t)
     t = t.replace(" / ", " or ").replace("…", "...")
     return re.sub(r"\s{2,}", " ", t).strip()

@@ -111,11 +111,16 @@ def to_markdown(data: dict, title: str, link_prefix: str = "") -> str:
     return "\n".join(out)
 
 
-TOKEN = re.compile(r"\b[A-Za-z][A-Za-z0-9]*\b")
+TOKEN = re.compile(r"\b[0-9]*[A-Za-z][A-Za-z0-9]*\b")   # cả chữ bắt đầu bằng số như 2PC
 # mã của lộ trình (P09, V2, L1, Ep03…) và chữ hoa dùng để nhấn mạnh, không phải chữ viết tắt
 IGNORE = re.compile(r"^(?:P\d\d|D\d\d|V\d+|L\d|Ep\d\d|EP\d\d|NOT|AND|OR|THE|BAD|FIX|ONE|ALL|NEW|YES|NO|"
                     r"SELECT|UPDATE|WHERE|FROM|LIMIT|INFO|DEBUG|FINE|WARN|ERROR|README|TODO|SKIP|LOCKED|FOR|INSERT|"
-                    r"KB|MB|GB|TB|Mbit)$")  # đơn vị đo: giải thích một lần ở Ep01 và trong bảng chữ viết tắt
+                    r"KB|MB|GB|TB|Mbit|"  # đơn vị đo: giải thích một lần ở Ep01 và trong bảng chữ viết tắt
+                    # trạng thái và lệnh viết hoa trong code, SQL, Redis; tên sản phẩm có chữ hoa giữa từ
+                    r"PENDING|COMPLETED|COMPENSATED|UNKNOWN|CREATED|SUCCEEDED|FAILED|RUNNING|READY|HELD|DONE|OK|FAIL|"
+                    r"UNDO|VACUUM|MOVED|BY|ON|CONFLICT|DO|NOTHING|RETURNING|SET|IN|IS|NULL|DESC|ASC|GROUP|HAVING|"
+                    r"ORDER|JOIN|LEFT|INTO|VALUES|CREATE|TABLE|INDEX|PRIMARY|KEY|BEGIN|COMMIT|ROLLBACK|"
+                    r"MySQL|MinIO|OpenID|OpenSearch)$")
 
 
 def acronym_like(t: str) -> bool:
@@ -154,7 +159,8 @@ def acronym_report(lesson: sc.Lesson, terms: set[str]) -> list[str]:
                          + [ln.text for ln in scene.lines])
         for m in TOKEN.finditer(blob):
             t = m.group(0)
-            if not acronym_like(t) or IGNORE.match(t):
+            core = t.lstrip("0123456789")      # 2PC → PC để xét có phải chữ viết tắt; 64MB → MB (đơn vị)
+            if not acronym_like(core) or IGNORE.match(core):
                 continue
             found.setdefault(t, i)
     problems = []
