@@ -438,6 +438,125 @@
      "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
     }
    ]
+  },
+  {
+   "id": "k07-timed-answer-and-map",
+   "ep": 7,
+   "code": "K07",
+   "week": 10,
+   "title": "The timed answer, and where each idea comes from",
+   "subtitle": "Both follow-ups under time pressure, rapid-fire questions, then the map back to phase-1 and phase-2 lessons",
+   "file": "k07-timed-answer-and-map.mp4",
+   "poster": "k07-timed-answer-and-map.jpg",
+   "source": "k07-timed-answer-and-map.yaml",
+   "duration": 369.3,
+   "bytes": 5698846,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 15.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 43.6,
+     "title": "Ten million"
+    },
+    {
+     "t": 119.9,
+     "title": "A hundred million"
+    },
+    {
+     "t": 184.8,
+     "title": "Rapid fire"
+    },
+    {
+     "t": 244.1,
+     "title": "The map: phase 1"
+    },
+    {
+     "t": 287.3,
+     "title": "The map: phase 2"
+    },
+    {
+     "t": 327.9,
+     "title": "Honest limits"
+    },
+    {
+     "t": 352.7,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#8-kịch-bản-trả-lời",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10-ranh-giới-trung-thực"
+   ],
+   "points": [
+    {
+     "id": "t-answer-10m",
+     "t": 59.4,
+     "text": "Câu trả lời mẫu 10M có bấm giờ: chốt hiểu đề, số mới, đường đọc ~500 dòng cho 1 năm, vỡ trước, một bản ghi mỗi request + key batch_id + khử trùng 15 phút + hai tầng, GREATEST, raw đóng gói + đối soát mỗi giờ, chưa làm region/client/sketch",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#81-nếu-là-10m-requestphút--2-phút",
+     "section": "07 · Câu trả lời 10M trong 2 phút"
+    },
+    {
+     "id": "t-answer-100m",
+     "t": 133.1,
+     "text": "Câu trả lời mẫu 100M có bấm giờ: số mới và đỉnh × 3; vật lý và tiền; cell chạy pipeline 10M, cộng số đếm; khử trùng theo client + số thứ tự; dây nhị phân nén; raw ở lại region; sketch chỉ cho distinct/top-K; không exactly-once xuyên region, không một Kafka toàn cầu",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#82-còn-100m--2-phút",
+     "section": "07 · Câu trả lời 100M trong 2 phút"
+    },
+    {
+     "id": "t-rapid",
+     "t": 184.8,
+     "text": "Follow-up nhanh: tenant 30% tải (key batch_id trải đều, tầng toàn cục chỉ thấy tổng con); retry sau khi khoá hết hạn (SDK bỏ cuộc 10 phút, khoá 15 phút, đối soát bắt phần còn lại); breakdown 100.000 key (giảm 500 lần, kho OLAP, Count-Min Sketch); region chết (đổi cell, epoch mới, chưa chốt tới khi đối soát); chi phí lớn nhất (CPU collector, byte qua zone, lưu raw)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#83-follow-up-hay-gặp",
+     "section": "07 · Follow-up hay gặp"
+    },
+    {
+     "id": "t-map-1a",
+     "t": 244.1,
+     "text": "Bản đồ giai đoạn 1, video đã dựng: ước lượng (Ep01–Ep03), Little's Law (Ep01), năm câu × 10 và 'chưa làm' (Ep06), 1 µs = 1,7 core (Track P Ep04, Ep05)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "t-map-1b",
+     "t": 264.0,
+     "text": "Bản đồ giai đoạn 1, tuần 2–4 (video chưa dựng): cả thang L0–L4 và cell (Ep25), quota/429/HTTPS ở edge và idempotency key (tuần 2), B-tree hay LSM (tuần 3), cache và đánh đổi nhất quán (tuần 4)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "t-map-2a",
+     "t": 287.3,
+     "text": "Bản đồ giai đoạn 2, phần Kafka: partition nóng (Ep03), key/thứ tự/acks (Ep12), at-least-once + sink idempotent (Ep13, Ep15), P20 (Ep16)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "t-map-2b",
+     "t": 306.7,
+     "text": "Bản đồ giai đoạn 2, phần stream và hệ phân tán: window và ad click (Ep17), đồng hồ và fencing (Ep19, Ep20), cell cộng như CRDT (Ep01), không 2PC (Ep07)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "t-honest",
+     "t": 327.9,
+     "text": "Mọi số là phép tính từ giả định (20 cặp, 1 KB, 0,2 ms); ngưỡng là bậc độ lớn; P01/P04 là số đo thật nhưng nhân lên là ước lượng; giá là giá niêm yết; không có demo ở 10M/100M: nói 'tôi sẽ dựng và đo thế này', không nói 'tôi đã chạy'",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10-ranh-giới-trung-thực",
+     "section": "07 · Ranh giới trung thực"
+    }
+   ]
   }
  ]
 }
