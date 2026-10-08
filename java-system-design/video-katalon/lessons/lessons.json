@@ -835,6 +835,117 @@
    ]
   },
   {
+   "id": "k06-family-c-at-scale",
+   "ep": 6,
+   "code": "K06",
+   "week": 10,
+   "title": "Collecting from sources you don't control",
+   "subtitle": "Family C at 10 and 100 million a minute: backpressure, idempotent sinks, partition keys, the key registry, and PII",
+   "file": "k06-family-c-at-scale.mp4",
+   "poster": "k06-family-c-at-scale.jpg",
+   "source": "k06-family-c-at-scale.yaml",
+   "duration": 334.4,
+   "bytes": 4782071,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 25.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 40.1,
+     "title": "Four rules, three loads"
+    },
+    {
+     "t": 89.4,
+     "title": "Backpressure"
+    },
+    {
+     "t": 137.6,
+     "title": "Rate limits at 100M"
+    },
+    {
+     "t": 174.6,
+     "title": "The key registry"
+    },
+    {
+     "t": 221.4,
+     "title": "Metrics"
+    },
+    {
+     "t": 255.4,
+     "title": "Drill"
+    },
+    {
+     "t": 301.0,
+     "title": "Built on"
+    },
+    {
+     "t": 322.8,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#7-họ-c-khi-tải-lớn--thu-thập-từ-nguồn-không-kiểm-soát",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#71-bảng-ba-mức-tải",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#73-registry-key-hợp-lệ-ở-33-triệu-lần-tra-mỗi-giây",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#75-metric-thêm-vào-sáu-metric-của-04"
+   ],
+   "points": [
+    {
+     "id": "c-table",
+     "t": 40.1,
+     "text": "Bốn quy tắc họ C ở ba mức tải: backpressure (rate limit gateway → quota theo tenant + buffer producer có giới hạn → token bucket cục bộ, SDK lùi có jitter); sink idempotent (event_id → batch_id + GREATEST → client_id, seq); partition key (tenant_id → batch_id → client_id trong cell); PII (hash/redact ở client, raw ở lại region)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#71-bảng-ba-mức-tải",
+     "section": "07 · Họ C ở ba mức tải"
+    },
+    {
+     "id": "c-backpressure",
+     "t": 89.4,
+     "text": "Mỗi lớp có giới hạn: SDK buffer giới hạn, bỏ cái cũ và đếm, backoff + jitter, bỏ cuộc 10 phút; edge quota 429 + Retry-After; collector buffer producer giới hạn → 503; Kafka là bộ giảm chấn (lag tăng, không mất); consumer max.poll.records theo p99, theo lô (P13, P20)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn",
+     "section": "07 · Backpressure nhiều lớp"
+    },
+    {
+     "id": "c-ratelimit",
+     "t": 137.6,
+     "text": "Rate limit ở 1,67 triệu request/s: token bucket Redis + Lua của lab 2 cần một round trip mỗi request → ~17 node Redis chỉ để đếm quota, thêm một RTT; thay bằng bucket trong RAM từng collector giữ một phần quota, cân lại vài giây một lần; đánh đổi: giới hạn toàn cục thành xấp xỉ",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn",
+     "section": "07 · Backpressure nhiều lớp"
+    },
+    {
+     "id": "c-registry",
+     "t": 174.6,
+     "text": "Bloom filter chỉ tiết kiệm lượt tra cho key giả, mọi 'có thể có' vẫn hỏi store (hàng chục triệu/giây); giữ toàn bộ registry trong RAM collector dạng fingerprint 64 bit (10 triệu key ≈ 80 MB, xác suất trùng ≈ 5 × 10⁻¹³ mỗi lần tra); cập nhật qua compacted topic; ghi version registry vào raw",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#73-registry-key-hợp-lệ-ở-33-triệu-lần-tra-mỗi-giây",
+     "section": "07 · Registry key ở 33 triệu lần tra/giây"
+    },
+    {
+     "id": "c-metrics",
+     "t": 221.4,
+     "text": "Metric thêm: consumer_lag_seconds theo partition (một partition lag riêng = partition nóng); dedup_hits_per_sec (client retry hàng loạt); events_late, events_clock_skew; reconcile_drift theo cell; collector_cpu_us_per_request (+10 µs = +17 core ở 100M)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#75-metric-thêm-vào-sáu-metric-của-04",
+     "section": "07 · Metric thêm"
+    },
+    {
+     "id": "c-built-on",
+     "t": 301.0,
+     "text": "K06 dựa trên: P13 và lab 2 token bucket (giai đoạn 1), backpressure (Ep13), P20 (Ep16), Kafka key và compacted topic (Ep12), redact ở client của đề Katalon 01",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  },
+  {
    "id": "k07-timed-answer-and-map",
    "ep": 7,
    "code": "K07",
