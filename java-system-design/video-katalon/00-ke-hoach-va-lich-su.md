@@ -27,7 +27,7 @@
 | Xem sau giai đoạn 2 (hết tuần 10) | K03–K07 | Kafka (key, độ bền, giao nhận), stream window, fencing token | 35 phút |
 | **Tổng** | **8** | | **≈ 54 phút** |
 
-**Thực tế (đợt 1):** xem [mục 8](#8-bảng-trạng-thái).
+**Thực tế (đợt 1, 08/10/2026): 8 video, tổng 48:04 (≈ 48 phút), 42 MB;** nhóm sau giai đoạn 1 16:53, nhóm sau giai đoạn 2 31:11; ngắn nhất K00 4:44, dài nhất K05 7:21. Số từng video ở [mục 8](#8-bảng-trạng-thái).
 
 Vì sao là con số này:
 
@@ -194,14 +194,16 @@ Các quy tắc khác không đổi câu nào trong 969 câu của 30 video cũ (
 
 | Mã | Nhóm | Trạng thái | Dài | MB | Chương | Kiểm | Ghi chú |
 |---|---|---|---|---|---|---|---|
-| K00 | sau GĐ1 | Đang dựng | | | | | |
-| K01 | sau GĐ1 | Đang dựng | | | | | |
-| K02 | sau GĐ1 | Đang dựng | | | | | |
-| K03 | sau GĐ2 | Đang dựng | | | | | |
-| K04 | sau GĐ2 | Đang dựng | | | | | |
-| K05 | sau GĐ2 | Đang dựng | | | | | |
-| K06 | sau GĐ2 | Đang dựng | | | | | |
-| K07 | sau GĐ2 | Đang dựng | | | | | |
+| K00 | sau GĐ1 | **Chờ duyệt** | 4:44 | 4,1 | 9 | 7 ý chính · 1 chữ viết tắt | |
+| K01 | sau GĐ1 | **Chờ duyệt** | 5:32 | 4,7 | 12 | 10 ý chính · 2 chữ viết tắt | 2 mẫu +2,2 dBFS lúc 2:51 (nhật ký đợt 1) |
+| K02 | sau GĐ1 | **Chờ duyệt** | 6:37 | 5,7 | 12 | 9 ý chính · 4 chữ viết tắt | |
+| K03 | sau GĐ2 | **Chờ duyệt** | 6:19 | 5,6 | 11 | 8 ý chính · 9 chữ viết tắt | |
+| K04 | sau GĐ2 | **Chờ duyệt** | 5:47 | 4,9 | 12 | 8 ý chính · 5 chữ viết tắt | |
+| K05 | sau GĐ2 | **Chờ duyệt** | 7:21 | 6,8 | 13 | 12 ý chính · 10 chữ viết tắt | |
+| K06 | sau GĐ2 | **Chờ duyệt** | 5:34 | 4,8 | 10 | 6 ý chính · 6 chữ viết tắt | |
+| K07 | sau GĐ2 | **Chờ duyệt** | 6:09 | 5,7 | 9 | 8 ý chính · 8 chữ viết tắt | |
+
+**Đã dựng 8/8 video, 48:04 (≈ 48 phút), 42 MB — chờ duyệt. Đã duyệt 0/8.**
 
 ---
 
@@ -212,6 +214,46 @@ Các quy tắc khác không đổi câu nào trong 969 câu của 30 video cũ (
 - Viết [07 — Event Counting 10M và 100M/phút](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md)
   làm nguồn; thêm vào README của folder system design; sửa số họ bài (7) và số trục (5) ở README, 04, 06 và file chiến lược.
 - Chốt 8 video, hai nhóm xem, dạng phỏng vấn hai giọng (mục 0, 3, 4).
+
+### Đợt 1 — 08/10/2026: dựng cả 8 video
+
+Yêu cầu: làm video chen ngang để luyện phỏng vấn Katalon với họ bài thu thập và xử lý dữ liệu. Bài event counting có
+sẵn mới ở mức 10k request/phút; câu hỏi là 10M thì sao, 100M thì sao, và các video liên quan gì tới giai đoạn 1 và 2.
+
+- **Nguồn**: viết mới [07](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md) (xem Đợt 0).
+- **Kịch bản**: 8 file YAML ở [`lessons/`](lessons/), 250 câu, 6.478 từ. Tom hỏi, Emma trả lời; khai báo một lần ở
+  [`series.yaml`](lessons/series.yaml) (`prefix: K`, hai người nói).
+- **Ý chính**: [`lessons/points.yaml`](lessons/points.yaml) có **68 ý chính**, phạm vi **46 mục** của 07, 04, README họ
+  bài và §5 của file 02. `check` với ba bảng chữ viết tắt và `coverage --strict` đều sạch: 68/68 ý, 46/46 mục
+  ([02 — Độ phủ](02-do-phu.md)). Test `test_interlude_points_and_headings_all_covered` giữ mức này.
+- **Dựng**: Kokoro, tốc độ 0,9, hai rồi ba tiến trình song song (cùng 3 video dựng lại của hai bộ cũ: khoảng 50 phút).
+  Tổng 48:04 (≈ 48 phút), 42 MB; mỗi file từ −15,8 đến −16,4 LUFS. K01 có 2 mẫu liền nhau vượt 0 dBFS (+2,2 dBFS, dài
+  0,05 ms) ở một âm bật lúc 2:51, sinh ra khi mã hoá AAC 64 kbit/s: tiếng gốc của Kokoro chỉ tới 0,62 và `loudnorm` đã
+  chặn ở −1,5 dBTP. Giữ nguyên như Ep12, Ep14 của giai đoạn 2; nếu khi duyệt nghe thấy tiếng tách ở 2:51 thì dựng lại
+  câu đó.
+- **Soát bố cục** (ảnh cuối mỗi cảnh, ghép 4 ảnh một tấm), lỗi đã sửa:
+  - Thẻ mở đầu hai người nói tràn chữ ở 7/8 video → thẻ gọn hơn, chữ không vẽ quá khung; rút ngắn dòng nguồn.
+  - Sơ đồ: nhãn mũi tên bị cắt (K01); pipeline 10M chật (K03) → xếp lại ba hàng; ô cell dạng "zone" không hiện dòng
+    phụ (K05) → đổi thành hộp thường.
+  - Bảng dày chữ nhỏ: "năm thay đổi" (K05) tách hai slide; bản đồ giai đoạn 1 và 2 (K07) tách bốn slide.
+  - Khung luồng backpressure (K06) rút chữ; nhãn "Exercise K03" đổi thành *Question*, *Follow-up*, *Drill*, *Problem*.
+- **Phát âm** ([mục 6](#6-phát-âm--các-chỗ-đã-kiểm)): `K01`, `Gbit/s`, `1 µs`, PII, dedup sửa trong `speak.py`; số mã
+  HTTP, `p99`, problem `04`, lab `10A`, `10⁻¹³` và số tiền viết bằng `say`.
+- **Bộ cũ**: dựng lại Ep00 giai đoạn 1 (thẻ thêm NAB, MVP), Ep14 giai đoạn 2 (thẻ thêm WAL) và Ep15 giai đoạn 2 (đọc
+  *dedup*); ghi ở Đợt 1c của [kế hoạch giai đoạn 1](../video-gd1/00-ke-hoach-va-lich-su.md) và Đợt 1b của
+  [kế hoạch giai đoạn 2](../video-gd2/00-ke-hoach-va-lich-su.md). Một script so lời đọc hiện tại của từng câu với tiếng
+  file mp4 đã dùng: cả 38 video của ba bộ đều dùng lời đọc mới nhất.
+- **App**: tab **Video** có nút thứ ba *Chen ngang Katalon*, mã `K00`–`K07`, hai nhóm *Xem sau giai đoạn 1* và *Xem sau
+  giai đoạn 2*; mục nguồn ở `katalon-prep/` mở đúng heading. Pages copy cả ba bộ vào `media/jsd/<bộ>/`.
+- **Kiểm app bằng Playwright**: tab có 38 video (7 + 23 + 8) và ba nút chọn bộ; bộ chen ngang có đúng hai nhóm. Với
+  từng video: mã (`K01`), tiêu đề, số chương, số ý chính, số link nguồn, ảnh bìa và đường dẫn mp4 khớp `lessons.json`.
+  Tua theo chương và theo ý chính đúng giây; lựa chọn bộ được giữ sau khi tải lại. **110 liên kết nguồn** (ý chính và
+  `covers`) của bộ chen ngang đều mở được tài liệu tại đúng heading, kể cả tài liệu ở `katalon-prep/`. Ba nút tài liệu
+  mở đúng file; màn hình 390 px không tràn ngang; không có lỗi JavaScript. Bản mô phỏng Pages: 76/76 file media có ở
+  `media/jsd/`, ba bộ lấy ảnh bìa và mp4 từ `media/jsd/<bộ>/`. Hai bộ cũ vẫn qua bài test cũ trên template mới.
+- **Chưa làm**: chưa có người nghe lại toàn bộ — đó là bước duyệt. Góp ý về giọng, nhịp hỏi–đáp hay độ dài dựng lại
+  nhanh vì tiếng đã nằm trong bộ nhớ đệm.
+- Commit trên nhánh `claude/wizardly-pascal-9yhum5`.
 
 ---
 

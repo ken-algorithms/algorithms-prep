@@ -400,7 +400,7 @@ Trạng thái: **—** chưa làm · **Kịch bản** đã viết YAML · **Dự
 
 | Mã | Tuần | Trạng thái | Dài thật | MB | Chương | Đợt | Ghi chú |
 |---|:---:|:---:|---:|---:|---:|:---:|---|
-| Ep00 | — | **Chờ duyệt** | 8:08 | 6,9 | 10 | 1 | 18 ý chính · 10 chữ viết tắt |
+| Ep00 | — | **Chờ duyệt** | 8:21 | 7,2 | 10 | 1 | 18 ý chính · 12 chữ viết tắt |
 | Ep01 | 1 | **Chờ duyệt** | 9:01 | 7,7 | 7 | 1 | 15 ý chính · 19 chữ viết tắt |
 | Ep02 | 1 | **Chờ duyệt** | 10:14 | 8,7 | 11 | 1 | 16 ý chính · 9 chữ viết tắt |
 | Ep03 | 1 | **Chờ duyệt** | 10:23 | 8,7 | 8 | 1 | 8 ý chính · 12 chữ viết tắt |
@@ -431,7 +431,7 @@ Trạng thái: **—** chưa làm · **Kịch bản** đã viết YAML · **Dự
 | Ep28 | — | — | | | | | |
 | Ep29 | — | — | | | | | |
 
-**Đã dựng 7/30 video, 69:27 (≈ 69 phút), 60 MB — chờ duyệt. Đã duyệt 0/30.**
+**Đã dựng 7/30 video, 69:41 (≈ 70 phút), 60 MB — chờ duyệt. Đã duyệt 0/30.**
 
 ---
 
@@ -511,6 +511,14 @@ của bài học; xong thì tạo PR.
 - Dựng lại hai video đó; các câu khác lấy tiếng từ bộ nhớ đệm. Ep04 vẫn dài 10:44,
   Ep06 từ 9:55 thành 9:56. Đã sinh lại [độ phủ tuần 1](02-do-phu-tuan-1.md).
 - Sửa cột *Tom đọc* của DDIA, SLO, JPA trong [bảng chữ viết tắt](01-bang-chu-viet-tat.md).
+
+### Đợt 1c — 08/10/2026: dựng lại Ep00 (khi làm bộ chen ngang Katalon)
+
+- Lệnh `check` nay kiểm cả các dòng của cột so sánh (`compare`). Lộ ra **NAB** và **MVP** trên slide capstone của Ep00
+  mà thẻ chữ viết tắt không có. Thêm cả hai vào thẻ (nay 12 chữ) và một câu giải thích; câu mở thẻ trước đó nói
+  "Eight acronyms" trong khi thẻ có 10, nay sửa thành "Twelve". Cột *Video* của MVP trong
+  [bảng chữ viết tắt](01-bang-chu-viet-tat.md) đổi từ Ep06 thành Ep00.
+- Dựng lại Ep00; các câu khác lấy tiếng từ bộ nhớ đệm. Độ dài 8:08 → 8:21.
 
 ---
 
