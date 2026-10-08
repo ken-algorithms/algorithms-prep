@@ -272,6 +272,137 @@
    ]
   },
   {
+   "id": "k04-exactly-once-counts",
+   "ep": 4,
+   "code": "K04",
+   "week": 10,
+   "title": "Counting exactly once with at-least-once parts",
+   "subtitle": "Dedup by batch_id, GREATEST as a fencing token, late events and client clocks, and the hourly reconcile",
+   "file": "k04-exactly-once-counts.mp4",
+   "poster": "k04-exactly-once-counts.jpg",
+   "source": "k04-exactly-once-counts.yaml",
+   "duration": 347.2,
+   "bytes": 4904615,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 20.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 37.5,
+     "title": "The question"
+    },
+    {
+     "t": 63.8,
+     "title": "Three parts"
+    },
+    {
+     "t": 110.7,
+     "title": "GREATEST"
+    },
+    {
+     "t": 128.1,
+     "title": "Why it holds"
+    },
+    {
+     "t": 171.5,
+     "title": "A fencing token"
+    },
+    {
+     "t": 194.5,
+     "title": "Late events and clocks"
+    },
+    {
+     "t": 230.7,
+     "title": "Reconcile"
+    },
+    {
+     "t": 265.0,
+     "title": "Follow-ups"
+    },
+    {
+     "t": 309.6,
+     "title": "Built on"
+    },
+    {
+     "t": 337.6,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#74-đồng-hồ-của-client",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#83-follow-up-hay-gặp"
+   ],
+   "points": [
+    {
+     "id": "x-three",
+     "t": 63.8,
+     "text": "Ba mảnh: client gửi lại cùng batch_id, bỏ cuộc sau 10 phút (cửa sổ retry < cửa sổ khử trùng); stream processor bỏ batch_id đã thấy trong 15 phút, state = 166.667/s × 900 s ≈ 150 triệu khoá ≈ 7–8 GB (Little's Law), hết hạn theo event time; sink ghi đè bằng giá trị lớn hơn",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-greatest",
+     "t": 110.7,
+     "text": "Upsert agg_1m (tenant, phút, outcome) với cnt = GREATEST(cnt cũ, cnt mới): mỗi dòng là cả số đếm, không phải +1; số cũ nhỏ hơn không thay được số mới lớn hơn",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-why",
+     "t": 128.1,
+     "text": "Vì sao GREATEST đúng: sau khử trùng số đếm chỉ tăng; khôi phục từ checkpoint phát số nhỏ hơn rồi tăng lại (bị bỏ qua); consumer xác sống sau GC pause cầm số cũ hơn (bị bỏ qua); event trễ trong 30 phút cho số lớn hơn (nhận); giới hạn: không hạ được số quá cao (retry sau khi khoá hết hạn) → batch đối soát",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-fencing",
+     "t": 171.5,
+     "text": "GREATEST là fencing token của lab 10A: client không tự biết mình đã pause quá TTL, chỉ nơi lưu trữ từ chối được người ghi cũ; ở đây con số đếm chính là token",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-late",
+     "t": 194.5,
+     "text": "Event trễ: trong 30 phút thì cửa sổ tính lại và phát số lớn hơn; trễ hơn thì đi topic late + bộ đếm events_late, raw vẫn có nên đối soát đếm đủ, không bỏ im lặng",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-clock",
+     "t": 194.5,
+     "text": "Event time là wall clock của client, có thể lệch, lùi: collector ghi thời điểm nhận; event ở tương lai hoặc cũ hơn retention raw thì gắn cờ, đếm vào events_clock_skew, không lặng lẽ đếm vào bucket sai",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#74-đồng-hồ-của-client",
+     "section": "07 · Đồng hồ của client"
+    },
+    {
+     "id": "x-reconcile",
+     "t": 230.7,
+     "text": "Đối soát mỗi giờ: đếm lại từ raw đóng gói, khử trùng batch_id cả giờ, so với rollup, reconcile_drift phải bằng 0; sửa vào final_cnt riêng, đọc COALESCE(final_cnt, cnt), đánh dấu is_final, billing chỉ đọc giờ đã chốt; hai đường dùng chung code phân loại",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-built-on",
+     "t": 309.6,
+     "text": "K04 dựa trên: idempotency key (giai đoạn 1 tuần 2) và ba tầng idempotency (Ep08); at-least-once + sink idempotent, transaction dừng ở Kafka (Ep13, Ep15); Little's Law (giai đoạn 1 Ep01); đồng hồ (Ep19); fencing token (Ep20)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  },
+  {
    "id": "k05-100m-physics-money",
    "ep": 5,
    "code": "K05",
