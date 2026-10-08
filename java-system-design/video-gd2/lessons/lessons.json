@@ -1,0 +1,416 @@
+{
+ "schema": "jsd-lessons/1",
+ "note": "Sinh bởi tools/lesson_video từ các file .yaml cùng thư mục — sửa kịch bản rồi chạy lại `python -m lesson_video build`, không sửa tay file này hay file .mp4.",
+ "lessons": [
+  {
+   "id": "ep00-phase2-orientation",
+   "ep": 0,
+   "week": 0,
+   "title": "Phase 2 orientation",
+   "subtitle": "Data across many nodes: six weeks, five labs, and the capstone kickoff",
+   "file": "ep00-phase2-orientation.mp4",
+   "poster": "ep00-phase2-orientation.jpg",
+   "source": "ep00-phase2-orientation.yaml",
+   "duration": 362.0,
+   "bytes": 5468988,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Welcome"
+    },
+    {
+     "t": 19.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 73.1,
+     "title": "Why phase 2"
+    },
+    {
+     "t": 111.6,
+     "title": "The six weeks"
+    },
+    {
+     "t": 180.5,
+     "title": "One week"
+    },
+    {
+     "t": 210.0,
+     "title": "Your folders"
+    },
+    {
+     "t": 230.5,
+     "title": "Kafka without Docker"
+    },
+    {
+     "t": 264.8,
+     "title": "Capstone and milestone"
+    },
+    {
+     "t": 316.7,
+     "title": "How to use these videos"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+    "00-lo-trinh-6-thang.md#giai-đoạn-2--dữ-liệu-và-hệ-phân-tán-tuần-510"
+   ],
+   "points": [
+    {
+     "id": "p2-why",
+     "t": 73.1,
+     "text": "Giai đoạn 2 phân biệt senior với mid-level: dữ liệu chạy thế nào khi có nhiều node, nhiều service và mạng chập chờn",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-entry",
+     "t": 73.1,
+     "text": "Điều kiện vào: đã qua mốc tuần 4; lab 3A (lost update) và lab 2 (Lua nguyên tử) là nền bắt buộc vì giai đoạn 2 lặp lại hai ý đó ở quy mô nhiều service",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-map",
+     "t": 111.6,
+     "text": "Bản đồ 6 tuần: 5–6 replication, partitioning, consistent hashing (lab 5A, 5B, V6, đề KV + cache); 7 saga, outbox, idempotency, sổ cái kép (lab 7, payment + wallet); 8–9 Kafka (lab 8, P20, V7, ad click); 10 đồng thuận, khoá, đồng hồ (lab 10A, 10B, hotel + scheduler); capstone tuần 9–10",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-roadmap",
+     "t": 111.6,
+     "text": "Lộ trình 00: tuần 5–10 cùng chủ đề, đọc DDIA các chương replication, partitioning, the trouble with distributed systems, consistency and consensus; xem bài giảng Distributed Systems của Martin Kleppmann",
+     "src": "00-lo-trinh-6-thang.md#giai-đoạn-2--dữ-liệu-và-hệ-phân-tán-tuần-510",
+     "section": "00 · Giai đoạn 2"
+    },
+    {
+     "id": "p2-rhythm",
+     "t": 180.5,
+     "text": "Nhịp tuần giữ như giai đoạn 1; hai khối hai tuần (5–6 và 8–9): tuần đầu dùng Thứ Bảy để dựng, tuần sau để đo và thử phá",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-folders",
+     "t": 210.0,
+     "text": "Thư mục bài làm my-work/: w5-6-hashing, w7-saga, w8-9-kafka-lab, w10-coordination, capstone/design-doc.md và adr/, drawings V6, V7",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-kafka-nodocker",
+     "t": 230.5,
+     "text": "Chạy Kafka không Docker: tải bản 4.1.2, kiểm sha512, format storage một lần; Kafka 4.x chỉ còn KRaft, không ZooKeeper; Postgres nhúng (embedded-postgres); có Docker thì Testcontainers",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-milestone-preview",
+     "t": 264.8,
+     "text": "Xem trước mốc tuần 10: giải thích 6 chủ đề không cần tài liệu, lab 8 bảy test xanh, lab 7 có recovery, D20 trước/sau, V6 V7, 6 đề bấm giờ ≥ 7/10, design doc v1 + khung MVP",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-videos",
+     "t": 316.7,
+     "text": "Cách dùng bộ video: mỗi video một ý lớn kèm bài tập theo thứ tự file 20; dừng ở đếm ngược; thẻ chữ viết tắt; 'measured' là số đã chạy (Postgres 16.4, Kafka 4.1.2 thật), 'assumption' là đoán; tab Video có thời điểm và link mục nguồn",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    }
+   ]
+  },
+  {
+   "id": "ep01-replication",
+   "ep": 1,
+   "week": 5,
+   "title": "Replication: leaders, followers, and lag",
+   "subtitle": "Three models, synchronous or asynchronous, the anomalies of lag, and a dangerous failover",
+   "file": "ep01-replication.mp4",
+   "poster": "ep01-replication.jpg",
+   "source": "ep01-replication.yaml",
+   "duration": 431.2,
+   "bytes": 6052687,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 23.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 64.2,
+     "title": "Weeks 5–6"
+    },
+    {
+     "t": 124.3,
+     "title": "Three models"
+    },
+    {
+     "t": 254.3,
+     "title": "Exercise 5.1"
+    },
+    {
+     "t": 328.4,
+     "title": "Exercise 5.3"
+    },
+    {
+     "t": 402.0,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#tuần-56--replication-partitioning-consistent-hashing",
+    "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-6",
+    "20-implement-gd2-du-lieu-phan-tan.md#đọc",
+    "20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm",
+    "20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56"
+   ],
+   "points": [
+    {
+     "id": "w56-outputs",
+     "t": 64.2,
+     "text": "Cuối tuần 6: lab 5A vòng băm có vnode và hệ số nhân bản 3; lab 5B mô phỏng quorum, tái hiện đọc cũ khi R + W ≤ N; đề KV store và distributed cache; V6 ở L2 có đoạn × 10; bài nói 2 phút về consistent hashing",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-6",
+     "section": "20 · Tuần 5–6: đầu ra"
+    },
+    {
+     "id": "w56-reading",
+     "t": 95.9,
+     "text": "Đọc: DDIA chương 5 (replication) và 6 (partitioning); Alex Xu Vol 1 chương 5, 6; bài báo Dynamo (2007) phần 4 — nguồn gốc sloppy quorum, hinted handoff; tuỳ chọn bài giảng của Kleppmann",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đọc",
+     "section": "20 · Tuần 5–6: đọc"
+    },
+    {
+     "id": "repl-models",
+     "t": 124.3,
+     "text": "Ba mô hình: single-leader (không xung đột; Postgres, MySQL, Kafka partition; hợp sổ cái), multi-leader (xung đột, giải bằng LWW, merge, CRDT; offline-first, active-active), leaderless (version + read repair; Cassandra, DynamoDB; LWW làm mất một lệnh ghi)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication",
+     "section": "20 §5.1 · Ba mô hình replication"
+    },
+    {
+     "id": "repl-sync",
+     "t": 187.3,
+     "text": "Đồng bộ: commit chờ replica xác nhận, +1–2 ms cùng region, ~90 ms nếu replica ở Singapore còn leader ở Sydney, không mất dữ liệu đã commit; bất đồng bộ: nhanh nhưng failover có thể mất vài giây ghi cuối",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication",
+     "section": "20 §5.1 · Ba mô hình replication"
+    },
+    {
+     "id": "repl-lag",
+     "t": 218.6,
+     "text": "Ba dị thường khi đọc từ follower trễ: read-your-writes, monotonic reads (dữ liệu lùi về cũ), consistent prefix (câu trả lời trước câu hỏi); chữa read-your-writes như bài tập 3.4 giai đoạn 1",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication",
+     "section": "20 §5.1 · Ba mô hình replication"
+    },
+    {
+     "id": "ex51",
+     "t": 283.9,
+     "text": "BT 5.1: (a) đồng bộ Melbourne +12 ms, RPO = 0; (b) Singapore +90 ms, mất 1/3 ngân sách p99 300 ms; (c) đồng bộ khác AZ +1–2 ms + bất đồng bộ sang Melbourne: mất region thì mất vài giây ghi cuối, cần đối soát; ngân hàng chọn (c), (a) cho dữ liệu không được mất dòng nào",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    },
+    {
+     "id": "ex53",
+     "t": 353.2,
+     "text": "BT 5.3: follower trễ 2 s được đẩy lên, sequence bigserial cấp lại ID đã dùng → hai giao dịch cùng ID, có thể lộ dữ liệu khách này cho khách khác (sự cố GitHub ở DDIA ch. 5); chống: ID không phụ thuộc DB (Snowflake, UUID), không tự failover sang replica trễ cho dữ liệu tiền, đối soát sau failover",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    }
+   ]
+  },
+  {
+   "id": "ep02-quorums",
+   "ep": 2,
+   "week": 5,
+   "title": "Quorums: N, W, R and what they don't promise",
+   "subtitle": "Why R + W > N works, three ways it still loses data, and lab 5B",
+   "file": "ep02-quorums.mp4",
+   "poster": "ep02-quorums.jpg",
+   "source": "ep02-quorums.yaml",
+   "duration": 376.0,
+   "bytes": 5326743,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 24.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 43.9,
+     "title": "The rule"
+    },
+    {
+     "t": 83.9,
+     "title": "What quorums don't promise"
+    },
+    {
+     "t": 172.5,
+     "title": "Exercise 5.2"
+    },
+    {
+     "t": 234.0,
+     "title": "Lab 5B"
+    },
+    {
+     "t": 347.2,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r",
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-5b--mô-phỏng-quorum-thứ-bảy-tuần-6",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56"
+   ],
+   "points": [
+    {
+     "id": "quorum-formula",
+     "t": 43.9,
+     "text": "N bản sao, W bản xác nhận ghi, R bản trả lời đọc; R + W > N thì tập đọc và tập ghi luôn giao nhau nên đọc thấy ít nhất một bản mới nhất; N=3, W=2, R=2 chịu được 1 node chết cho cả đọc lẫn ghi",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r",
+     "section": "20 §5.2 · Quorum N, W, R"
+    },
+    {
+     "id": "quorum-not-linear",
+     "t": 83.9,
+     "text": "Quorum không cho linearizability: hai lệnh ghi đồng thời giải bằng LWW theo đồng hồ thì một lệnh mất im lặng; ghi thất bại ở bước W vẫn để lại bản ghi trên 1 replica, không rollback; sloppy quorum + hinted handoff (Dynamo) tăng availability nhưng phá đảm bảo R + W > N",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r",
+     "section": "20 §5.2 · Quorum N, W, R"
+    },
+    {
+     "id": "quorum-tuning",
+     "t": 136.4,
+     "text": "Chọn W, R theo từng request (khung đề KV store): mặc định W=2, R=2, chậm hơn W=1; công thức R + W > N cho biết đánh đổi giữa độ trễ, độ mới và số node được chết",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r",
+     "section": "20 §5.2 · Quorum N, W, R"
+    },
+    {
+     "id": "ex52",
+     "t": 194.2,
+     "text": "BT 5.2: (a) N=3,W=2,R=2 chịu 1 node chết cho ghi và đọc; (b) N=5,W=3,R=3 chịu 2; (c) W=1,R=1: R + W = 2 ≤ 3 có thể đọc cũ — chấp nhận cho lượt xem, trạng thái online, giỏ hàng; không chấp nhận cho số dư, tồn kho, hạn mức",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    },
+    {
+     "id": "lab5b",
+     "t": 234.0,
+     "text": "Lab 5B tự viết, không có lời giải: 3 replica (value, version); ghi tăng version, đủ W xác nhận; đọc R bản lấy version lớn nhất; bơm lỗi một replica chết, một replica chậm; test R=2,W=2 luôn mới nhất, R=1,W=1 đọc cũ, LWW đồng hồ lệch 20 ms mất một lệnh; read repair đo sau 1.000 lần đọc",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5b--mô-phỏng-quorum-thứ-bảy-tuần-6",
+     "section": "20 · Lab 5B — Mô phỏng quorum"
+    },
+    {
+     "id": "lab5b-lww",
+     "t": 274.5,
+     "text": "Lab 5B: hai lệnh ghi đồng thời, LWW theo đồng hồ lệch 20 ms → lệnh xảy ra sau bị mất, không báo lỗi; test phải chỉ ra lệnh nào",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5b--mô-phỏng-quorum-thứ-bảy-tuần-6",
+     "section": "20 · Lab 5B — Mô phỏng quorum"
+    }
+   ]
+  },
+  {
+   "id": "ep03-partitioning",
+   "ep": 3,
+   "week": 5,
+   "title": "Partitioning: ranges, hashes, hot spots, secondary indexes",
+   "subtitle": "Four ways to split data, what a secondary index costs, a hot merchant, and a lookup across shards",
+   "file": "ep03-partitioning.mp4",
+   "poster": "ep03-partitioning.jpg",
+   "source": "ep03-partitioning.yaml",
+   "duration": 349.8,
+   "bytes": 4960370,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 26.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 43.9,
+     "title": "Four ways to split"
+    },
+    {
+     "t": 147.9,
+     "title": "Secondary indexes"
+    },
+    {
+     "t": 185.3,
+     "title": "Exercise 5.4: a hot merchant"
+    },
+    {
+     "t": 258.5,
+     "title": "Exercise 5.5: lookup by reference"
+    },
+    {
+     "t": 324.2,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56"
+   ],
+   "points": [
+    {
+     "id": "part-methods",
+     "t": 43.9,
+     "text": "Bốn cách chia: theo khoảng khoá (đọc theo khoảng tốt, dễ lệch khi khoá theo thời gian), hash mod N (đều, rebalance thảm hoạ: đo được 80% key chuyển khi 4 → 5 node), vòng băm + vnode (chỉ ~1/(N+1) key chuyển: 18,9% với 100 vnode), số partition cố định (Kafka, Redis Cluster 16.384 slot, Elasticsearch; chuyển nguyên partition, số partition chọn trước)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing",
+     "section": "20 §5.3 · Partitioning và rebalancing"
+    },
+    {
+     "id": "part-modn",
+     "t": 109.3,
+     "text": "Vì sao hash mod N chuyển ~80% key khi 4 → 5 node: key chỉ ở yên khi hash mod 4 = hash mod 5, xảy ra với 1/5 số key; vòng băm chỉ chuyển phần của node mới",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing",
+     "section": "20 §5.3 · Partitioning và rebalancing"
+    },
+    {
+     "id": "part-secondary",
+     "t": 147.9,
+     "text": "Index phụ khi đã shard: local (mỗi shard index dữ liệu của mình, truy vấn phải hỏi mọi shard rồi gộp: scatter-gather) hoặc global (index tự shard theo giá trị; đọc nhanh nhưng cập nhật thường bất đồng bộ)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing",
+     "section": "20 §5.3 · Partitioning và rebalancing"
+    },
+    {
+     "id": "ex54",
+     "t": 206.1,
+     "text": "BT 5.4: merchant chiếm 30% giao dịch → shard của nó gánh 30% tải ghi và tranh khoá một dòng số dư; sửa theo thứ tự: sổ cái append-only (số dư tính từ bút toán), salting thành N tài khoản con (phải ≥ 16 lần số partition mới đều), gom bút toán theo lô vài trăm ms; đánh đổi: số dư không còn là một con số đọc trực tiếp",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    },
+    {
+     "id": "ex55",
+     "t": 279.4,
+     "text": "BT 5.5: tìm theo mã tham chiếu trên mọi tài khoản: index local + scatter-gather (latency bằng shard chậm nhất, tải nhân số shard, chấp nhận nếu hiếm) hoặc index global (bảng reference → account, txn shard theo reference, hoặc OpenSearch qua CDC; cập nhật bất đồng bộ); tổng đài ngân hàng: global qua CDC + thông báo giao dịch dưới 1 phút có thể chưa hiện",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    }
+   ]
+  }
+ ]
+}
