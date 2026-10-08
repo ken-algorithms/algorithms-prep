@@ -140,6 +140,174 @@
      "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
     }
    ]
+  },
+  {
+   "id": "k05-100m-physics-money",
+   "ep": 5,
+   "code": "K05",
+   "week": 10,
+   "title": "A hundred million a minute: physics and money",
+   "subtitle": "CPU per request, bytes on the wire, dedup state, and one region as a blast radius — then cells",
+   "file": "k05-100m-physics-money.mp4",
+   "poster": "k05-100m-physics-money.jpg",
+   "source": "k05-100m-physics-money.yaml",
+   "duration": 440.6,
+   "bytes": 6803523,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 21.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 53.5,
+     "title": "The question"
+    },
+    {
+     "t": 70.1,
+     "title": "New numbers"
+    },
+    {
+     "t": 92.7,
+     "title": "CPU per request"
+    },
+    {
+     "t": 157.0,
+     "title": "Three bills"
+    },
+    {
+     "t": 203.3,
+     "title": "Cells"
+    },
+    {
+     "t": 232.3,
+     "title": "Five changes"
+    },
+    {
+     "t": 304.2,
+     "title": "Counts versus money"
+    },
+    {
+     "t": 338.2,
+     "title": "Not at 100M"
+    },
+    {
+     "t": 355.9,
+     "title": "The 2-minute answer"
+    },
+    {
+     "t": 407.9,
+     "title": "Built on"
+    },
+    {
+     "t": 430.2,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#44--10000--100m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#55-collector-chi-phí-mỗi-request-nhân-với-166667",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#6-kiến-trúc-ở-100m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#61-sơ-đồ-cell-theo-region",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#63-ba-thứ-phải-tính-tiền-ra-được",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#82-còn-100m--2-phút"
+   ],
+   "points": [
+    {
+     "id": "h-numbers",
+     "t": 70.1,
+     "text": "100M/phút: 1,67 triệu req/s, 33 triệu event/s, 2.880 tỷ/ngày, ~13 Gbit/s vào (đỉnh ~40), raw 173 TB/ngày ở 60 B/event hoặc ~18 TB đóng gói",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#44--10000--100m-requestphút",
+     "section": "07 · × 10.000: 100M/phút"
+    },
+    {
+     "id": "h-cpu",
+     "t": 92.7,
+     "text": "1 µs mỗi request = 0,0002 core ở 10k, 0,17 core ở 10M, 1,7 core ở 100M; collector không chạm DB giả định 0,2 ms CPU/request (phải đo) → ~28 pod ở 10M, ~280 pod ở 100M (ở 60% CPU)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#55-collector-chi-phí-mỗi-request-nhân-với-166667",
+     "section": "07 · Chi phí mỗi request của collector"
+    },
+    {
+     "id": "h-trackp",
+     "t": 92.7,
+     "text": "Track P thành tiền: P01 new ObjectMapper() mỗi request (+14 µs, 20 KB rác) → ~24 core và 30 GB/s rác ở 100M, vô hình ở 10k; P04 exception cho fake key (50% input sai) → ~31 core; cùng một dòng code, khác số request nhân vào",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#55-collector-chi-phí-mỗi-request-nhân-với-166667",
+     "section": "07 · Chi phí mỗi request của collector"
+    },
+    {
+     "id": "h-bills",
+     "t": 157.0,
+     "text": "Ba hoá đơn tính được trên bảng: chép raw qua AZ (2 bản × ~0,02 USD/GB) ≈ 6.900 USD/ngày với raw chưa đóng gói; 30 ngày raw trên S3 ≈ 110 nghìn USD/tháng (chưa đóng gói) so với ≈ 12 nghìn (đóng gói); CPU 1 µs = 1,7 core. Giá niêm yết, chỉ để ra bậc độ lớn; đóng gói và nén là bắt buộc",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#63-ba-thứ-phải-tính-tiền-ra-được",
+     "section": "07 · Ba hoá đơn"
+    },
+    {
+     "id": "h-cells",
+     "t": 203.3,
+     "text": "Cell theo region: client tới region gần nhất, client_id có cell nhà (như user → cell ở L4); mỗi cell chạy nguyên pipeline 10M, raw ở lại region; chỉ số đếm đã gộp đi toàn cục; tổng toàn cục = SUM theo cell, chỉ chốt khi mọi cell qua watermark",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#61-sơ-đồ-cell-theo-region",
+     "section": "07 · Cell theo region"
+    },
+    {
+     "id": "h-changes",
+     "t": 232.3,
+     "text": "Thay đổi ở 100M: cell gộp bằng cộng (số toàn cục chờ cell chậm nhất); khử trùng (client_id, seq) như idempotent producer của Kafka, state theo số client chứ không theo 1,5 tỷ batch_id; dây nhị phân + nén, client gộp khi ít và gửi dày (đổi hợp đồng); raw đóng gói ở lại region",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+     "section": "07 · Năm thay đổi so với 10M"
+    },
+    {
+     "id": "h-raw",
+     "t": 272.3,
+     "text": "Raw đóng gói, nén cột, ở lại region, giữ nóng ngắn: 173 TB/ngày (60 B/event) → ~18 TB/ngày (128 B/request) trước khi nén; đánh đổi: raw cũ nằm ở lớp lạnh, câu hỏi mới về nó trả lời chậm",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+     "section": "07 · Năm thay đổi so với 10M"
+    },
+    {
+     "id": "h-sketch",
+     "t": 272.3,
+     "text": "Sketch chỉ cho distinct và top-K: HyperLogLog ~12 KB, sai số ~0,81%, cộng được qua bucket và cell; số tổng giữ chính xác vì 4 số nguyên mỗi bucket là rẻ; sketch là xấp xỉ, không dùng tính tiền",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+     "section": "07 · Năm thay đổi so với 10M"
+    },
+    {
+     "id": "h-counts-vs-money",
+     "t": 304.2,
+     "text": "Số đếm làm active-active được vì không có bất biến giữa các cell (CRDT G-counter, tổng là phép cộng); số dư ví có bất biến (không âm) nên cần một nơi ghi duy nhất hoặc đồng thuận — đó là lý do họ A khác họ G",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao",
+     "section": "07 · Không làm ở 100M"
+    },
+    {
+     "id": "h-not",
+     "t": 338.2,
+     "text": "Không làm ở 100M: exactly-once xuyên region (2PC xuyên region là thứ giai đoạn 2 dạy tránh), một cụm Kafka toàn cầu, sketch/sampling cho số tổng, mỗi event một dòng trong bất kỳ DB nào (2.880 tỷ dòng/ngày)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao",
+     "section": "07 · Không làm ở 100M"
+    },
+    {
+     "id": "h-answer",
+     "t": 355.9,
+     "text": "Câu trả lời 100M: số mới; vật lý và tiền (1 µs = 1,7 core, raw qua zone, 1,5 tỷ khoá); cell theo region chạy pipeline 10M, chỉ số đếm cộng toàn cục; khử trùng theo client và số thứ tự; dây nhị phân nén; raw đóng gói ở lại region; sketch chỉ cho distinct và top-K; không exactly-once xuyên region, không Kafka toàn cầu, câu trả lời nói rõ đã chốt chưa",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#82-còn-100m--2-phút",
+     "section": "07 · Câu trả lời 100M trong 2 phút"
+    },
+    {
+     "id": "h-built-on",
+     "t": 407.9,
+     "text": "K05 dựa trên: Track P (giai đoạn 1 Ep04, Ep05), cell ở bậc L4 (file 02, Ep25 kế hoạch); giai đoạn 2: CRDT (Ep01), không 2PC (Ep07), sequence của producer (Ep12–Ep13)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
   }
  ]
 }
