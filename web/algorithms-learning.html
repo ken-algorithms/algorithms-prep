@@ -759,7 +759,9 @@ function renderVid(){
     .filter(([, d]) => d && DOCS[d])
     .map(([t, d], i) => `<button class="fbtn" data-act="doc" data-doc="${esc(d)}"${i ? "" : ' aria-pressed="true"'}>${esc(t)} →</button>`).join("");
   const v = L.find(x => x.id === vidCur);
-  const miss = `<div class="miss">Không tải được video trong bản này.<br>Mở web/index.html từ thư mục repo, hoặc xem bản GitHub Pages.</div>`;
+  const miss = `<div class="miss"><div>Không phát được video này: file không có ở bản đang mở (hãy mở web/index.html
+    từ thư mục repo, hoặc bản GitHub Pages), hoặc trình duyệt không phát được H.264.<br>
+    <a href="${vSrc(v.file)}" download>Tải file mp4</a></div></div>`;
   el("vPlayer").innerHTML = `<video id="vEl" controls preload="metadata" playsinline
       ${v.poster ? `poster="${vSrc(v.poster)}"` : ""} src="${vSrc(v.file)}"
       onerror="this.outerHTML=this.dataset.miss" data-miss="${esc(miss)}"></video>`;
