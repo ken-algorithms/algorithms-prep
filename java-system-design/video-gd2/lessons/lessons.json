@@ -2053,6 +2053,84 @@
      "section": "20 · Bài nói 2 phút tuần 10"
     }
    ]
+  },
+  {
+   "id": "ep21-hotel-scheduler",
+   "ep": 21,
+   "week": 10,
+   "title": "Timed designs: hotel reservation and a distributed job scheduler",
+   "subtitle": "Exercises 10.4 and 10.5 — inventory rows per night, deliberate overbooking, cron without duplicates, and an honest “exactly-once?”",
+   "file": "ep21-hotel-scheduler.mp4",
+   "poster": "ep21-hotel-scheduler.jpg",
+   "source": "ep21-hotel-scheduler.yaml",
+   "duration": 264.8,
+   "bytes": 3586430,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 15.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 23.9,
+     "title": "10.4 Hotel reservation"
+    },
+    {
+     "t": 146.2,
+     "title": "10.5 Job scheduler"
+    },
+    {
+     "t": 231.8,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10"
+   ],
+   "points": [
+    {
+     "id": "ex104-sql",
+     "t": 49.0,
+     "text": "BT 10.4 Hotel reservation: room_type_inventory một dòng mỗi (khách sạn, loại phòng, ngày) với total, reserved; đặt nhiều đêm là MỘT transaction update có điều kiện date between :in and :out - 1 and reserved + :rooms <= total * 1.1; số dòng < số đêm → rollback",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    },
+    {
+     "id": "ex104-decisions",
+     "t": 77.6,
+     "text": "BT 10.4 quyết định: chống đặt trùng bằng reservation_id client sinh (idempotency key, unique); chống overbooking bằng update có điều kiện (ngày cao điểm tranh một dòng, vẫn ổn); giữ phòng PENDING 15 phút → saga thanh toán → xác nhận hoặc nhả; tìm phòng đọc cache/replica, kiểm lại lúc đặt",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    },
+    {
+     "id": "ex104-family",
+     "t": 124.0,
+     "text": "Hotel reservation thuộc họ G (đọc → tính → ghi trên trạng thái chia sẻ), như bài 06",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    },
+    {
+     "id": "ex105",
+     "t": 171.1,
+     "text": "BT 10.5 Distributed job scheduler: lõi lab 10B; lịch cron chỉ một nơi sinh lần chạy, unique (schedule_id, fire_time) để sinh trùng vô hại; ưu tiên và công bằng giữa tenant (họ B, bài 02); job treo = lease hết hạn, reaper trả về READY; kết quả ghi kèm lease_version",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    },
+    {
+     "id": "ex105-exactly",
+     "t": 211.5,
+     "text": "'Exactly-once?' của scheduler: không; at-least-once + job idempotent + fencing khi ghi kết quả",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    }
+   ]
   }
  ]
 }
