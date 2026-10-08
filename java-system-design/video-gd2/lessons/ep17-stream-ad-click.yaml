@@ -1,0 +1,177 @@
+id: ep17-stream-ad-click
+ep: 17
+week: 8
+tag: "EP17 · WEEKS 8–9"
+title: "Stream processing, and the ad click aggregation design"
+subtitle: "Windows, event time versus processing time, watermarks and late events — then exercise 8.4 in 45 minutes"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#86-stream-processing--đủ-để-nói-chuyện
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · §8.6 stream processing (enough to hold a conversation); exercise 8.4, ad click aggregation"}
+      - {t: "Week 9 · reading: Alex Xu Vol 2, ch. 6; DDIA ch. 11 · Sunday timed design, 45 minutes"}
+    lines:
+      - emma: "Episode seventeen: stream processing, just enough to hold the conversation, and then the timed design of week nine, ad click aggregation."
+      - emma: "The reading behind it is Alex Xu volume two, chapter six, and DDIA chapter eleven."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DDIA, full: "Designing Data-Intensive Applications", vi: "sách của Martin Kleppmann"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: OLAP, full: "online analytical processing", vi: "CSDL cho truy vấn phân tích, gom trên nhiều dòng (ClickHouse, Druid)"}
+    lines:
+      - emma: "DDIA is Kleppmann's book, and ID an identifier. OLAP means online analytical processing: databases built for queries that aggregate many rows, like ClickHouse and Druid."
+        focus: 2
+
+  - kind: table
+    chapter: "Windows"
+    heading: "8.6 · Three kinds of window"
+    columns: ["Window", "Shape", "Example"]
+    widths: [1.8, 3.6, 3.6]
+    build: true
+    points: [stream-windows]
+    rows:
+      - ["Tumbling", "fixed size, no overlap: each event is in exactly one window", "clicks per ad, per 1 minute"]
+      - ["Hopping", "fixed size, sliding by a smaller step: windows overlap", "5 minutes, sliding every 1 minute"]
+      - ["Session", "closed by a gap of silence, so its length varies", "one user's visit, ended by 30 minutes of nothing"]
+    lines:
+      - emma: "Three kinds of window. A tumbling window has a fixed size and no overlap, so every event lands in exactly one window. For example, clicks per ad per minute."
+        focus: 0
+      - emma: "A hopping window has a fixed size but slides by a smaller step, so windows overlap. Five minutes, sliding every minute."
+        focus: 1
+      - emma: "And a session window has no fixed size. It closes after a gap of silence, like one user's visit."
+        focus: 2
+
+  - kind: flow
+    chapter: "Event time"
+    heading: "8.6 · Group by event time; a watermark decides when a window closes"
+    sub: "Event time = when the click happened · processing time = when the system sees it"
+    points: [stream-time]
+    build: true
+    items:
+      - {t: "Click at 10:00:58", s: "event time: inside the window 10:00–10:01"}
+      - {t: "Arrives at 10:01:09", s: "processing time: the phone was offline for a moment"}
+      - {t: "Watermark", s: "“no more events older than T”, e.g. the newest event time − 15 s"}
+      - {t: "Window closes", s: "when the watermark passes 10:01"}
+      - {t: "Late event", s: "arrives after that: update the closed window, or a reconciliation table", tone: warn}
+    lines:
+      - emma: "Time is the hard part. Event time is when the click happened. Processing time is when your system sees it. A click two seconds before the minute ends can arrive nine seconds into the next minute, because the phone was briefly offline."
+        focus: 1
+      - emma: "Group by event time, so the click counts in the minute it happened. But then, when can you close a window? A watermark says: no more events older than this time. For example, the newest event time seen, minus fifteen seconds."
+        focus: 2
+      - emma: "The window closes when the watermark passes its end. An event that arrives after that is late, and you need a policy for it: update the closed window, or put it in a reconciliation table."
+        focus: 4
+
+  - kind: exercise
+    chapter: "Exercise 8.4"
+    n: "8.4"
+    q: "Timed design, 45 minutes: ad click aggregation."
+    items:
+      - {t: "1 billion clicks a day"}
+      - {t: "Query: the number of clicks per ad in the last N minutes"}
+      - {t: "Query: the top 100 ads"}
+    lines:
+      - emma: "Exercise 8.4, a forty-five minute timed design: ad click aggregation. A billion clicks a day. Two queries: clicks per ad over the last N minutes, and the top hundred ads. Pause and do the numbers first."
+        say: "Exercise eight point four, a forty-five minute timed design: ad click aggregation. A billion clicks a day. Two queries: clicks per ad over the last N minutes, and the top hundred ads. Pause and do the numbers first."
+      - wait: 8
+
+  - kind: stats
+    heading: "Answer 8.4 · the numbers first"
+    points: [ex84-numbers]
+    items:
+      - {v: "≈ 11,600/s", l: "on average", s: "1,000,000,000 ÷ 86,400 s"}
+      - {v: "~50,000/s", l: "at the peak", s: "size Kafka and the stream job for this", tone: warn}
+      - {v: "top 100", l: "plus clicks per ad in the last N minutes", s: "both read pre-aggregated minutes", tone: ok}
+    lines:
+      - emma: "A billion a day divided by eighty-six thousand four hundred seconds is about eleven thousand six hundred clicks per second on average."
+        focus: 0
+      - emma: "And around fifty thousand per second at the peak. That's what Kafka and the stream job must handle."
+        focus: 1
+      - emma: "Both queries, clicks per ad over N minutes and the top hundred, read counts that were already aggregated per minute."
+        focus: 2
+
+  - kind: diagram
+    heading: "Answer 8.4 · the pipeline"
+    points: [ex84-pipeline]
+    nodes:
+      - {id: c, label: "Clicks", x: 70, y: 110, w: 120, h: 60, shape: user}
+      - {id: k, label: "Kafka", sub: "key = ad_id#0..7", x: 290, y: 110, w: 200, h: 80, shape: queue}
+      - {id: s, label: "Stream processor", sub: "tumbling 1 min, event time, watermark 15 s", x: 560, y: 110, w: 250, h: 90}
+      - {id: u, label: "Upsert (ad_id, minute)", sub: "idempotent sink", x: 840, y: 110, w: 230, h: 80, shape: db}
+      - {id: q, label: "OLAP / query", sub: "last N minutes, top 100", x: 1060, y: 250, w: 200, h: 80}
+      - {id: r, label: "Raw clicks", sub: "object storage", x: 290, y: 300, w: 200, h: 70, shape: db, at: 1}
+      - {id: b, label: "Daily batch", sub: "recompute from raw, compare with the stream", x: 640, y: 300, w: 290, h: 80, tone: ok, at: 1}
+    edges:
+      - {a: c, b: k}
+      - {a: k, b: s}
+      - {a: s, b: u}
+      - {a: u, b: q}
+      - {a: k, b: r, label: "raw copy", dashed: true, at: 1}
+      - {a: r, b: b, at: 1}
+      - {a: b, b: u, label: "compare", dashed: true, at: 1}
+    lines:
+      - emma: "The pipeline. Clicks go into Kafka, keyed by ad ID. A stream processor counts them in one-minute tumbling windows by event time, with a fifteen-second watermark, and upserts one row per ad and minute. Queries read from there, an OLAP store."
+        focus: 0
+      - emma: "Next to it, every raw click is kept in object storage. A daily batch job recomputes the counts from the raw data, and compares them with what the stream produced."
+        focus: 1
+
+  - kind: table
+    heading: "Answer 8.4 · decisions and their trade-offs (1/2)"
+    columns: ["Decision", "Choose", "The trade-off"]
+    widths: [1.6, 4.0, 3.6]
+    build: true
+    points: [ex84-ingest]
+    rows:
+      - ["Ingest", "click → Kafka, key = ad_id", "a hot ad means a hot partition: split the key into ad_id#0..7"]
+      - ["Aggregate", "a stream processor, tumbling 1-minute windows by event time, watermark 15 s", "clicks after the watermark need separate handling"]
+      - ["Write", "upsert (ad_id, minute) → an idempotent sink", "so you don't need the framework's exactly-once"]
+    lines:
+      - emma: "The trade-offs. Keying by ad ID makes a popular ad a hot partition, so split its key into eight: ad ID hash zero to seven."
+        say: "The trade-offs. Keying by ad ID makes a popular ad a hot partition, so split its key into eight: ad ID, hash, zero to seven."
+        focus: 0
+      - emma: "Aggregating by event time with a watermark means clicks that come after the watermark need their own handling."
+        focus: 1
+      - emma: "And the sink is an upsert per ad and minute. Writing the same result twice changes nothing, so you don't need the framework's exactly-once."
+        focus: 2
+
+  - kind: table
+    heading: "Answer 8.4 · decisions and their trade-offs (2/2)"
+    columns: ["Decision", "Choose", "Why"]
+    widths: [1.6, 4.0, 3.6]
+    build: true
+    points: [ex84-raw]
+    rows:
+      - ["Keep raw", "raw clicks in object storage", "to reconcile, and to recompute after a bug"]
+      - ["Reconcile", "a daily batch recomputes from raw and compares with the stream", "two paths compute the same number"]
+      - ["Serve", "OLAP (ClickHouse, Druid), or Postgres partitioned by day", "fast aggregates over many rows"]
+    lines:
+      - emma: "Keep the raw clicks in object storage. They let you reconcile, and recompute after a bug."
+        focus: 0
+      - emma: "Reconcile every day: a batch job computes the same numbers from the raw data. Two independent paths to one number."
+        focus: 1
+      - emma: "And serve from an OLAP store such as ClickHouse or Druid, or from Postgres partitioned by day."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    points: [ex84-family]
+    items:
+      - {t: "“We count by event time in one-minute windows; a 15-second watermark closes them, and late clicks go to reconciliation.”"}
+      - {t: "“The sink is an idempotent upsert per ad and minute, so replays are harmless.”"}
+      - {t: "“Raw clicks are kept, and a daily batch recomputes the totals: two paths to one number.”"}
+      - {t: "Same family as problem 04, counting 10k events a minute: time buckets, rollups, raw kept for reconciliation"}
+    lines:
+      - emma: "In an interview: we count by event time in one-minute windows, a fifteen-second watermark closes them, and late clicks go to reconciliation."
+        focus: 0
+      - emma: "The sink is an idempotent upsert per ad and minute, so replays are harmless. And raw clicks are kept, so a daily batch can recompute the totals."
+        focus: 2
+      - emma: "It's the same family as problem 04 from the earlier prep, counting ten thousand events a minute: time buckets, rollups, and raw data kept for reconciliation. Next episode: V7, payments with Kafka and a saga."
+        say: "It's the same family as problem four from the earlier prep, counting ten thousand events a minute: time buckets, rollups, and raw data kept for reconciliation. Next episode: V seven, payments with Kafka and a saga."
+        focus: 3

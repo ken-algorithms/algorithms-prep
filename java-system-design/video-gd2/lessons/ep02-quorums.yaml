@@ -1,0 +1,215 @@
+id: ep02-quorums
+ep: 2
+week: 5
+tag: "EP02 · WEEKS 5–6"
+title: "Quorums: N, W, R and what they don't promise"
+subtitle: "Why R + W > N works, three ways it still loses data, and lab 5B"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r
+  - 20-implement-gd2-du-lieu-phan-tan.md#lab-5b--mô-phỏng-quorum-thứ-bảy-tuần-6
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · §5.2 quorum N, W, R; lab 5B (quorum simulation); exercise 5.2"}
+      - {t: "Weeks 5–6 · lab 5B is the Saturday of week 6"}
+    lines:
+      - emma: "Episode two: quorums. In a leaderless system, every replica can take a write. So how many replicas must answer before a write counts, and how many before a read can be trusted?"
+      - emma: "We'll see why the rule R plus W greater than N works, three ways a quorum system still loses data, and how to prove it all yourself in lab 5B."
+        say: "We'll see why the rule R plus W greater than N works, three ways a quorum system still loses data, and how to prove it all yourself in lab 5B."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: LWW, full: "last-write-wins", vi: "giữ bản có timestamp lớn nhất; bản kia mất im lặng"}
+      - {abbr: KV, full: "key-value (store)", vi: "kho dữ liệu khoá–giá trị"}
+      - {abbr: N · W · R, full: "copies · write acknowledgements · read replies", vi: "số bản sao · số bản phải xác nhận ghi · số bản phải trả lời đọc"}
+    lines:
+      - emma: "Only a few short forms today. LWW means last-write-wins, and KV is a key-value store."
+        focus: 1
+      - emma: "And three letters you'll hear all episode: N is the number of copies of each key, W is how many copies must acknowledge a write, and R is how many must answer a read."
+        focus: 2
+
+  - kind: diagram
+    chapter: "The rule"
+    heading: "N = 3, W = 2, R = 2: why R + W > N works"
+    sub: "The write set and the read set always share at least one replica"
+    points: [quorum-formula]
+    nodes:
+      - {id: w, label: "Write v7", sub: "needs W = 2 acks", x: 110, y: 110, w: 190, h: 80, shape: user}
+      - {id: a, label: "Replica A", sub: "v7", x: 580, y: 60, w: 200, h: 70, shape: db, tone: ok}
+      - {id: b, label: "Replica B", sub: "v7", x: 580, y: 195, w: 200, h: 70, shape: db, tone: ok}
+      - {id: c, label: "Replica C", sub: "still v6", x: 580, y: 330, w: 200, h: 70, shape: db, tone: warn}
+      - {id: r, label: "Read", sub: "asks R = 2, keeps the highest version", x: 1040, y: 265, w: 210, h: 90, shape: user, at: 1}
+      - {id: o, label: "B is in both sets", sub: "→ the read sees v7", x: 1040, y: 95, w: 210, h: 80, tone: ok, at: 2}
+    edges:
+      - {a: w, b: a, label: "ack"}
+      - {a: w, b: b, label: "ack"}
+      - {a: w, b: c, label: "slow or down", dashed: true}
+      - {a: r, b: b, label: "v7", at: 1}
+      - {a: r, b: c, label: "v6", at: 1}
+      - {a: b, b: o, dashed: true, at: 2}
+    lines:
+      - emma: "Three copies of each key, so N is three. A write needs two acknowledgements, so W is two. Here replicas A and B confirm version seven, while C is slow and still has version six."
+        say: "Three copies of each key, so N is three. A write needs two acknowledgements, so W is two. Here replicas eigh and B confirm version seven, while C is slow and still has version six."
+        focus: 0
+      - emma: "A read asks two replicas, so R is two, and keeps the highest version. Even if it hits B and the stale C..."
+        focus: 1
+      - emma: "...B is in both sets, so the read sees version seven. That's the whole rule: when R plus W is greater than N, the read set and the write set always overlap. And with N equal to three, W two and R two, you survive one dead node for both reads and writes."
+        say: "B is in both sets, so the read sees version seven. That's the whole rule: when R plus W is greater than N, the read set and the write set always overlap. And with N equal to three, W two and R two, you survive one dead node for both reads and writes."
+        focus: 2
+
+  - kind: bullets
+    chapter: "What quorums don't promise"
+    heading: "A quorum is not linearizability — three ways it still loses data"
+    style: num
+    points: [quorum-not-linear]
+    items:
+      - {t: "Two concurrent writes, resolved by last-write-wins on clocks", s: "one of them is lost silently — no error anywhere"}
+      - {t: "A write that fails at the W step", s: "got 1 ack out of 2: the value stays on that replica, there is no rollback"}
+      - {t: "Sloppy quorum + hinted handoff (Dynamo)", s: "during a failure, writes go to stand-in nodes: more available, but R + W > N no longer holds"}
+    lines:
+      - emma: "Now the part interviewers like: what a quorum does not promise. It does not give you linearizability, the guarantee that the system behaves like a single copy."
+        say: "Now the part interviewers like: what a quorum does not promise. It does not give you linearizability, the guarantee that the system behaves like a single copy."
+      - emma: "First, two writes at the same time, resolved by last-write-wins using clocks. One of them disappears silently. No error, no log line."
+        focus: 0
+      - emma: "Second, a write that fails at the W step. It reached one replica out of the two it needed. The client sees a failure, but the value stays on that one replica. Nothing rolls it back, and a later read may return it."
+        focus: 1
+      - emma: "Third, Dynamo's sloppy quorum with hinted handoff. When home replicas are down, writes go to stand-in nodes and are handed back later. That raises availability, but during the failure R plus W greater than N no longer holds."
+        say: "Third, Dynamo's sloppy quorum with hinted handoff. When home replicas are down, writes go to stand-in nodes and are handed back later. That raises availability, but during the failure R plus W greater than N no longer holds."
+        focus: 2
+
+  - kind: compare
+    heading: "Choosing W and R — the formula tells you the trade-off"
+    sub: "Many leaderless stores let you pick them per request; the default is W = 2, R = 2"
+    points: [quorum-tuning]
+    items:
+      - {title: "W = 2, R = 2 (default)", tone: ok, lines: ["Reads see the last write", "One node can die for both", "Slower than W = 1: two acks per write"]}
+      - {title: "W = 3, R = 1", lines: ["Reads are fast: one reply", "Still overlaps: 1 + 3 > 3", "But one dead node blocks every write"]}
+      - {title: "W = 1, R = 1", tone: warn, lines: ["Lowest latency", "1 + 1 ≤ 3: reads can be stale", "Only where staleness is harmless"]}
+    lines:
+      - emma: "Many leaderless stores let you choose W and R for each request, and the formula tells you the trade-off. The usual default is W two, R two: reads see the last write and one node can die, at the cost of waiting for two acknowledgements on every write."
+        say: "Many leaderless stores let you choose W and R for each request, and the formula tells you the trade-off. The usual default is W two, R two: reads see the last write and one node can die, at the cost of waiting for two acknowledgements on every write."
+        focus: 0
+      - emma: "W three, R one makes reads cheap, one reply is enough, and it still overlaps. But now a single dead node blocks every write."
+        say: "W three, R one makes reads cheap, one reply is enough, and it still overlaps. But now a single dead node blocks every write."
+        focus: 1
+      - emma: "And W one, R one is the fastest, but it no longer overlaps, so reads can be stale. Keep it for data where that doesn't matter."
+        say: "And W one, R one is the fastest, but it no longer overlaps, so reads can be stale. Keep it for data where that doesn't matter."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 5.2"
+    n: "5.2"
+    q: "How many dead nodes can each configuration survive, for writes and for reads? And when is W = 1, R = 1 acceptable?"
+    items:
+      - {t: "(a) N = 3, W = 2, R = 2"}
+      - {t: "(b) N = 5, W = 3, R = 3"}
+      - {t: "(c) a system picks W = 1, R = 1 because it is fast"}
+    lines:
+      - emma: "Exercise 5.2. With N three, W two, R two, how many dead nodes can writes survive, and reads? Then N five, W three, R three. And when is W one, R one acceptable, and when isn't it?"
+        say: "Exercise five point two. With N three, W two, R two, how many dead nodes can writes survive, and reads? Then N five, W three, R three. And when is W one, R one acceptable, and when isn't it?"
+      - wait: 6
+
+  - kind: table
+    heading: "Answer 5.2"
+    columns: ["", "Writes survive", "Reads survive", "Note"]
+    widths: [1.9, 1.4, 1.4, 3.6]
+    build: true
+    points: [ex52]
+    rows:
+      - ["(a) N=3, W=2, R=2", "1 dead node", "1 dead node", "2 ≥ W and 2 ≥ R still answer"]
+      - ["(b) N=5, W=3, R=3", "2 dead nodes", "2 dead nodes", ""]
+      - ["(c) W=1, R=1", "2", "2", "R + W = 2 ≤ 3 → stale reads are possible"]
+    note: "OK for views, online status, a shopping cart. Not OK when a decision uses the value read: balance, stock, credit limit."
+    lines:
+      - emma: "With N three, W two, R two: kill one node and two remain, which is still enough for W and for R. So one dead node for both."
+        say: "With N three, W two, R two: kill one node and two remain, which is still enough for W and for R. So one dead node for both."
+        focus: 0
+      - emma: "With five copies and quorums of three, you survive two dead nodes for both."
+        focus: 1
+      - emma: "W one, R one is fast and survives two dead nodes, but R plus W is two, not more than three, so a read can miss the latest write."
+        say: "W one, R one is fast and survives two dead nodes, but R plus W is two, not more than three, so a read can miss the latest write."
+        focus: 2
+      - emma: "That's fine for data where a few seconds of staleness is harmless: view counts, online status, a shopping cart. It's not fine when a decision depends on the value you read: a balance, stock, or a credit limit."
+
+  - kind: flow
+    chapter: "Lab 5B"
+    heading: "Lab 5B: a quorum simulation — no reference solution, this is the test"
+    points: [lab5b]
+    items:
+      - {t: "3 replicas", s: "in memory, each stores (value, version)"}
+      - {t: "Write", s: "bump the version, send to all 3, succeed at W acks"}
+      - {t: "Read", s: "ask R replicas, keep the highest version"}
+      - {t: "Inject faults", s: "one replica dead, one slow: it gets the write after the read is done"}
+      - {t: "Read repair", s: "a stale replica seen during a read gets the new value"}
+    note: "Saturday of week 6. Write it yourself: there is no solution in dist-lab on purpose."
+    lines:
+      - emma: "Lab 5B is a quorum simulation, and on purpose there's no reference solution. Writing it is how you prove you understood this episode. Three replicas in memory, each storing a value and a version."
+        focus: 0
+      - emma: "A write bumps the version and goes to all three, and succeeds once W of them acknowledge. A read asks R replicas and keeps the highest version."
+        focus: 2
+      - emma: "Then inject faults: one replica is dead and never answers, another is slow and receives the write only after the read has finished."
+        focus: 3
+      - emma: "Finally add read repair: when a read sees a stale replica, it writes the new value into it."
+        focus: 4
+
+  - kind: table
+    heading: "Lab 5B: how last-write-wins loses a write when clocks are 20 ms apart"
+    sub: "Replica X's clock runs 20 ms fast; each replica stamps the write with its own clock"
+    columns: ["Real time", "Write", "Lands on", "Timestamp stored"]
+    widths: [1.5, 2.2, 1.6, 2.4]
+    mono: [0, 3]
+    build: true
+    points: [lab5b-lww]
+    rows:
+      - ["10:00:00.000", "limit = 5 million", "X (fast)", "10:00:00.020"]
+      - ["10:00:00.010", "limit = 3 million", "Y", "10:00:00.010"]
+      - ["Merge with LWW", "keeps the larger timestamp", "", "limit = 5 million: the later write is lost"]
+    note: "No error is raised anywhere. Week 10 explains why wall clocks can't order writes."
+    lines:
+      - emma: "Here's the write-loss test from lab 5B as a timeline. Replica X's clock runs twenty milliseconds fast. A write setting the limit to five million lands on X, at real time ten o'clock exactly, and gets stamped twenty milliseconds past."
+        focus: 0
+      - emma: "Ten milliseconds later, a second write sets the limit to three million. It lands on Y and gets stamped ten milliseconds past."
+        focus: 1
+      - emma: "When the replicas merge with last-write-wins, the larger timestamp wins, so the limit ends up at five million. The write that really came last is gone, and nothing reports an error. Your test must show exactly which write disappeared. Week ten explains why wall clocks can't order writes."
+        focus: 2
+
+  - kind: table
+    heading: "Lab 5B: the tests that must pass"
+    columns: ["Test", "Must show"]
+    widths: [3.0, 4.2]
+    build: true
+    rows:
+      - ["R = 2, W = 2", "always reads the latest value"]
+      - ["R = 1, W = 1", "reproduces a stale read"]
+      - ["Two concurrent writes, LWW, clocks 20 ms apart", "one write is lost — the test names which one"]
+      - ["Read repair", "after 1,000 reads, count how many stale replicas were fixed"]
+    lines:
+      - emma: "The tests. With R two and W two, every read returns the latest value. With R one and W one, you can reproduce a stale read."
+        say: "The tests. With R two and W two, every read returns the latest value. With R one and W one, you can reproduce a stale read."
+        focus: 1
+      - emma: "Two concurrent writes resolved by last-write-wins, with clocks twenty milliseconds apart: one write is lost, and your test must name which one."
+        focus: 2
+      - emma: "And for read repair, measure how many stale replicas were fixed after a thousand reads."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    items:
+      - {t: "“With N = 3 I'd default to W = 2 and R = 2: reads overlap the last write, and one node can die.”"}
+      - {t: "“A quorum still isn't linearizable: last-write-wins can drop a concurrent write, so the ledger stays on a single leader.”"}
+      - {t: "“Where staleness is harmless, W = 1 and R = 1 buy latency; where a decision reads the value, they don't.”"}
+    lines:
+      - emma: "In an interview: with three copies, I'd default to W two and R two. Reads overlap the last write, and one node can die."
+        say: "In an interview: with three copies, I'd default to W two and R two. Reads overlap the last write, and one node can die."
+        focus: 0
+      - emma: "A quorum still isn't linearizable. Last-write-wins can drop a concurrent write, so the ledger stays on a single leader."
+        focus: 1
+      - emma: "And where staleness is harmless, W one and R one buy latency; where a decision reads the value, they don't. Next episode: partitioning."
+        say: "And where staleness is harmless, W one and R one buy latency; where a decision reads the value, they don't. Next episode: partitioning."
+        focus: 2

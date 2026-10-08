@@ -86,6 +86,13 @@ scenes:
     ("a 600 B record, 0.9 GB/day", "a 600 bytes record, 0 point 9 gigabytes a day"),
     ("24 tests/s, 160 Mbit/s", "24 tests per second, 160 megabits per second"),
     ("Alex Xu — Ho Chi Minh City", "Alex Shoo, Ho Chee Minh City"),
+    ("R + W > N, max.poll.records", "R plus W greater than N, max poll records"),
+    ("ISR, eKYC, etcd", "I S R, e K Y C, et-see-dee"),
+    ("lab 5B and lab 10B, 1B clicks", "lab 5-B and lab 10-B, 1 billion clicks"),
+    ("DDIA, chapter 11", "D D I eigh, chapter 11"),
+    ("an SLO; use draw.io at work", "an S L O; use draw dot I O at work"),
+    ("retriable or not retryable", "retry able or not retry able"),
+    ("Client A locks it. A poll returns; then A's write and topic A.", "Client eigh locks it. A poll returns; then A's write and topic eigh."),
 ])
 def test_speakable(text, spoken):
     assert speakable(text) == spoken
@@ -100,11 +107,18 @@ def test_glossary_check_flags_missing_card(tmp_path):
     assert any("không có trong bảng" in m for m in problems)
 
 
-@pytest.mark.skipif(not LESSONS.exists(), reason="chưa có kịch bản bộ video")
-def test_real_scripts_pass_check():
-    points = sc.load_points(LESSONS / "points.yaml")
-    terms = coverage.glossary_terms(REPO / "java-system-design" / "video-gd1" / "01-bang-chu-viet-tat.md")
-    for p in sorted(LESSONS.glob("ep*.yaml")):
+SERIES = sorted((REPO / "java-system-design").glob("video-gd*/lessons"))
+
+
+@pytest.mark.skipif(not SERIES, reason="chưa có kịch bản bộ video")
+@pytest.mark.parametrize("lessons_dir", SERIES, ids=lambda d: d.parent.name)
+def test_real_scripts_pass_check(lessons_dir):
+    """Mọi kịch bản của mọi bộ: anchor, chữ bắt buộc, chữ viết tắt (bảng của giai đoạn 1 + bảng chữ mới của bộ)."""
+    points = sc.load_points(lessons_dir / "points.yaml")
+    glossaries = {REPO / "java-system-design" / "video-gd1" / "01-bang-chu-viet-tat.md",
+                  lessons_dir.parent / "01-bang-chu-viet-tat.md"}
+    terms = set().union(*(coverage.glossary_terms(g) for g in glossaries if g.exists()))
+    for p in sorted(lessons_dir.glob("ep*.yaml")):
         lesson = sc.load(p)
         assert sc.check(lesson, p, points) == [], p.name
         assert coverage.acronym_report(lesson, terms) == [], p.name
@@ -115,3 +129,48 @@ def test_week1_points_all_covered():
     data = coverage.collect(LESSONS, LESSONS / "points.yaml", week=1)
     missing = [pid for pid, claims in data["claims"].items() if not claims]
     assert missing == []
+
+
+def test_phase2_points_and_headings_all_covered():
+    lessons = REPO / "java-system-design" / "video-gd2" / "lessons"
+    data = coverage.collect(lessons, lessons / "points.yaml")
+    assert [pid for pid, claims in data["claims"].items() if not claims] == []
+    assert [anchor for anchor, eps in data["scope"].items() if not eps] == []
+
+
+def test_series_defaults_apply(tmp_path):
+    (tmp_path / "series.yaml").write_text(
+        'series: "Java System Design · Phase 2"\n'
+        'speakers:\n  emma: {name: Emma, role: narrator, color: "#A3346B", voice: {kokoro: af_heart}}\n',
+        encoding="utf-8")
+    p = tmp_path / "ep01.yaml"
+    p.write_text("id: ep01\nep: 1\ntitle: t\nscenes:\n  - kind: bullets\n    items: [{t: a}]\n"
+                 "    lines:\n      - emma: hello\n", encoding="utf-8")
+    lesson = sc.load(p)
+    assert lesson.series.endswith("Phase 2")
+    assert lesson.speakers["emma"].voice_for("kokoro") == "af_heart"
+    assert "tom" not in lesson.speakers
+
+
+def test_acronym_starting_with_digit_is_checked():
+    lesson = sc.Lesson.model_validate({"id": "x", "ep": 1, "title": "t", "scenes": [
+        {"kind": "acronyms", "items": [{"abbr": "RPS", "full": "requests per second"}], "lines": [{"tom": "hi"}]},
+        {"kind": "bullets", "items": [{"t": "Avoid 2PC at 500 RPS with 64MB pages"}], "lines": [{"tom": "ok"}]}]})
+    problems = coverage.acronym_report(lesson, {"RPS", "2PC"})
+    assert any("'2PC'" in m and "thẻ" in m for m in problems)
+    assert not any("MB" in m for m in problems)
+
+
+def test_table_font_shrinks_instead_of_overflowing_a_column():
+    from PIL import Image, ImageDraw
+    from lesson_video.slides import font, wrap
+    name = "consumerCrashBeforeOffsetCommit_noDoubleEffect"
+    lesson = sc.Lesson.model_validate({"id": "x", "ep": 1, "title": "t", "scenes": [
+        {"kind": "table", "columns": ["Test", "Assert"], "widths": [4.6, 4.6],
+         "rows": [[name, "the message comes back and is skipped"]], "lines": [{"tom": "ok"}]}]})
+    slides = Slides(lesson)
+    d = ImageDraw.Draw(Image.new("RGB", (W, H)))
+    widths = [(W - 120) / 2] * 2
+    size, _, _ = slides._table_layout(d, lesson.scenes[0], widths, 400, True)
+    f = font("bold", size)
+    assert all(d.textlength(ln, font=f) <= widths[0] - 22 for ln in wrap(d, name, f, widths[0] - 22))

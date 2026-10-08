@@ -1,0 +1,191 @@
+id: ep09-lab7-saga
+ep: 9
+week: 7
+tag: "EP09 · WEEK 7"
+title: "Lab 7: an interbank transfer saga that survives crashes"
+subtitle: "Five steps, a state table, a recovery job, a pivot that never compensates blindly, and six tests"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ
+  - 20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-7--p09-nhìn-qua-ranh-giới-saga
+  - 20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-7
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · lab 7 (interbank transfer saga), Track P week 7 (P09 across a saga), Track S week 7 (sketch V7); dist-lab Saga.java"}
+      - {t: "Week 7 · Saturday lab, 3–4 hours · project my-work/w7-saga (Spring Boot + Postgres)"}
+    lines:
+      - emma: "Episode nine is lab seven: an interbank transfer, built as a saga that keeps its state in Postgres, so it survives a crash at any step."
+      - emma: "Plan three to four hours on Saturday, in a Spring Boot and Postgres project. The reference code in dist-lab only proves the core idea. The hard parts are yours."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức của web và API"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã 128 bit sinh không cần nơi cấp trung tâm"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu dạng văn bản; jsonb là kiểu JSON nhị phân của Postgres"}
+      - {abbr: JDK, full: "Java Development Kit", vi: "bộ công cụ để biên dịch và chạy Java"}
+    lines:
+      - emma: "Short forms: DB is the database, ID an identifier, HTTP the web's protocol, and a UUID a universally unique identifier."
+        focus: 3
+      - emma: "JSON is JavaScript Object Notation; jsonb is Postgres's binary JSON type. And JDK is the Java Development Kit."
+        say: "JSON is JavaScript Object Notation; J S O N B is Postgres's binary JSON type. And JDK is the Java Development Kit."
+        focus: 5
+
+  - kind: table
+    chapter: "Five steps"
+    heading: "The saga: five steps, in the only safe order"
+    columns: ["#", "Step", "Kind", "Compensation"]
+    widths: [0.5, 4.0, 1.7, 1.6]
+    build: true
+    points: [lab7-steps]
+    rows:
+      - ["1", "Hold the money: available −= x, held += x", "Compensatable", "Release it"]
+      - ["2", "Fraud and limit check", "Compensatable (read-only)", "Nothing to undo"]
+      - ["3", "Send to the partner bank, with an idempotency key", "Pivot", "—"]
+      - ["4", "Post the ledger: held −= x, two entries", "Retriable", "—"]
+      - ["5", "Send the notification", "Retriable", "—"]
+    lines:
+      - emma: "Step one holds the money: it moves the amount from available to held. Its compensation releases it."
+        focus: 0
+      - emma: "Step two is the fraud and limit check. It only reads, so there's nothing to undo."
+        focus: 1
+      - emma: "Step three sends the instruction to the partner bank, with an idempotency key. This is the pivot. After it, the saga must finish."
+        focus: 2
+      - emma: "Steps four and five are retriable: post the two ledger entries and clear the hold, then send the notification. Retried until they succeed."
+        focus: 4
+
+  - kind: bullets
+    chapter: "The rules"
+    heading: "Mandatory: what makes it survive a crash"
+    style: check
+    points: [lab7-must]
+    items:
+      - {t: "A table saga_instance(id, type, state, current_step, payload jsonb, version, updated_at)"}
+      - {t: "Each step = its own transaction, updating current_step in the same transaction as the step's side effect", s: "and never call the partner inside a transaction (P09)"}
+      - {t: "A recovery job every 10 seconds", s: "any saga not in a final state with updated_at older than 30 seconds is resumed from current_step — so every step must be safe to run twice"}
+      - {t: "A timeout at step 3 is never compensated blindly", s: "the result is unknown: ask the partner with the idempotency key; compensate only if they confirm “not received”"}
+    lines:
+      - emma: "Four rules make it survive a crash. First, a saga instance table: ID, type, state, current step, the payload as JSON, a version for optimistic locking, and an updated-at timestamp."
+        focus: 0
+      - emma: "Second, each step runs in its own transaction, and updates the current step in the same transaction as its side effect. And never call the partner inside a transaction: that's P09 from phase one."
+        focus: 1
+      - emma: "Third, a recovery job runs every ten seconds. Any saga that isn't finished and hasn't moved for thirty seconds is resumed from its current step. That's why every step must be safe to run twice."
+        focus: 2
+      - emma: "Fourth, a timeout at step three is never compensated blindly. The result is unknown. Ask the partner using the idempotency key, and compensate only if they confirm they never received it."
+        focus: 3
+
+  - kind: code
+    heading: "The state table and the recovery query"
+    points: [lab7-must]
+    code: |
+      create table saga_instance(
+          id           uuid primary key,
+          type         text not null,          -- 'interbank-transfer'
+          state        text not null,          -- RUNNING, COMPENSATING, UNKNOWN, COMPLETED, COMPENSATED
+          current_step int  not null,
+          payload      jsonb not null,
+          version      bigint not null,        -- optimistic lock between the job and a live run
+          updated_at   timestamptz not null);
+
+      -- recovery job, every 10 s: resume what got stuck
+      select id from saga_instance
+       where state not in ('COMPLETED', 'COMPENSATED')
+         and updated_at < now() - interval '30 seconds';
+    items:
+      - {lines: [5, 5], t: "current_step moves in the same transaction as the step's effect"}
+      - {lines: [7, 7], t: "version: the job and a live run can't both advance one saga"}
+      - {lines: [10, 13], t: "Stuck = not final and silent for 30 s → resume from current_step"}
+    lines:
+      - emma: "Here's a sketch of the table. Current step moves in the same transaction as the step's own effect, so after a crash it always points at the first step that hasn't happened."
+        focus: 0
+      - emma: "The version column stops the recovery job and a live run from advancing the same saga at once."
+        focus: 1
+      - emma: "And the recovery query: anything not in a final state, with nothing written for thirty seconds, gets resumed from its current step."
+        focus: 2
+
+  - kind: table
+    chapter: "Six tests"
+    heading: "Lab 7: the six tests"
+    columns: ["Test", "Assert"]
+    widths: [4.6, 3.4]
+    build: true
+    points: [lab7-tests]
+    rows:
+      - ["happyPath", "COMPLETED; the ledger has 2 entries summing to 0; held = 0"]
+      - ["fraudRejects_releasesHold", "step 2 rejects → step 1 is compensated; available is back"]
+      - ["partnerRejects_compensatesInReverse", "step 3 says “rejected” → compensate 2, then 1, in that order"]
+      - ["partnerTimeout_queriesBeforeCompensating", "timeout at step 3, but the partner did receive it → the saga continues, no compensation"]
+      - ["crashAfterStep3_recoveryResumes", "kill it after step 3 → recovery resumes; step 3 is not sent twice"]
+      - ["duplicateCommand_singleSaga", "the same idempotency key sent twice → one saga"]
+    lines:
+      - emma: "Six tests. The happy path ends completed, with two ledger entries that sum to zero, and nothing left on hold."
+        focus: 0
+      - emma: "If the fraud check rejects, step one is compensated and the money is available again. If the partner rejects, compensate step two, then step one, in reverse order."
+        focus: 2
+      - emma: "The one interviewers love: a timeout at step three when the partner actually received it. The saga must ask, find out it went through, and continue. No compensation."
+        focus: 3
+      - emma: "Crash right after step three: the recovery job resumes the saga, and step three is not sent a second time. And the same command sent twice with one idempotency key creates exactly one saga."
+        focus: 5
+
+  - kind: code
+    chapter: "The core, already run"
+    heading: "The core idea, run in dist-lab (in memory, not yet persisted)"
+    sub: "dist-lab · Saga.java — the state table, recovery and pivot timeout are your part"
+    points: [lab7-core]
+    code: |
+      public static Outcome execute(List<Step> steps) {
+          List<String> log = new ArrayList<>();
+          Deque<Step> done = new ArrayDeque<>();
+          for (Step s : steps) {
+              try {
+                  s.run(); done.push(s); log.add("OK   " + s.name());
+              } catch (RuntimeException e) {
+                  log.add("FAIL " + s.name() + ": " + e.getMessage());
+                  while (!done.isEmpty()) { Step c = done.pop(); c.compensate(); log.add("UNDO " + c.name()); }
+                  return new Outcome(Status.COMPENSATED, log);
+              }
+          }
+          return new Outcome(Status.COMPLETED, log);
+      }
+    items:
+      - {lines: [6, 6], t: "Each finished step goes on a stack"}
+      - {lines: [9, 9], t: "On failure, pop: compensate in reverse order"}
+    lines:
+      - emma: "The reference in dist-lab proves just the core: run the steps in order, and push each finished one onto a stack."
+        focus: 0
+      - emma: "When a step fails, pop the stack, so compensations run in reverse order."
+        focus: 1
+
+  - kind: stats
+    heading: "What it printed (dist-lab, JDK 21)"
+    points: [lab7-core]
+    items:
+      - {v: "COMPLETED", l: "reserve 300 → fraud check → credit merchant → notify", s: "wallet 700, merchant 300", tone: ok}
+      - {v: "COMPENSATED", l: "credit merchant fails: “merchant bank timeout”", s: "UNDO fraud check, UNDO reserve → wallet 1,000, merchant 0", tone: warn}
+    note: "In memory only: persisting the state, the recovery job and the pivot timeout are not in the reference — they are the lab."
+    lines:
+      - emma: "Here's what it printed. The happy run completes: the wallet goes from a thousand to seven hundred and the merchant gets three hundred."
+        focus: 0
+      - emma: "In the failing run, crediting the merchant times out, so the fraud check and then the reservation are undone, and the wallet is back at a thousand. Note that this runs in memory only. Persisting the state, the recovery job and the pivot timeout are the lab."
+        focus: 1
+
+  - kind: bullets
+    chapter: "Track P and Track S"
+    heading: "Track P and Track S, week 7"
+    style: num
+    points: [trackp-w7, tracks-w7]
+    items:
+      - {t: "Track P: P09 seen through a saga", s: "each step is a short transaction; the call out sits between two transactions; the saga state replaces “one long transaction”"}
+      - {t: "Exercise: rewrite P09's transfer() as 3 saga steps", s: "for each transaction: which row it locks, and for how long"}
+      - {t: "Track S: sketch V7", s: "commands and events between orchestrator, ledger, fraud, partner-bank gateway, notification — just the arrows, and where the pivot is"}
+    lines:
+      - emma: "Track P this week revisits P09: don't make an HTTP call inside a transaction. A saga is the correct way to do that for money. Each step is a short transaction, the call to the partner sits between two transactions, and the saga's state plays the role of one long business transaction."
+        focus: 0
+      - emma: "The exercise: rewrite the transfer method from P09 as three saga steps, and for each transaction write down which row it locks and for how long."
+        focus: 1
+      - emma: "And Track S: sketch V7. Commands and events between the orchestrator, the ledger, fraud, the partner bank gateway and notifications. Just the arrows, and where the pivot is. You'll finish it in weeks eight and nine. Next episode: four saga drills."
+        focus: 2

@@ -305,6 +305,9 @@ h2.sec:first-child{margin-top:0}
 .vmeta .sub{color:var(--ink-2);font-size:13.5px}
 .vmeta label{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2);cursor:pointer}
 .vmeta input{accent-color:var(--accent);width:16px;height:16px}
+.vser{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.vser .fbtn{padding:4px 12px;font-size:12.5px}
+.vser .fbtn b{font-family:var(--f-mono);font-weight:500;margin-left:6px;opacity:.75}
 .vrate{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
 .vrate .fbtn{padding:3px 10px;font-size:12px}
 .vsec{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:16px 0 6px}
@@ -451,7 +454,8 @@ h2.sec:first-child{margin-top:0}
     <section class="pane" id="p-vid" hidden>
       <div class="card vhead">
         <div>
-          <p class="eyebrow">Java System Design · giai đoạn 1 · tiếng Anh · giọng Tom (Kokoro am_michael)</p>
+          <div class="vser" id="vSeries"></div>
+          <p class="eyebrow" id="vEyebrow">Java System Design · tiếng Anh</p>
           <h3 id="vTitle">Video bài giảng</h3>
           <p id="vLead"></p>
         </div>
@@ -689,7 +693,7 @@ function renderRoadmap(){
     <button class="fbtn" data-act="doc" data-doc="${esc(SDR.doc)}" aria-pressed="true">Mở lộ trình đầy đủ →</button>` +
     SDR.phases.filter(p => p.impl).map(p =>
       `<button class="fbtn" data-act="doc" data-doc="${esc(p.impl)}">Bài tập GĐ${p.n} →</button>`).join("") +
-    ((JSDV.lessons || []).length ? `<button class="fbtn" data-act="tab" data-t="vid">▶ Video GĐ1 (${JSDV.lessons.length}) →</button>` : "");
+    ((JSDV.series || []).length ? `<button class="fbtn" data-act="tab" data-t="vid">▶ Video bài giảng (${(JSDV.series || []).reduce((n, x) => n + x.lessons.length, 0)}) →</button>` : "");
   el("phases").innerHTML = SDR.phases.map(p => `
     <div class="card phase">
       <div class="top"><i>${p.n}</i>
@@ -733,29 +737,37 @@ function renderRoadmap(){
    và danh sách ý chính đã dạy, kèm thời điểm và liên kết về đúng mục trong tài liệu nguồn. */
 let vidCur = null;
 const mmss = t => { t = Math.round(t); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
-const vSrc = f => esc((JSDV.base || "") + f);
+const SER = JSDV.series || [];
+const vAll = () => SER.reduce((n, x) => n + x.lessons.length, 0);
+function vSer(){  // bộ video đang xem: theo lựa chọn đã lưu, mặc định bộ đầu tiên
+  return SER.find(x => x.id === S.vser) || SER[0];
+}
+const vSrc = f => esc((vSer().base || "") + f);
 function srcRef(ref){  // "10-implement-gd1-nen-tang.md#11-..." → [khoá tài liệu, anchor]
   const [f, a] = String(ref).split("#");
   return [(JSDV.dir || "") + f, a || ""];
 }
 const srcLabel = ref => String(ref).split("#")[0].replace(/\.md$/, "").split("-")[0];
 function renderVid(){
-  const L = JSDV.lessons || [];
-  el("nVid").textContent = L.length;
-  if(!L.length){
+  el("nVid").textContent = vAll();
+  if(!SER.length){
     el("vLead").textContent = "Chưa có video nào được dựng.";
-    el("vPlayer").innerHTML = ""; el("vInfo").innerHTML = ""; el("vList").innerHTML = "";
+    el("vSeries").innerHTML = ""; el("vPlayer").innerHTML = ""; el("vInfo").innerHTML = ""; el("vList").innerHTML = "";
     return;
   }
+  const X = vSer(), L = X.lessons;
+  el("vSeries").innerHTML = SER.length < 2 ? "" : SER.map(x =>
+    `<button class="fbtn" data-act="vser" data-s="${esc(x.id)}" aria-pressed="${x.id === X.id}">${esc(x.title.split(" · ")[0])}<b>${x.lessons.length}</b></button>`).join("");
   if(!vidCur || !L.find(v => v.id === vidCur)) vidCur = L[0].id;
   const total = L.reduce((n, v) => n + v.duration, 0);
   const pts = new Set(L.flatMap(v => (v.points || []).map(p => p.id)));
   const seen = L.filter(v => S.vid[v.id]).length;
-  el("vTitle").textContent = `Giai đoạn 1 · ${L.length}/${JSDV.total || L.length} video đã có`;
+  el("vEyebrow").textContent = `Java System Design · ${X.title} · tiếng Anh · giọng ${X.voice}`;
+  el("vTitle").textContent = `${X.title.split(" · ")[0]} · ${L.length}/${X.total || L.length} video đã có`;
   el("vLead").textContent = `${Math.round(total / 60)} phút video · ${pts.size} ý chính của tài liệu đã được dạy, ` +
     `mỗi ý có thời điểm và liên kết về mục nguồn · bạn đã xem ${seen}/${L.length}.`;
   el("vActions").innerHTML = [
-      ["Độ phủ nội dung", JSDV.coverage], ["Kế hoạch + nhật ký", JSDV.plan], ["Bảng chữ viết tắt", JSDV.glossary]]
+      ["Độ phủ nội dung", X.coverage], ["Kế hoạch + nhật ký", X.plan], ["Bảng chữ viết tắt", X.glossary]]
     .filter(([, d]) => d && DOCS[d])
     .map(([t, d], i) => `<button class="fbtn" data-act="doc" data-doc="${esc(d)}"${i ? "" : ' aria-pressed="true"'}>${esc(t)} →</button>`).join("");
   const v = L.find(x => x.id === vidCur);
@@ -788,13 +800,14 @@ function renderVid(){
     <div class="vsec">Nguồn</div><div class="vchaps">${covers}</div>`;
   const weeks = {};
   L.forEach(x => (weeks[x.week] = weeks[x.week] || []).push(x));
+  const left = (X.total || 0) - L.length;
   el("vList").innerHTML = Object.keys(weeks).sort((a, b) => a - b).map(w =>
-    `<div class="vweek">${+w ? "Tuần " + w : "Định hướng"}</div>` + weeks[w].map(x => `
+    `<div class="vweek">${esc((X.weeks || {})[w] || (+w ? "Tuần " + w : "Định hướng"))}</div>` + weeks[w].map(x => `
       <button class="vitem${S.vid[x.id] ? " seen" : ""}" data-act="vid" data-v="${esc(x.id)}" aria-current="${x.id === vidCur}">
         ${x.poster ? `<img loading="lazy" alt="" src="${vSrc(x.poster)}" onerror="this.style.visibility='hidden'">` : '<span class="ph"></span>'}
         <span><b>Ep${String(x.ep).padStart(2, "0")} · ${esc(x.title)}</b><small>${mmss(x.duration)} · ${(x.chapters || []).length} chương · ${(x.points || []).length} ý</small></span>
       </button>`).join("")).join("") +
-    `<p class="hint">Các tuần sau (Ep07–Ep29) làm theo kế hoạch; tiến độ ghi trong “Kế hoạch + nhật ký”.</p>`;
+    (left > 0 ? `<p class="hint">Còn ${left} video của ${esc(X.title.split(" · ")[0].toLowerCase())} làm theo kế hoạch; tiến độ ghi trong “Kế hoạch + nhật ký”.</p>` : "");
 }
 function seekVid(t){
   const v = el("vEl");
@@ -983,6 +996,7 @@ function handleAct(e){
     case "doc":    openDoc(t.dataset.doc, t.dataset.anchor || undefined, t.dataset.nohist !== "1"); break;
     case "anchor": scrollToAnchor(t.dataset.anchor); break;
     case "vid":    vidCur = t.dataset.v; renderVid(); toTop(); break;
+    case "vser":   S.vser = t.dataset.s; save(); vidCur = null; renderVid(); break;
     case "seek":   seekVid(t.dataset.t); break;
     case "vrate":
       S.vrate = +t.dataset.r; save();

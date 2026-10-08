@@ -1,0 +1,2259 @@
+{
+ "schema": "jsd-lessons/1",
+ "note": "Sinh bởi tools/lesson_video từ các file .yaml cùng thư mục — sửa kịch bản rồi chạy lại `python -m lesson_video build`, không sửa tay file này hay file .mp4.",
+ "lessons": [
+  {
+   "id": "ep00-phase2-orientation",
+   "ep": 0,
+   "week": 0,
+   "title": "Phase 2 orientation",
+   "subtitle": "Data across many nodes: six weeks, five labs, and the capstone kickoff",
+   "file": "ep00-phase2-orientation.mp4",
+   "poster": "ep00-phase2-orientation.jpg",
+   "source": "ep00-phase2-orientation.yaml",
+   "duration": 361.9,
+   "bytes": 5476905,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Welcome"
+    },
+    {
+     "t": 19.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 72.9,
+     "title": "Why phase 2"
+    },
+    {
+     "t": 111.4,
+     "title": "The six weeks"
+    },
+    {
+     "t": 180.0,
+     "title": "One week"
+    },
+    {
+     "t": 209.6,
+     "title": "Your folders"
+    },
+    {
+     "t": 230.0,
+     "title": "Kafka without Docker"
+    },
+    {
+     "t": 264.7,
+     "title": "Capstone and milestone"
+    },
+    {
+     "t": 316.6,
+     "title": "How to use these videos"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+    "00-lo-trinh-6-thang.md#giai-đoạn-2--dữ-liệu-và-hệ-phân-tán-tuần-510"
+   ],
+   "points": [
+    {
+     "id": "p2-why",
+     "t": 72.9,
+     "text": "Giai đoạn 2 phân biệt senior với mid-level: dữ liệu chạy thế nào khi có nhiều node, nhiều service và mạng chập chờn",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-entry",
+     "t": 72.9,
+     "text": "Điều kiện vào: đã qua mốc tuần 4; lab 3A (lost update) và lab 2 (Lua nguyên tử) là nền bắt buộc vì giai đoạn 2 lặp lại hai ý đó ở quy mô nhiều service",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-map",
+     "t": 111.4,
+     "text": "Bản đồ 6 tuần: 5–6 replication, partitioning, consistent hashing (lab 5A, 5B, V6, đề KV + cache); 7 saga, outbox, idempotency, sổ cái kép (lab 7, payment + wallet); 8–9 Kafka (lab 8, P20, V7, ad click); 10 đồng thuận, khoá, đồng hồ (lab 10A, 10B, hotel + scheduler); capstone tuần 9–10",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-roadmap",
+     "t": 111.4,
+     "text": "Lộ trình 00: tuần 5–10 cùng chủ đề, đọc DDIA các chương replication, partitioning, the trouble with distributed systems, consistency and consensus; xem bài giảng Distributed Systems của Martin Kleppmann",
+     "src": "00-lo-trinh-6-thang.md#giai-đoạn-2--dữ-liệu-và-hệ-phân-tán-tuần-510",
+     "section": "00 · Giai đoạn 2"
+    },
+    {
+     "id": "p2-rhythm",
+     "t": 180.0,
+     "text": "Nhịp tuần giữ như giai đoạn 1; hai khối hai tuần (5–6 và 8–9): tuần đầu dùng Thứ Bảy để dựng, tuần sau để đo và thử phá",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-folders",
+     "t": 209.6,
+     "text": "Thư mục bài làm my-work/: w5-6-hashing, w7-saga, w8-9-kafka-lab, w10-coordination, capstone/design-doc.md và adr/, drawings V6, V7",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-kafka-nodocker",
+     "t": 230.0,
+     "text": "Chạy Kafka không Docker: tải bản 4.1.2, kiểm sha512, format storage một lần; Kafka 4.x chỉ còn KRaft, không ZooKeeper; Postgres nhúng (embedded-postgres); có Docker thì Testcontainers",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-milestone-preview",
+     "t": 264.7,
+     "text": "Xem trước mốc tuần 10: giải thích 6 chủ đề không cần tài liệu, lab 8 bảy test xanh, lab 7 có recovery, D20 trước/sau, V6 V7, 6 đề bấm giờ ≥ 7/10, design doc v1 + khung MVP",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    },
+    {
+     "id": "p2-videos",
+     "t": 316.6,
+     "text": "Cách dùng bộ video: mỗi video một ý lớn kèm bài tập theo thứ tự file 20; dừng ở đếm ngược; thẻ chữ viết tắt; 'measured' là số đã chạy (Postgres 16.4, Kafka 4.1.2 thật), 'assumption' là đoán; tab Video có thời điểm và link mục nguồn",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#0-trước-khi-bắt-đầu",
+     "section": "20 §0 · Trước khi bắt đầu"
+    }
+   ]
+  },
+  {
+   "id": "ep01-replication",
+   "ep": 1,
+   "week": 5,
+   "title": "Replication: leaders, followers, and lag",
+   "subtitle": "Three models, synchronous or asynchronous, the anomalies of lag, and a dangerous failover",
+   "file": "ep01-replication.mp4",
+   "poster": "ep01-replication.jpg",
+   "source": "ep01-replication.yaml",
+   "duration": 430.7,
+   "bytes": 6058280,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 23.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 64.0,
+     "title": "Weeks 5–6"
+    },
+    {
+     "t": 123.9,
+     "title": "Three models"
+    },
+    {
+     "t": 254.0,
+     "title": "Exercise 5.1"
+    },
+    {
+     "t": 328.1,
+     "title": "Exercise 5.3"
+    },
+    {
+     "t": 401.5,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#tuần-56--replication-partitioning-consistent-hashing",
+    "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-6",
+    "20-implement-gd2-du-lieu-phan-tan.md#đọc",
+    "20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm",
+    "20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56"
+   ],
+   "points": [
+    {
+     "id": "w56-outputs",
+     "t": 64.0,
+     "text": "Cuối tuần 6: lab 5A vòng băm có vnode và hệ số nhân bản 3; lab 5B mô phỏng quorum, tái hiện đọc cũ khi R + W ≤ N; đề KV store và distributed cache; V6 ở L2 có đoạn × 10; bài nói 2 phút về consistent hashing",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-6",
+     "section": "20 · Tuần 5–6: đầu ra"
+    },
+    {
+     "id": "w56-reading",
+     "t": 95.7,
+     "text": "Đọc: DDIA chương 5 (replication) và 6 (partitioning); Alex Xu Vol 1 chương 5, 6; bài báo Dynamo (2007) phần 4 — nguồn gốc sloppy quorum, hinted handoff; tuỳ chọn bài giảng của Kleppmann",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đọc",
+     "section": "20 · Tuần 5–6: đọc"
+    },
+    {
+     "id": "repl-models",
+     "t": 123.9,
+     "text": "Ba mô hình: single-leader (không xung đột; Postgres, MySQL, Kafka partition; hợp sổ cái), multi-leader (xung đột, giải bằng LWW, merge, CRDT; offline-first, active-active), leaderless (version + read repair; Cassandra, DynamoDB; LWW làm mất một lệnh ghi)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication",
+     "section": "20 §5.1 · Ba mô hình replication"
+    },
+    {
+     "id": "repl-sync",
+     "t": 187.0,
+     "text": "Đồng bộ: commit chờ replica xác nhận, +1–2 ms cùng region, ~90 ms nếu replica ở Singapore còn leader ở Sydney, không mất dữ liệu đã commit; bất đồng bộ: nhanh nhưng failover có thể mất vài giây ghi cuối",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication",
+     "section": "20 §5.1 · Ba mô hình replication"
+    },
+    {
+     "id": "repl-lag",
+     "t": 218.3,
+     "text": "Ba dị thường khi đọc từ follower trễ: read-your-writes, monotonic reads (dữ liệu lùi về cũ), consistent prefix (câu trả lời trước câu hỏi); chữa read-your-writes như bài tập 3.4 giai đoạn 1",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication",
+     "section": "20 §5.1 · Ba mô hình replication"
+    },
+    {
+     "id": "ex51",
+     "t": 283.5,
+     "text": "BT 5.1: (a) đồng bộ Melbourne +12 ms, RPO = 0; (b) Singapore +90 ms, mất 1/3 ngân sách p99 300 ms; (c) đồng bộ khác AZ +1–2 ms + bất đồng bộ sang Melbourne: mất region thì mất vài giây ghi cuối, cần đối soát; ngân hàng chọn (c), (a) cho dữ liệu không được mất dòng nào",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    },
+    {
+     "id": "ex53",
+     "t": 352.8,
+     "text": "BT 5.3: follower trễ 2 s được đẩy lên, sequence bigserial cấp lại ID đã dùng → hai giao dịch cùng ID, có thể lộ dữ liệu khách này cho khách khác (sự cố GitHub ở DDIA ch. 5); chống: ID không phụ thuộc DB (Snowflake, UUID), không tự failover sang replica trễ cho dữ liệu tiền, đối soát sau failover",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    }
+   ]
+  },
+  {
+   "id": "ep02-quorums",
+   "ep": 2,
+   "week": 5,
+   "title": "Quorums: N, W, R and what they don't promise",
+   "subtitle": "Why R + W > N works, three ways it still loses data, and lab 5B",
+   "file": "ep02-quorums.mp4",
+   "poster": "ep02-quorums.jpg",
+   "source": "ep02-quorums.yaml",
+   "duration": 376.0,
+   "bytes": 5326743,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 24.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 43.9,
+     "title": "The rule"
+    },
+    {
+     "t": 83.9,
+     "title": "What quorums don't promise"
+    },
+    {
+     "t": 172.5,
+     "title": "Exercise 5.2"
+    },
+    {
+     "t": 234.0,
+     "title": "Lab 5B"
+    },
+    {
+     "t": 347.2,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r",
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-5b--mô-phỏng-quorum-thứ-bảy-tuần-6",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56"
+   ],
+   "points": [
+    {
+     "id": "quorum-formula",
+     "t": 43.9,
+     "text": "N bản sao, W bản xác nhận ghi, R bản trả lời đọc; R + W > N thì tập đọc và tập ghi luôn giao nhau nên đọc thấy ít nhất một bản mới nhất; N=3, W=2, R=2 chịu được 1 node chết cho cả đọc lẫn ghi",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r",
+     "section": "20 §5.2 · Quorum N, W, R"
+    },
+    {
+     "id": "quorum-not-linear",
+     "t": 83.9,
+     "text": "Quorum không cho linearizability: hai lệnh ghi đồng thời giải bằng LWW theo đồng hồ thì một lệnh mất im lặng; ghi thất bại ở bước W vẫn để lại bản ghi trên 1 replica, không rollback; sloppy quorum + hinted handoff (Dynamo) tăng availability nhưng phá đảm bảo R + W > N",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r",
+     "section": "20 §5.2 · Quorum N, W, R"
+    },
+    {
+     "id": "quorum-tuning",
+     "t": 136.4,
+     "text": "Chọn W, R theo từng request (khung đề KV store): mặc định W=2, R=2, chậm hơn W=1; công thức R + W > N cho biết đánh đổi giữa độ trễ, độ mới và số node được chết",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#52-quorum-n-w-r",
+     "section": "20 §5.2 · Quorum N, W, R"
+    },
+    {
+     "id": "ex52",
+     "t": 194.2,
+     "text": "BT 5.2: (a) N=3,W=2,R=2 chịu 1 node chết cho ghi và đọc; (b) N=5,W=3,R=3 chịu 2; (c) W=1,R=1: R + W = 2 ≤ 3 có thể đọc cũ — chấp nhận cho lượt xem, trạng thái online, giỏ hàng; không chấp nhận cho số dư, tồn kho, hạn mức",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    },
+    {
+     "id": "lab5b",
+     "t": 234.0,
+     "text": "Lab 5B tự viết, không có lời giải: 3 replica (value, version); ghi tăng version, đủ W xác nhận; đọc R bản lấy version lớn nhất; bơm lỗi một replica chết, một replica chậm; test R=2,W=2 luôn mới nhất, R=1,W=1 đọc cũ, LWW đồng hồ lệch 20 ms mất một lệnh; read repair đo sau 1.000 lần đọc",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5b--mô-phỏng-quorum-thứ-bảy-tuần-6",
+     "section": "20 · Lab 5B — Mô phỏng quorum"
+    },
+    {
+     "id": "lab5b-lww",
+     "t": 274.5,
+     "text": "Lab 5B: hai lệnh ghi đồng thời, LWW theo đồng hồ lệch 20 ms → lệnh xảy ra sau bị mất, không báo lỗi; test phải chỉ ra lệnh nào",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5b--mô-phỏng-quorum-thứ-bảy-tuần-6",
+     "section": "20 · Lab 5B — Mô phỏng quorum"
+    }
+   ]
+  },
+  {
+   "id": "ep03-partitioning",
+   "ep": 3,
+   "week": 5,
+   "title": "Partitioning: ranges, hashes, hot spots, secondary indexes",
+   "subtitle": "Four ways to split data, what a secondary index costs, a hot merchant, and a lookup across shards",
+   "file": "ep03-partitioning.mp4",
+   "poster": "ep03-partitioning.jpg",
+   "source": "ep03-partitioning.yaml",
+   "duration": 349.8,
+   "bytes": 4965538,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 26.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 43.8,
+     "title": "Four ways to split"
+    },
+    {
+     "t": 147.9,
+     "title": "Secondary indexes"
+    },
+    {
+     "t": 185.2,
+     "title": "Exercise 5.4: a hot merchant"
+    },
+    {
+     "t": 258.5,
+     "title": "Exercise 5.5: lookup by reference"
+    },
+    {
+     "t": 324.2,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56"
+   ],
+   "points": [
+    {
+     "id": "part-methods",
+     "t": 43.8,
+     "text": "Bốn cách chia: theo khoảng khoá (đọc theo khoảng tốt, dễ lệch khi khoá theo thời gian), hash mod N (đều, rebalance thảm hoạ: đo được 80% key chuyển khi 4 → 5 node), vòng băm + vnode (chỉ ~1/(N+1) key chuyển: 18,9% với 100 vnode), số partition cố định (Kafka, Redis Cluster 16.384 slot, Elasticsearch; chuyển nguyên partition, số partition chọn trước)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing",
+     "section": "20 §5.3 · Partitioning và rebalancing"
+    },
+    {
+     "id": "part-modn",
+     "t": 109.3,
+     "text": "Vì sao hash mod N chuyển ~80% key khi 4 → 5 node: key chỉ ở yên khi hash mod 4 = hash mod 5, xảy ra với 1/5 số key; vòng băm chỉ chuyển phần của node mới",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing",
+     "section": "20 §5.3 · Partitioning và rebalancing"
+    },
+    {
+     "id": "part-secondary",
+     "t": 147.9,
+     "text": "Index phụ khi đã shard: local (mỗi shard index dữ liệu của mình, truy vấn phải hỏi mọi shard rồi gộp: scatter-gather) hoặc global (index tự shard theo giá trị; đọc nhanh nhưng cập nhật thường bất đồng bộ)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#53-partitioning-và-rebalancing",
+     "section": "20 §5.3 · Partitioning và rebalancing"
+    },
+    {
+     "id": "ex54",
+     "t": 206.1,
+     "text": "BT 5.4: merchant chiếm 30% giao dịch → shard của nó gánh 30% tải ghi và tranh khoá một dòng số dư; sửa theo thứ tự: sổ cái append-only (số dư tính từ bút toán), salting thành N tài khoản con (phải ≥ 16 lần số partition mới đều), gom bút toán theo lô vài trăm ms; đánh đổi: số dư không còn là một con số đọc trực tiếp",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    },
+    {
+     "id": "ex55",
+     "t": 279.3,
+     "text": "BT 5.5: tìm theo mã tham chiếu trên mọi tài khoản: index local + scatter-gather (latency bằng shard chậm nhất, tải nhân số shard, chấp nhận nếu hiếm) hoặc index global (bảng reference → account, txn shard theo reference, hoặc OpenSearch qua CDC; cập nhật bất đồng bộ); tổng đài ngân hàng: global qua CDC + thông báo giao dịch dưới 1 phút có thể chưa hiện",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    }
+   ]
+  },
+  {
+   "id": "ep04-consistent-hashing",
+   "ep": 4,
+   "week": 5,
+   "title": "Consistent hashing: lab 5A and the 2-minute talk",
+   "subtitle": "A hash ring in 20 lines of Java, what the measurements say about virtual nodes, and fixed partitions",
+   "file": "ep04-consistent-hashing.mp4",
+   "poster": "ep04-consistent-hashing.jpg",
+   "source": "ep04-consistent-hashing.yaml",
+   "duration": 325.5,
+   "bytes": 4986508,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 19.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 39.2,
+     "title": "Build the ring"
+    },
+    {
+     "t": 76.9,
+     "title": "Measure it"
+    },
+    {
+     "t": 155.3,
+     "title": "Three replicas"
+    },
+    {
+     "t": 182.5,
+     "title": "Exercise 5.6"
+    },
+    {
+     "t": 243.2,
+     "title": "Your 2-minute talk"
+    },
+    {
+     "t": 297.7,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút"
+   ],
+   "points": [
+    {
+     "id": "lab5a-ring",
+     "t": 39.2,
+     "text": "Lab 5A bước 1: ConsistentHash với add, remove, nodeFor, tham số số vnode; TreeMap<Long, String> và tailMap (hoặc ceilingEntry); hash = MD5 nên chạy lại ra đúng số",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+     "section": "20 · Lab 5A — Vòng băm có virtual node"
+    },
+    {
+     "id": "lab5a-numbers",
+     "t": 76.9,
+     "text": "Lab 5A đo 1 triệu key, 4 → 5 node: mod N 80%; vòng 1 vnode lệch 6,77 lần, node bận nhất 40,7%, chỉ 9,1% key chuyển; 10 vnode 2,20 / 16,4%; 100 vnode 1,11 / 18,9%; 200 vnode 1,19 / 19,8%",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+     "section": "20 · Lab 5A — Vòng băm có virtual node"
+    },
+    {
+     "id": "lab5a-lessons",
+     "t": 123.7,
+     "text": "Hai điều đọc ra: vnode tồn tại để làm đều (1 vnode: 40,7%, gấp 1,6 lần lý tưởng, node mới chỉ nhận 9,1%); 200 vnode lệch hơn 100 — với hàm băm cố định, nhiều vnode hơn chỉ đều hơn về kỳ vọng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+     "section": "20 · Lab 5A — Vòng băm có virtual node"
+    },
+    {
+     "id": "lab5a-rf3",
+     "t": 155.3,
+     "text": "Lab 5A bước 3: hệ số nhân bản 3, nodesFor(key, 3) đi theo chiều kim đồng hồ lấy 3 node vật lý khác nhau (bỏ vnode trùng node); test: xoá một node chỉ đổi tập replica của các key node đó đang giữ",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-5a--vòng-băm-có-virtual-node-thứ-bảy-tuần-5",
+     "section": "20 · Lab 5A — Vòng băm có virtual node"
+    },
+    {
+     "id": "ex56",
+     "t": 204.3,
+     "text": "BT 5.6: mod N ~80% (đo 80,0%); vòng 100 vnode ~20% (đo 18,9%); 256 partition cố định: node mới nhận ~51 partition (256 ÷ 5) ≈ 20% key nhưng chuyển nguyên partition nên dễ quản lý, theo dõi, giới hạn băng thông; Kafka, Redis Cluster, Elasticsearch chọn cách này; đánh đổi: số partition phải đủ lớn từ đầu",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6"
+    },
+    {
+     "id": "talk-w56",
+     "t": 243.2,
+     "text": "Bài nói 'How does consistent hashing reduce data movement when you add a node?': mod N chuyển ~80% (số đo), vòng băm chỉ chuyển phần của node mới (~1/(N+1)), vnode để chia đều (1 vnode lệch 6,8 lần), đánh đổi: mất truy vấn theo khoảng, phải quản lý bản đồ vòng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút",
+     "section": "20 · Bài nói 2 phút tuần 5–6"
+    }
+   ]
+  },
+  {
+   "id": "ep05-kv-store-cache",
+   "ep": 5,
+   "week": 5,
+   "title": "Timed designs: a key-value store and a distributed cache",
+   "subtitle": "Exercise 5.7 and 5.8 — the decision tables, and the deep-dive questions you will get",
+   "file": "ep05-kv-store-cache.mp4",
+   "poster": "ep05-kv-store-cache.jpg",
+   "source": "ep05-kv-store-cache.yaml",
+   "duration": 374.0,
+   "bytes": 5346507,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 22.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 61.6,
+     "title": "45 minutes"
+    },
+    {
+     "t": 95.6,
+     "title": "5.7 Key-value store"
+    },
+    {
+     "t": 197.7,
+     "title": "5.8 Distributed cache"
+    },
+    {
+     "t": 339.5,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56"
+   ],
+   "points": [
+    {
+     "id": "timed-framework",
+     "t": 61.6,
+     "text": "Khung 45 phút (file 00): làm rõ yêu cầu 5–7 phút, ước lượng 3–5, API + data 5–8, tổng thể ~10, đào sâu 15–20 (2–3 điểm, mỗi điểm 2 phương án), tổng kết 3–5 kèm × 10",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "kv-frame",
+     "t": 122.7,
+     "text": "BT 5.7 KV store (1/2): vòng băm + vnode (mất truy vấn theo khoảng); N=3 mỗi bản một AZ, gấp 3 dung lượng; quorum W/R chỉnh theo request (mặc định 2/2 chậm hơn W=1); xung đột bằng vector clock trả mọi bản cho client hoặc LWW nếu chấp nhận mất",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "kv-frame-2",
+     "t": 155.2,
+     "text": "BT 5.7 KV store (2/2): sloppy quorum + hinted handoff (phá R + W > N lúc sự cố); read repair + anti-entropy bằng Merkle tree; gossip + heartbeat hội tụ vài giây; LSM commit log → memtable → SSTable + bloom filter, compaction tốn I/O",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "cache-frame",
+     "t": 224.0,
+     "text": "BT 5.8 distributed cache: Redis Cluster 16.384 hash slot chia cho các master, mỗi master một replica khác AZ; client biết bản đồ slot, gọi thẳng node, redirect MOVED khi bản đồ đổi; resharding = chuyển slot",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "cache-size",
+     "t": 255.0,
+     "text": "Ước lượng cache trước khi vẽ (giả định nói to): 300k GET/s, một node Redis ~100k thao tác/s (con số nhẩm giai đoạn 1, một core) → 3 master ở 100%, chạy ≤ 50% → 6 master + replica = 12 node; 10 triệu key × 1 KB ≈ 10 GB",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    },
+    {
+     "id": "cache-deep",
+     "t": 288.6,
+     "text": "BT 5.8 ba câu đào sâu: hot key (L1 Caffeine trước Redis hoặc nhân bản key), stampede (lab 4 giai đoạn 1), failover mất ghi (Redis nhân bản bất đồng bộ nên cache không bao giờ là nơi lưu chính dữ liệu tiền); thao tác nhiều khoá cần cùng slot: hash tag {account:42}",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
+     "section": "20 · Bài tập tuần 5–6 (đề bấm giờ)"
+    }
+   ]
+  },
+  {
+   "id": "ep06-v6-core-transfer-l2",
+   "ep": 6,
+   "week": 5,
+   "title": "V6: Mini Core Transfer at 1M users",
+   "subtitle": "Track S: redraw the bank at level L2, defend each box with a number, and answer “× 10”",
+   "file": "ep06-v6-core-transfer-l2.mp4",
+   "poster": "ep06-v6-core-transfer-l2.jpg",
+   "source": "ep06-v6-core-transfer-l2.yaml",
+   "duration": 356.6,
+   "bytes": 5315859,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 24.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 80.6,
+     "title": "The numbers"
+    },
+    {
+     "t": 105.8,
+     "title": "The drawing"
+    },
+    {
+     "t": 228.6,
+     "title": "The × 10 answer"
+    },
+    {
+     "t": 304.5,
+     "title": "Track P and week 10"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-56--v6-mini-core-transfer-ở-l2-chủ-nhật-tuần-6-30-phút",
+    "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-56",
+    "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-10",
+    "02-ve-he-thong-100k-1m-10m.md#33-l2--1m-users-tách-đọc-tách-việc-chậm",
+    "02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời"
+   ],
+   "points": [
+    {
+     "id": "v6-numbers",
+     "t": 80.6,
+     "text": "V6 = vẽ lại V2 cho 1M users: ~12.000 CCU, ~2.000 RPS ngày lương, ghi ~150/giây",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-56--v6-mini-core-transfer-ở-l2-chủ-nhật-tuần-6-30-phút",
+     "section": "20 · Track S tuần 5–6 — V6"
+    },
+    {
+     "id": "v6-diagram",
+     "t": 105.8,
+     "text": "Sơ đồ L2: CDN, WAF + ALB, API gateway/BFF (auth, rate limit), Identity (Keycloak/OIDC), core app monolith tách module 3–10 pod autoscale, Redis cluster cache-aside, Postgres primary + 2 read replica bất đồng bộ, outbox relay → Kafka/SQS → Notification service → FCM, APNs, SMS",
+     "src": "02-ve-he-thong-100k-1m-10m.md#33-l2--1m-users-tách-đọc-tách-việc-chậm",
+     "section": "02 §3.3 · L2 — 1M users"
+    },
+    {
+     "id": "v6-decisions",
+     "t": 160.1,
+     "text": "Mỗi hộp một con số: read replica vì đọc ~90% của 2.000 RPS (đánh đổi lag → read-your-writes); cache-aside hit 90% → DB thấy 1/10 (số dư dùng để quyết định vẫn đọc DB có khoá); outbox vì SMS 200–2.000 ms so với 300 ms p99; tách Notification trước (tải, lỗi khác, ít ràng buộc); API gateway thêm 1–3 ms, cần HA",
+     "src": "02-ve-he-thong-100k-1m-10m.md#33-l2--1m-users-tách-đọc-tách-việc-chậm",
+     "section": "02 §3.3 · L2 — 1M users"
+    },
+    {
+     "id": "x10-frame",
+     "t": 228.6,
+     "text": "Đáp án × 10 của V6: số mới 20.000 RPS, ghi 1.500/s, 120k CCU; vỡ trước: connection tới primary 80 pod × 10 = 800, rồi CPU primary; sửa: PgBouncer transaction pooling, lịch sử sang read model CQRS qua CDC (trễ vài trăm ms, thêm hệ thống); vỡ tiếp: sổ cái 650 GB/năm → partition theo tháng; chưa shard theo account_id vì ghi còn dư, shard làm chuyển tiền thành saga",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-56--v6-mini-core-transfer-ở-l2-chủ-nhật-tuần-6-30-phút",
+     "section": "20 · Track S tuần 5–6 — V6"
+    },
+    {
+     "id": "x10-five",
+     "t": 228.6,
+     "text": "Khung 5 câu trả lời × 10: số mới, vỡ trước (vì con số nào), sửa và đánh đổi, vỡ tiếp, chưa làm gì và vì sao (chỗ ghi điểm senior)",
+     "src": "02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời",
+     "section": "02 §5 · Câu hỏi × 10"
+    },
+    {
+     "id": "w56-trackp",
+     "t": 304.5,
+     "text": "Track P tuần 5–6: không có anti-pattern mới; 30 phút Thứ Sáu chạy checklist 01 §6 trên code lab giai đoạn 1 của chính mình (rate limiter, db-lab, cache-lab), mỗi dòng 'có' ghi vào sổ lỗi kèm cách sửa; tập dượt cho review capstone tuần 15–16",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-56",
+     "section": "20 · Track P tuần 5–6"
+    },
+    {
+     "id": "v6-update",
+     "t": 304.5,
+     "text": "Tuần 10 mở lại V6, thay số giả định bằng số đo lab 8: độ trễ commit → consumer (chu kỳ poll của relay chiếm phần lớn), số message trùng mỗi lần relay restart; ghi 'đã đo / còn giả định' cạnh mỗi con số",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-10",
+     "section": "20 · Track S tuần 10"
+    }
+   ]
+  },
+  {
+   "id": "ep07-why-not-2pc",
+   "ep": 7,
+   "week": 7,
+   "title": "Why not two-phase commit: sagas instead",
+   "subtitle": "What 2PC costs between services, orchestration or choreography, the three kinds of steps, and the 2-minute talk",
+   "file": "ep07-why-not-2pc.mp4",
+   "poster": "ep07-why-not-2pc.jpg",
+   "source": "ep07-why-not-2pc.yaml",
+   "duration": 371.5,
+   "bytes": 5553793,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 24.3,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 60.4,
+     "title": "Week 7"
+    },
+    {
+     "t": 120.5,
+     "title": "What 2PC costs"
+    },
+    {
+     "t": 205.1,
+     "title": "Orchestration or choreography"
+    },
+    {
+     "t": 254.0,
+     "title": "Three kinds of steps"
+    },
+    {
+     "t": 320.6,
+     "title": "Your 2-minute talk"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#tuần-7--transaction-phân-tán-saga-outbox-idempotency-sổ-cái-kép",
+    "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần",
+    "20-implement-gd2-du-lieu-phan-tan.md#đọc-1",
+    "20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-1",
+    "20-implement-gd2-du-lieu-phan-tan.md#71-vì-sao-không-2pc-giữa-microservices",
+    "20-implement-gd2-du-lieu-phan-tan.md#72-orchestration-hay-choreography",
+    "20-implement-gd2-du-lieu-phan-tan.md#73-ba-loại-bước-và-thứ-tự",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-1"
+   ],
+   "points": [
+    {
+     "id": "w7-outputs",
+     "t": 60.4,
+     "text": "Cuối tuần 7: lab 7 saga orchestrator lưu trạng thái trong Postgres, bù đúng thứ tự, tiếp tục sau crash, mỗi bước idempotent; đề Payment system và Digital wallet; query bất biến sổ cái (BT 7.6) chạy trên dữ liệu lab; bài nói 2 phút về 2PC",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần",
+     "section": "20 · Tuần 7: đầu ra"
+    },
+    {
+     "id": "w7-reading",
+     "t": 89.8,
+     "text": "Đọc tuần 7: Microservices Patterns (Chris Richardson) ch. 4 saga và phần transactional outbox ch. 3; Alex Xu Vol 2 ch. 11 Payment system, ch. 12 Digital wallet; nab-prep/04 (câu hỏi đích danh vòng EM ở NAB); doc 06 phần II thiết kế lại sổ cái",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đọc-1",
+     "section": "20 · Tuần 7: đọc"
+    },
+    {
+     "id": "no-2pc",
+     "t": 158.7,
+     "text": "2PC giữ khoá trên mọi service suốt hai pha qua mạng; coordinator chết giữa hai pha thì các bên treo với khoá đang giữ; availability là tích (5 service 99,9% → 99,5%); Kafka, phần lớn NoSQL, API REST của đối tác không tham gia 2PC được",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#71-vì-sao-không-2pc-giữa-microservices",
+     "section": "20 §7.1 · Vì sao không 2PC giữa microservices"
+    },
+    {
+     "id": "saga-tradeoff",
+     "t": 158.7,
+     "text": "Saga đổi nhất quán tức thời lấy nhất quán cuối cùng + bù trừ, và phải tự xử lý phần thiếu isolation",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#71-vì-sao-không-2pc-giữa-microservices",
+     "section": "20 §7.1 · Vì sao không 2PC giữa microservices"
+    },
+    {
+     "id": "orch-chor",
+     "t": 205.1,
+     "text": "Orchestration: một orchestrator gửi lệnh, nhận phản hồi, lưu trạng thái; nhìn luồng ở một chỗ; hợp luồng tiền nhiều bước cần bù chính xác; rủi ro 'god service'. Choreography: mỗi service nghe sự kiện tự làm bước của mình; luồng rải khắp nơi; hợp fan-out đơn giản ít bù; rủi ro vòng lặp sự kiện",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#72-orchestration-hay-choreography",
+     "section": "20 §7.2 · Orchestration hay choreography"
+    },
+    {
+     "id": "step-types",
+     "t": 254.0,
+     "text": "Ba loại bước: compensatable (có bù: giữ tiền ↔ nhả tiền), pivot (điểm không quay lại: gửi lệnh sang ngân hàng đối tác, trừ thẻ), retriable (sau pivot, retry đủ là thành công: ghi sổ cái cuối, gửi thông báo); thứ tự đúng compensatable → pivot → retriable; bước có thể thất bại đặt sau pivot là tự tạo trạng thái không bù được",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#73-ba-loại-bước-và-thứ-tự",
+     "section": "20 §7.3 · Ba loại bước và thứ tự"
+    },
+    {
+     "id": "isolation-counter",
+     "t": 294.8,
+     "text": "Saga thiếu isolation, cần biện pháp: semantic lock (trạng thái PENDING/giữ tiền), cập nhật giao hoán (cộng/trừ thay vì ghi đè), đọc lại giá trị trước khi ghi",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#73-ba-loại-bước-và-thứ-tự",
+     "section": "20 §7.3 · Ba loại bước và thứ tự"
+    },
+    {
+     "id": "talk-w7",
+     "t": 320.6,
+     "text": "Bài nói 'Why wouldn't you use two-phase commit between microservices?': khoá giữ qua mạng, coordinator chết thì treo, availability nhân lên, nhiều hệ thống không tham gia được; thay bằng saga + outbox + idempotency; đánh đổi: mất isolation, cần trạng thái PENDING và đối soát",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-1",
+     "section": "20 · Bài nói 2 phút tuần 7"
+    }
+   ]
+  },
+  {
+   "id": "ep08-outbox-ledger",
+   "ep": 8,
+   "week": 7,
+   "title": "Outbox, idempotency at three layers, and the double-entry ledger",
+   "subtitle": "Why “save, then send” breaks, how an outbox fixes it, and the two queries that prove the ledger is right",
+   "file": "ep08-outbox-ledger.mp4",
+   "poster": "ep08-outbox-ledger.jpg",
+   "source": "ep08-outbox-ledger.yaml",
+   "duration": 337.8,
+   "bytes": 4774789,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 19.3,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 44.0,
+     "title": "Dual write"
+    },
+    {
+     "t": 152.6,
+     "title": "Idempotency, three layers"
+    },
+    {
+     "t": 191.3,
+     "title": "Double-entry ledger"
+    },
+    {
+     "t": 250.9,
+     "title": "Exercise 7.6"
+    },
+    {
+     "t": 307.3,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+    "20-implement-gd2-du-lieu-phan-tan.md#75-idempotency-ở-ba-tầng",
+    "20-implement-gd2-du-lieu-phan-tan.md#76-sổ-cái-kép-double-entry",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7"
+   ],
+   "points": [
+    {
+     "id": "dual-write",
+     "t": 44.0,
+     "text": "Dual write: db.save(transfer); kafka.send(event) là hai hệ thống không commit cùng nhau, hỏng được ở giữa: DB commit mà event mất, hoặc event đi mà DB rollback",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+     "section": "20 §7.4 · Dual write và outbox"
+    },
+    {
+     "id": "outbox-pattern",
+     "t": 74.7,
+     "text": "Outbox: ghi event vào bảng outbox trong cùng transaction với dữ liệu nghiệp vụ (một lần commit), rồi một relay đọc bảng đó, gửi và đánh dấu đã gửi",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+     "section": "20 §7.4 · Dual write và outbox"
+    },
+    {
+     "id": "relay-vs-cdc",
+     "t": 95.7,
+     "text": "Polling relay (không thêm hạ tầng, trễ bằng chu kỳ poll 100–500 ms, query poll liên tục, giữ thứ tự chỉ khi một relay) so với CDC Debezium đọc WAL (Kafka Connect + Debezium, quyền replication slot, trễ vài chục ms, gần như không thêm tải, theo thứ tự commit)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+     "section": "20 §7.4 · Dual write và outbox"
+    },
+    {
+     "id": "at-least-once",
+     "t": 135.9,
+     "text": "Cả hai đều at-least-once: relay gửi xong rồi chết trước khi đánh dấu thì gửi lại; vì vậy consumer luôn phải idempotent",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#74-dual-write-và-outbox",
+     "section": "20 §7.4 · Dual write và outbox"
+    },
+    {
+     "id": "idem-three",
+     "t": 152.6,
+     "text": "Idempotency ở ba tầng: API (Idempotency-Key, bài 2.4 giai đoạn 1); consumer (bảng processed_event(event_id primary key) insert trong cùng transaction với tác dụng phụ, lab 8); gọi ra ngoài (gửi khoá idempotency sang ngân hàng, PSP để khi timeout còn hỏi lại)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#75-idempotency-ở-ba-tầng",
+     "section": "20 §7.5 · Idempotency ở ba tầng"
+    },
+    {
+     "id": "double-entry",
+     "t": 191.3,
+     "text": "Sổ cái kép: mỗi giao dịch ít nhất hai bút toán, tổng bằng 0; bút toán chỉ thêm, không sửa, không xoá; sai thì ghi bút toán đảo; số dư là tổng bút toán (hoặc cột duy trì cùng transaction và đối soát với tổng)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#76-sổ-cái-kép-double-entry",
+     "section": "20 §7.6 · Sổ cái kép"
+    },
+    {
+     "id": "double-entry-example",
+     "t": 221.7,
+     "text": "Sửa sai không xoá gì: chuyển nhầm thì ghi bút toán đảo (cùng bút toán, đổi dấu) rồi ghi giao dịch đúng; số dư vẫn là tổng bút toán, mọi giao dịch tổng bằng 0",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#76-sổ-cái-kép-double-entry",
+     "section": "20 §7.6 · Sổ cái kép"
+    },
+    {
+     "id": "ex76",
+     "t": 274.7,
+     "text": "BT 7.6: query (a) group by transfer_id having sum(amount) <> 0 phải rỗng; (b) balance khác opening_balance + coalesce(sum(amount), 0) phải rỗng; chạy như job đối soát mỗi giờ, alert khi khác rỗng; lab 8 in đúng hai con số này",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7"
+    }
+   ]
+  },
+  {
+   "id": "ep09-lab7-saga",
+   "ep": 9,
+   "week": 7,
+   "title": "Lab 7: an interbank transfer saga that survives crashes",
+   "subtitle": "Five steps, a state table, a recovery job, a pivot that never compensates blindly, and six tests",
+   "file": "ep09-lab7-saga.mp4",
+   "poster": "ep09-lab7-saga.jpg",
+   "source": "ep09-lab7-saga.yaml",
+   "duration": 297.3,
+   "bytes": 4372304,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 22.6,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 45.7,
+     "title": "Five steps"
+    },
+    {
+     "t": 78.6,
+     "title": "The rules"
+    },
+    {
+     "t": 161.6,
+     "title": "Six tests"
+    },
+    {
+     "t": 207.4,
+     "title": "The core, already run"
+    },
+    {
+     "t": 247.1,
+     "title": "Track P and Track S"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+    "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-7--p09-nhìn-qua-ranh-giới-saga",
+    "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-7"
+   ],
+   "points": [
+    {
+     "id": "lab7-steps",
+     "t": 45.7,
+     "text": "Năm bước: (1) giữ tiền available −= x, held += x — compensatable, bù = nhả tiền; (2) kiểm tra gian lận/hạn mức — compensatable chỉ đọc; (3) gửi lệnh sang ngân hàng đối tác kèm idempotency key — pivot; (4) ghi sổ cái held −= x, hai bút toán — retriable; (5) gửi thông báo — retriable",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+     "section": "20 · Lab 7 — Saga chuyển tiền liên ngân hàng"
+    },
+    {
+     "id": "lab7-must",
+     "t": 78.6,
+     "text": "Bắt buộc: bảng saga_instance(id, type, state, current_step, payload jsonb, version, updated_at); mỗi bước một transaction, cập nhật current_step cùng transaction với tác dụng phụ; không gọi đối tác trong transaction (P09); recovery job mỗi 10 s chạy tiếp saga đứng quá 30 s từ current_step nên mỗi bước phải chạy lại an toàn; timeout ở bước 3 không bù mù, hỏi lại bằng idempotency key",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+     "section": "20 · Lab 7 — Saga chuyển tiền liên ngân hàng"
+    },
+    {
+     "id": "lab7-tests",
+     "t": 161.6,
+     "text": "Sáu test: happyPath (COMPLETED, 2 bút toán tổng 0, held = 0), fraudRejects_releasesHold, partnerRejects_compensatesInReverse (bù 2 rồi 1), partnerTimeout_queriesBeforeCompensating (đối tác đã nhận → đi tiếp, không bù), crashAfterStep3_recoveryResumes (không gửi bước 3 lần hai), duplicateCommand_singleSaga",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+     "section": "20 · Lab 7 — Saga chuyển tiền liên ngân hàng"
+    },
+    {
+     "id": "lab7-core",
+     "t": 207.4,
+     "text": "Khung Saga.java đã chạy (trong bộ nhớ): chạy từng bước, lỗi thì bù theo thứ tự ngược; output COMPLETED (ví 700, merchant 300) và COMPENSATED khi merchant bank timeout (UNDO fraud check, UNDO reserve → ví 1.000, merchant 0); phần lưu trạng thái, recovery, pivot timeout là việc của lab",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-7--saga-chuyển-tiền-liên-ngân-hàng-thứ-bảy-34-giờ",
+     "section": "20 · Lab 7 — Saga chuyển tiền liên ngân hàng"
+    },
+    {
+     "id": "trackp-w7",
+     "t": 247.1,
+     "text": "P09 nhìn qua saga: mỗi bước một transaction ngắn, lời gọi ra ngoài nằm giữa hai transaction, trạng thái saga thay cho một transaction dài; bài tập: viết lại transfer() của P09 thành 3 bước saga, chỉ rõ transaction nào giữ khoá dòng nào, bao lâu",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-7--p09-nhìn-qua-ranh-giới-saga",
+     "section": "20 · Track P tuần 7 — P09 qua ranh giới saga"
+    },
+    {
+     "id": "tracks-w7",
+     "t": 247.1,
+     "text": "Phác V7: luồng lệnh và sự kiện giữa orchestrator, ledger, fraud, cổng ngân hàng đối tác, notification; chỉ cần đúng các mũi tên và chỗ nào là pivot",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-7",
+     "section": "20 · Track S tuần 7"
+    }
+   ]
+  },
+  {
+   "id": "ep10-saga-drills",
+   "ep": 10,
+   "week": 7,
+   "title": "Saga drills: step order, isolation, and the pivot timeout",
+   "subtitle": "Exercises 7.1–7.4: a wallet top-up, a balance mid-saga, a timeout at the point of no return, and picking a style",
+   "file": "ep10-saga-drills.mp4",
+   "poster": "ep10-saga-drills.jpg",
+   "source": "ep10-saga-drills.yaml",
+   "duration": 289.6,
+   "bytes": 3886409,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 11.5,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 26.4,
+     "title": "7.1 Order the steps"
+    },
+    {
+     "t": 88.9,
+     "title": "7.2 Missing isolation"
+    },
+    {
+     "t": 142.6,
+     "title": "7.3 Pivot timeout"
+    },
+    {
+     "t": 203.2,
+     "title": "7.4 Pick a style"
+    },
+    {
+     "t": 264.8,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7"
+   ],
+   "points": [
+    {
+     "id": "ex71",
+     "t": 51.8,
+     "text": "BT 7.1 nạp ví bằng thẻ: thứ tự (a) tạo bản ghi PENDING → (e) kiểm tra hạn mức → (b) trừ thẻ qua PSP là pivot → (c) cộng ví retriable, idempotent theo id lần nạp → (d) email; đặt (e) sau (b) là sai: vượt hạn mức thì phải hoàn tiền thẻ, chậm, có phí, khách thấy hai dòng sao kê",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.1–7.4)"
+    },
+    {
+     "id": "ex72",
+     "t": 112.9,
+     "text": "BT 7.2: tách hai con số: số dư sổ cái 10 triệu (chưa có bút toán), số dư khả dụng 5 triệu (đã trừ phần giữ); app hiện cả hai; lệnh 8 triệu kiểm trên số dư khả dụng nên bị từ chối; đây là semantic lock",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.1–7.4)"
+    },
+    {
+     "id": "ex73",
+     "t": 165.8,
+     "text": "BT 7.3 pivot timeout: bù ngay là sai (đối tác có thể đã chuyển tiền → mất tiền); gửi lại chỉ an toàn với cùng idempotency key và đối tác khử trùng; đúng: chuyển saga sang UNKNOWN, hỏi trạng thái theo idempotency key có backoff, vẫn không rõ thì vào hàng đợi đối soát (file đối soát cuối ngày), báo khách 'đang xử lý'",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.1–7.4)"
+    },
+    {
+     "id": "ex74",
+     "t": 229.7,
+     "text": "BT 7.4: chuyển tiền liên ngân hàng → orchestration; cập nhật điểm thưởng, thông báo, read model sau giao dịch → choreography (publish transfer.completed); mở tài khoản → orchestration cho eKYC → tạo tài khoản core → cấp thẻ, rồi choreography cho email chào mừng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.1–7.4)"
+    }
+   ]
+  },
+  {
+   "id": "ep11-payment-wallet",
+   "ep": 11,
+   "week": 7,
+   "title": "Timed designs: a payment system and a digital wallet",
+   "subtitle": "Exercises 7.5 and 7.7 — the payment flow, its three deep dives, and when the book's wallet design is overkill",
+   "file": "ep11-payment-wallet.mp4",
+   "poster": "ep11-payment-wallet.jpg",
+   "source": "ep11-payment-wallet.yaml",
+   "duration": 281.8,
+   "bytes": 3807786,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 15.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 38.9,
+     "title": "7.5 Payment system"
+    },
+    {
+     "t": 180.9,
+     "title": "7.7 Digital wallet"
+    },
+    {
+     "t": 253.4,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7"
+   ],
+   "points": [
+    {
+     "id": "ex75-flow",
+     "t": 68.7,
+     "text": "BT 7.5 Payment system: client → Payment API (Idempotency-Key) → payment service tạo payment CREATED → payment executor → PSP (kèm idempotency key, trang thanh toán do PSP host, không chạm số thẻ) → webhook/poll → SUCCEEDED/FAILED → ledger (double-entry) → wallet → outbox → thông báo; đối soát file settlement của PSP mỗi ngày với sổ cái, lệch vào hàng đợi xử lý tay",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.5, 7.7)"
+    },
+    {
+     "id": "ex75-states",
+     "t": 111.0,
+     "text": "BT 7.5: một dòng payment với trạng thái rõ: CREATED (lưu kèm idempotency key trước khi gọi ra ngoài) → gửi PSP cùng key mỗi lần retry → SUCCEEDED/FAILED qua webhook hoặc poll → chỉ SUCCEEDED mới ghi sổ cái; timeout thì UNKNOWN, hỏi lại theo key, rồi file settlement quyết định",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.5, 7.7)"
+    },
+    {
+     "id": "ex75-deep",
+     "t": 145.1,
+     "text": "BT 7.5 ba điểm đào sâu: exactly-once = retry at-least-once + idempotency key ở cả hai đầu; kết quả không rõ (như 7.3); đối soát là thứ chứng minh hệ thống đúng, không phải tin code; không lưu số thẻ để khỏi gánh phạm vi PCI DSS",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.5, 7.7)"
+    },
+    {
+     "id": "ex77",
+     "t": 211.5,
+     "text": "BT 7.7 Digital wallet: Postgres + sổ cái append-only + outbox; 250 TPS × 6 ghi = 1.500 ghi/giây vừa một primary; event sourcing + Raft (sách: 1 triệu TPS) giải bài toán vượt trần một primary; ngưỡng chuyển: ghi chạm ~50–70% năng lực đo được, hoặc khi audit cần replay lịch sử",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7",
+     "section": "20 · Bài tập tuần 7 (7.5, 7.7)"
+    }
+   ]
+  },
+  {
+   "id": "ep12-kafka-order-durability",
+   "ep": 12,
+   "week": 8,
+   "title": "Kafka: ordering, keys, and durable writes",
+   "subtitle": "Order lives in one partition, which key to choose, and the producer and topic settings for money",
+   "file": "ep12-kafka-order-durability.mp4",
+   "poster": "ep12-kafka-order-durability.jpg",
+   "source": "ep12-kafka-order-durability.yaml",
+   "duration": 296.0,
+   "bytes": 4053081,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 11.5,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 25.2,
+     "title": "Weeks 8–9"
+    },
+    {
+     "t": 89.8,
+     "title": "Ordering"
+    },
+    {
+     "t": 129.6,
+     "title": "Durable writes"
+    },
+    {
+     "t": 191.2,
+     "title": "Exercise 8.1"
+    },
+    {
+     "t": 233.9,
+     "title": "Exercise 8.2"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#tuần-89--kafka-sâu-lab-outbox--consumer-idempotent-p20",
+    "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-9",
+    "20-implement-gd2-du-lieu-phan-tan.md#đọc-2",
+    "20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-2",
+    "20-implement-gd2-du-lieu-phan-tan.md#81-thứ-tự-chỉ-tồn-tại-trong-một-partition",
+    "20-implement-gd2-du-lieu-phan-tan.md#82-độ-bền-ghi",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89"
+   ],
+   "points": [
+    {
+     "id": "w89-outputs",
+     "t": 25.2,
+     "text": "Cuối tuần 9: lab 8 Spring Boot + Kafka + Postgres, 7 test có test tái hiện gửi trùng do relay crash và chứng minh consumer chỉ áp dụng một lần; chạy D20 (P20) và sửa một consumer; V7; đề Ad click aggregation; design doc capstone v1; bài nói 2 phút về exactly-once",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-9",
+     "section": "20 · Tuần 8–9: đầu ra"
+    },
+    {
+     "id": "w89-reading",
+     "t": 60.3,
+     "text": "Đọc: Kafka: The Definitive Guide bản 2 (ch. 3–4 producer, consumer; ch. 6–8 internals, reliable delivery, exactly-once); Alex Xu Vol 2 ch. 4 message queue, ch. 6 ad click aggregation; DDIA ch. 11 stream processing; 01 P20 kèm chạy D20",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đọc-2",
+     "section": "20 · Tuần 8–9: đọc"
+    },
+    {
+     "id": "kafka-order",
+     "t": 89.8,
+     "text": "Cùng key → cùng partition → đúng thứ tự; chọn key = thực thể cần thứ tự (account_id cho sự kiện tài khoản); tăng số partition làm hash(key) mod partitions đổi, sự kiện mới sang partition khác trong khi cũ còn ở partition cũ → thứ tự vỡ; chọn số partition đủ lớn từ đầu theo số consumer tối đa",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#81-thứ-tự-chỉ-tồn-tại-trong-một-partition",
+     "section": "20 §8.1 · Thứ tự chỉ tồn tại trong một partition"
+    },
+    {
+     "id": "kafka-durability",
+     "t": 129.6,
+     "text": "acks=1 mất khi leader ghi xong rồi chết trước khi follower chép; acks=all + replication.factor=3 + min.insync.replicas=2 phải mất 2/3 broker cùng lúc — cấu hình chuẩn cho tiền; unclean.leader.election.enable=false (mặc định): thà ngừng ghi còn hơn mất",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#82-độ-bền-ghi",
+     "section": "20 §8.2 · Độ bền ghi"
+    },
+    {
+     "id": "idem-producer",
+     "t": 166.4,
+     "text": "Idempotent producer bật mặc định từ Kafka 3.0: broker khử trùng khi producer retry; chỉ chống trùng do retry của producer, không chống trùng do relay outbox chết rồi chạy lại",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#82-độ-bền-ghi",
+     "section": "20 §8.2 · Độ bền ghi"
+    },
+    {
+     "id": "ex81",
+     "t": 212.3,
+     "text": "BT 8.1: key = accountId vì thứ tự cần giữ trong một tài khoản (khoá phải đến trước giao dịch bị từ chối); eventId đều nhưng mất thứ tự; customerId giữ thứ tự rộng hơn cần và tạo partition nóng với khách doanh nghiệp nhiều tài khoản",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập tuần 8–9"
+    },
+    {
+     "id": "ex82",
+     "t": 251.9,
+     "text": "BT 8.2: topic replication.factor=3, min.insync.replicas=2; producer acks=all, idempotence bật, delivery.timeout.ms hữu hạn kèm xử lý lỗi; broker unclean.leader.election.enable=false; acks=all một mình là 'mọi replica trong ISR': ISR co còn leader thì bằng acks=1",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập tuần 8–9"
+    }
+   ]
+  },
+  {
+   "id": "ep13-kafka-delivery",
+   "ep": 13,
+   "week": 8,
+   "title": "Kafka: delivery guarantees, consumer groups, and dead letters",
+   "subtitle": "At-most-once, at-least-once, “exactly-once” with a database; rebalancing; poison messages and backpressure",
+   "file": "ep13-kafka-delivery.mp4",
+   "poster": "ep13-kafka-delivery.jpg",
+   "source": "ep13-kafka-delivery.yaml",
+   "duration": 219.9,
+   "bytes": 3196585,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 13.1,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 33.5,
+     "title": "Three delivery levels"
+    },
+    {
+     "t": 94.2,
+     "title": "Consumer groups"
+    },
+    {
+     "t": 144.6,
+     "title": "Retry, DLT, backpressure"
+    },
+    {
+     "t": 190.1,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#83-ba-mức-giao-nhận",
+    "20-implement-gd2-du-lieu-phan-tan.md#84-consumer-group-rebalance-maxpollintervalms",
+    "20-implement-gd2-du-lieu-phan-tan.md#85-retry-dlt-backpressure"
+   ],
+   "points": [
+    {
+     "id": "delivery-levels",
+     "t": 33.5,
+     "text": "At-most-once: commit offset trước khi xử lý, crash giữa chừng → mất message; at-least-once: commit sau khi xử lý, crash → xử lý lại; 'exactly-once' có DB: at-least-once + consumer idempotent (dedup cùng transaction với tác dụng phụ) → đúng một lần về hiệu quả",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#83-ba-mức-giao-nhận",
+     "section": "20 §8.3 · Ba mức giao nhận"
+    },
+    {
+     "id": "kafka-tx",
+     "t": 69.4,
+     "text": "Kafka transaction (isolation.level=read_committed) cho exactly-once trong Kafka (đọc topic A, ghi topic B, commit offset cùng transaction); có ghi Postgres thì vẫn cần idempotency ở DB",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#83-ba-mức-giao-nhận",
+     "section": "20 §8.3 · Ba mức giao nhận"
+    },
+    {
+     "id": "consumer-group",
+     "t": 94.2,
+     "text": "Consumer phải poll() lại trước max.poll.interval.ms (mặc định 300 s), nếu không broker coi là chết, chia partition cho consumer khác và commit của nó thất bại; lô max.poll.records (mặc định 500) xử lý càng lâu càng dễ vượt — chính là P20; Kafka 4.0 đưa KIP-848 lên GA (rebalance do broker điều phối, không dừng cả group) nhưng giới hạn giữa hai lần poll vẫn còn",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#84-consumer-group-rebalance-maxpollintervalms",
+     "section": "20 §8.4 · Consumer group, rebalance"
+    },
+    {
+     "id": "retry-dlt",
+     "t": 144.6,
+     "text": "Poison message: retry vài lần có backoff rồi sang dead-letter topic kèm header lỗi để partition không kẹt; lỗi tạm thời (downstream chết): đừng đẩy vào DLT ngay, pause() partition, chờ, resume() hoặc retry topic có độ trễ; backpressure: giới hạn bằng max.poll.records và executor có giới hạn (P13), không phải BlockingQueue vô hạn",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#85-retry-dlt-backpressure",
+     "section": "20 §8.5 · Retry, DLT, backpressure"
+    }
+   ]
+  },
+  {
+   "id": "ep14-lab8-outbox-relay",
+   "ep": 14,
+   "week": 8,
+   "title": "Lab 8, part 1: the outbox and its relay on real Kafka",
+   "subtitle": "Six tables, one transaction for the money and the event, and a relay that claims rows with SKIP LOCKED",
+   "file": "ep14-lab8-outbox-relay.mp4",
+   "poster": "ep14-lab8-outbox-relay.jpg",
+   "source": "ep14-lab8-outbox-relay.yaml",
+   "duration": 296.8,
+   "bytes": 4680654,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 21.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 51.6,
+     "title": "The project"
+    },
+    {
+     "t": 84.5,
+     "title": "Step 1 · Schema"
+    },
+    {
+     "t": 125.2,
+     "title": "Step 2 · One transaction"
+    },
+    {
+     "t": 165.5,
+     "title": "Step 3 · The relay"
+    },
+    {
+     "t": 231.9,
+     "title": "P09, on purpose"
+    },
+    {
+     "t": 268.3,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9"
+   ],
+   "points": [
+    {
+     "id": "lab8-setup",
+     "t": 51.6,
+     "text": "Project my-work/w8-9-kafka-lab: spring-boot-starter-web, spring-kafka, spring-boot-starter-jdbc, Postgres; bản lõi không Spring OutboxLab.java đã chạy với Postgres 16.4 và Kafka 4.1.2 thật, dùng để đối chiếu không để chép; test bằng Testcontainers nếu có Docker, không thì Kafka từ tarball như §0",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-schema",
+     "t": 84.5,
+     "text": "Bước 1 schema 6 bảng: account (check balance >= 0), transfer, ledger_entry, outbox (event_id unique, topic, msg_key, payload, created_at, published_at null = chưa gửi), partial index outbox_pending where published_at is null, processed_event (event_id khoá chính), notification",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-tx",
+     "t": 125.2,
+     "text": "Bước 2: TransferService.transfer() @Transactional: trừ có điều kiện (where id = ? and balance >= ?), 0 dòng thì từ chối; cộng bên nhận; insert transfer; hai ledger_entry; một dòng outbox key = acct-{from}; một commit cho tiền, sổ cái và sự kiện",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-relay",
+     "t": 165.5,
+     "text": "Bước 3 relay @Scheduled(fixedDelay = 200): trong một transaction ngắn select … where published_at is null order by id limit 100 for update skip locked (relay khác bỏ qua, không chờ); producer.send(record).get() với header event-id, chỉ đánh dấu published_at khi broker đã ack; relay crash sau khi gửi trước khi đánh dấu → gửi lại (at-least-once)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-relay-conn",
+     "t": 231.9,
+     "text": "Relay giữ connection trong lúc gửi lô 100 message: P09 ở mức nhỏ, chấp nhận vì Kafka cùng AZ ack trong vài ms, relay 1–2 instance với pool riêng, delivery.timeout.ms chặn trên thời gian giữ; không chấp nhận được thì chuyển sang CDC",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    }
+   ]
+  },
+  {
+   "id": "ep15-lab8-consumer-tests",
+   "ep": 15,
+   "week": 8,
+   "title": "Lab 8, part 2: the idempotent consumer, and seven tests that prove it",
+   "subtitle": "Dedup in the same transaction, retry and a dead-letter topic, the measured duplicates, and how two relays break the order",
+   "file": "ep15-lab8-consumer-tests.mp4",
+   "poster": "ep15-lab8-consumer-tests.jpg",
+   "source": "ep15-lab8-consumer-tests.yaml",
+   "duration": 367.5,
+   "bytes": 5606840,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 14.8,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 25.3,
+     "title": "Step 4 · Consumer"
+    },
+    {
+     "t": 64.8,
+     "title": "Step 5 · Retry and DLT"
+    },
+    {
+     "t": 101.5,
+     "title": "Step 6 · Seven tests"
+    },
+    {
+     "t": 217.7,
+     "title": "Step 7 · Break the order"
+    },
+    {
+     "t": 273.1,
+     "title": "Exercise 8.3"
+    },
+    {
+     "t": 325.1,
+     "title": "2-minute talk"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-2"
+   ],
+   "points": [
+    {
+     "id": "lab8-consumer",
+     "t": 25.3,
+     "text": "Bước 4 consumer idempotent: @KafkaListener, trong MỘT transaction insert into processed_event(event_id) on conflict do nothing; chèn được 1 dòng thì tạo notification, 0 dòng thì bỏ qua (trùng); offset commit sau khi DB commit (mặc định Spring Kafka commit sau khi listener trả về)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-dlt",
+     "t": 64.8,
+     "text": "Bước 5: DefaultErrorHandler + DeadLetterPublishingRecoverer + FixedBackOff(1000, 2): lỗi 3 lần sang <topic>.DLT; JSON hỏng đăng ký not-retryable → DLT ngay; phân biệt lỗi không bao giờ thành công với lỗi tạm thời",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-tests",
+     "t": 101.5,
+     "text": "Bước 6, bốn test có số: relayCrashAfterSend_producesDuplicates (1.000 dòng → 1.100 message), idempotentConsumer_appliesEachEventOnce (áp dụng 1.000, bỏ 100), twoRelaysWithSkipLocked_doNotDoublePublish (800/800), ledgerInvariantsHold (sum(ledger) = 0, tổng 100.000.000)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-tests-2",
+     "t": 152.0,
+     "text": "Bước 6, ba test chỉ có trong lab Spring: poisonMessage_goesToDlt (payload hỏng vào DLT kèm header lỗi, message sau vẫn xử lý), consumerCrashBeforeOffsetCommit_noDoubleEffect (lỗi sau DB commit trước offset commit → message tới lại, bị bỏ qua), eventsForOneAccountArriveInOrder (một relay: cùng account_id đến đúng thứ tự)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-output",
+     "t": 180.6,
+     "text": "Output thật của OutboxLab (07/10/2026, chạy 2 lần giống hệt): 1.000 giao dịch; relay A crash sau khi gửi lô 3; relay A đánh dấu 200, B+C 800; 1.100 message cho 1.000 dòng outbox; consumer applied=1000 skipped=100; sum(balance) không đổi, sum(ledger) = 0, outbox pending = 0, 1.000 notification; bản lõi chưa kiểm thứ tự và DLT",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-order",
+     "t": 217.7,
+     "text": "Bước 7: hai relay song song, chạy lại test thứ tự: relay B lấy 101–200, C lấy 201–300, C gửi xong trước → có thể đỏ; SKIP LOCKED chống gửi trùng, không giữ thứ tự",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "lab8-order-fix",
+     "t": 247.7,
+     "text": "Bước 7, ghi vào sổ lỗi ba cách giữ thứ tự: một relay duy nhất (khoá leader bằng advisory lock hoặc ShedLock); chia outbox theo hash(key) mod K, mỗi phần một relay; consumer chấp nhận đến lệch thứ tự bằng version theo từng tài khoản",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgres-thứ-bảy-tuần-8-và-9",
+     "section": "20 · Lab 8: Spring Boot + Kafka + Postgres"
+    },
+    {
+     "id": "ex83",
+     "t": 298.1,
+     "text": "BT 8.3: tối đa 100 × 3 = 300 message trùng mỗi ngày (lab đo đúng 100 cho một lần crash); consumer không idempotent: 300 thông báo gửi hai lần, nếu consumer là ledger thì ghi sổ hai lần; giảm lô chỉ giảm số lượng, idempotency mới bỏ được hậu quả",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập tuần 8–9 (8.3)"
+    },
+    {
+     "id": "talk-w89",
+     "t": 325.1,
+     "text": "Bài nói 'How do you get exactly-once processing with Kafka and a database?': Kafka transaction chỉ bao phần trong Kafka; với DB at-least-once + dedup bằng event_id trong cùng transaction với tác dụng phụ, commit offset sau; outbox phía gửi; số của lab (1.100 message, 1.000 lần áp dụng); đánh đổi: thêm một lần ghi DB mỗi message, bảng dedup phải dọn theo thời gian",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-2",
+     "section": "20 · Bài nói 2 phút tuần 8–9"
+    }
+   ]
+  },
+  {
+   "id": "ep16-p20-rebalance-storm",
+   "ep": 16,
+   "week": 8,
+   "title": "Track P: P20, the slow consumer and the rebalance storm",
+   "subtitle": "One slow call per message, a batch that never commits, and the D20 numbers from real Kafka",
+   "file": "ep16-p20-rebalance-storm.mp4",
+   "poster": "ep16-p20-rebalance-storm.jpg",
+   "source": "ep16-p20-rebalance-storm.yaml",
+   "duration": 296.8,
+   "bytes": 4152944,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 19.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 32.1,
+     "title": "The bug"
+    },
+    {
+     "t": 58.0,
+     "title": "The storm"
+    },
+    {
+     "t": 95.4,
+     "title": "D20 numbers"
+    },
+    {
+     "t": 167.3,
+     "title": "Fix it, in order"
+    },
+    {
+     "t": 193.5,
+     "title": "Exercise P20"
+    },
+    {
+     "t": 270.7,
+     "title": "In production"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-89--p20-consumer-chậm-và-rebalance-storm",
+    "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+    "01-java-code-cham-duoi-tai-cao.md#7-bắt-chúng-trên-production--metric-nào-công-cụ-nào"
+   ],
+   "points": [
+    {
+     "id": "p20-code",
+     "t": 32.1,
+     "text": "Bản xấu: @KafkaListener gọi HTTP 200 ms cho mỗi message, poll 500 record = 100 s mới poll lại; sửa: batch listener + API gửi theo lô (cộng consumer idempotent như lab 8)",
+     "src": "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+     "section": "01 · P20: Kafka consumer xử lý đồng bộ từng message"
+    },
+    {
+     "id": "p20-storm",
+     "t": 58.0,
+     "text": "Đối tác chậm lên 1 s: 500 × 1 s = 500 s vượt max.poll.interval.ms 300 s → broker coi consumer chết → rebalance → partition sang consumer khác, xử lý lại từ offset chưa commit → cũng chậm → lại rebalance: rebalance storm, gửi trùng thông báo",
+     "src": "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+     "section": "01 · P20: Kafka consumer xử lý đồng bộ từng message"
+    },
+    {
+     "id": "p20-d20",
+     "t": 95.4,
+     "text": "Số đo D20 (Kafka 4.1.2 thật, 2.000 message, 4 partition, 2 consumer, downstream 20 ms, max.poll.interval.ms hạ xuống 6 s, 2 lần chạy): PER_MESSAGE_500 chưa xong sau 45 s (1.267–1.619/2.000, 1.847–2.245 lần gửi trùng, 6 partition bị thu hồi, 6–7 commit lỗi); PER_MESSAGE_50 xong 24,6 s; BATCH_CALL_500 xong 1,3 s, 0 trùng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-89--p20-consumer-chậm-và-rebalance-storm",
+     "section": "20 · Track P tuần 8–9: chạy D20, bài tập P20"
+    },
+    {
+     "id": "p20-d20-meaning",
+     "t": 145.0,
+     "text": "Bản xấu không bao giờ xong vì mỗi lô bị đuổi khỏi group trước khi commit nên quay lại từ đầu; gửi trùng hơn 2.000 thông báo; sửa A (giảm max.poll.records) hết storm nhưng chậm, sửa B (gọi theo lô) nhanh gấp 18 lần",
+     "src": "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+     "section": "01 · P20: Kafka consumer xử lý đồng bộ từng message"
+    },
+    {
+     "id": "p20-fix-order",
+     "t": 167.3,
+     "text": "Sửa theo thứ tự: gọi theo lô; giảm max.poll.records theo p99 của downstream chứ không theo trung bình; xử lý song song có giới hạn nhưng giữ thứ tự theo key; pause() partition khi downstream chậm; consumer idempotent vì trùng chắc chắn xảy ra",
+     "src": "01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-",
+     "section": "01 · P20: Kafka consumer xử lý đồng bộ từng message"
+    },
+    {
+     "id": "ex-p20",
+     "t": 220.3,
+     "text": "Bài tập P20: (a) 300.000 ÷ 500 = 600 ms mỗi message; sự cố làm downstream chậm lên 700 ms là đủ storm; (b) theo p99 với hệ số an toàn 2: 300 s ÷ (1,2 s × 2) ≈ 125, chọn 100; tốt hơn gọi theo lô hoặc executor có giới hạn + pause(); (c) consumer lag tăng (records-lag-max), số lần rebalance / join group tăng, số commit thất bại",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-89--p20-consumer-chậm-và-rebalance-storm",
+     "section": "20 · Track P tuần 8–9: chạy D20, bài tập P20"
+    },
+    {
+     "id": "p20-metric",
+     "t": 270.7,
+     "text": "P20 trên production: metric kafka.consumer.fetch.manager.records.lag.max tăng, số lần rebalance; xác nhận bằng log 'Member ... has left the group' lặp lại; đo p99 không đo trung bình",
+     "src": "01-java-code-cham-duoi-tai-cao.md#7-bắt-chúng-trên-production--metric-nào-công-cụ-nào",
+     "section": "01 §7 · Bắt P20 trên production"
+    }
+   ]
+  },
+  {
+   "id": "ep17-stream-ad-click",
+   "ep": 17,
+   "week": 8,
+   "title": "Stream processing, and the ad click aggregation design",
+   "subtitle": "Windows, event time versus processing time, watermarks and late events — then exercise 8.4 in 45 minutes",
+   "file": "ep17-stream-ad-click.mp4",
+   "poster": "ep17-stream-ad-click.jpg",
+   "source": "ep17-stream-ad-click.yaml",
+   "duration": 266.8,
+   "bytes": 3661621,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 17.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 32.5,
+     "title": "Windows"
+    },
+    {
+     "t": 60.5,
+     "title": "Event time"
+    },
+    {
+     "t": 104.7,
+     "title": "Exercise 8.4"
+    },
+    {
+     "t": 229.6,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#86-stream-processing--đủ-để-nói-chuyện",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89"
+   ],
+   "points": [
+    {
+     "id": "stream-windows",
+     "t": 32.5,
+     "text": "Window tumbling (1 phút, không chồng), hopping (5 phút trượt mỗi 1 phút), session (đóng theo khoảng lặng)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#86-stream-processing--đủ-để-nói-chuyện",
+     "section": "20 §8.6 · Stream processing"
+    },
+    {
+     "id": "stream-time",
+     "t": 60.5,
+     "text": "Event time (lúc click xảy ra) khác processing time (lúc hệ thống thấy); gom theo event time, watermark quyết khi nào đóng window, có chính sách cho late event (cập nhật lại window đã đóng hoặc đưa vào bảng đối soát)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#86-stream-processing--đủ-để-nói-chuyện",
+     "section": "20 §8.6 · Stream processing"
+    },
+    {
+     "id": "ex84-numbers",
+     "t": 128.6,
+     "text": "BT 8.4: 1 tỷ click/ngày ≈ 11.600/s trung bình, ~50.000/s đỉnh; truy vấn số click theo ad trong N phút gần nhất và top 100 ad",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    },
+    {
+     "id": "ex84-pipeline",
+     "t": 152.0,
+     "text": "BT 8.4 luồng: click → Kafka (key ad_id#0..7) → stream processor (tumbling 1 phút theo event time, watermark 15 s) → upsert (ad_id, minute) → OLAP; raw click vào object storage; batch hằng ngày tính lại và so với stream",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    },
+    {
+     "id": "ex84-ingest",
+     "t": 181.1,
+     "text": "Quyết định: thu click → Kafka key ad_id, ad nóng → partition nóng nên tách key ad_id#0..7; gộp bằng stream processor tumbling 1 phút theo event time, watermark 15 s, click sau watermark xử lý riêng; ghi upsert (ad_id, minute) → sink idempotent, không cần exactly-once của framework",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    },
+    {
+     "id": "ex84-raw",
+     "t": 207.8,
+     "text": "Lưu raw click vào object storage để đối soát và tính lại khi có bug; batch hằng ngày tính lại từ raw so với kết quả stream (hai đường tính cùng một con số); phục vụ bằng OLAP (ClickHouse/Druid) hoặc Postgres partition theo ngày",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    },
+    {
+     "id": "ex84-family",
+     "t": 229.6,
+     "text": "Cùng họ bài với 04 — đếm sự kiện 10k/phút: bucket theo thời gian, rollup, giữ raw để đối soát",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-89",
+     "section": "20 · Bài tập 8.4: Ad click aggregation"
+    }
+   ]
+  },
+  {
+   "id": "ep18-v7-payments-kafka-saga",
+   "ep": 18,
+   "week": 8,
+   "title": "V7: an interbank transfer with Kafka and a saga",
+   "subtitle": "The drawing for Sunday of week 9 — who sends which command, where the pivot is, and five points you must say",
+   "file": "ep18-v7-payments-kafka-saga.mp4",
+   "poster": "ep18-v7-payments-kafka-saga.jpg",
+   "source": "ep18-v7-payments-kafka-saga.yaml",
+   "duration": 181.9,
+   "bytes": 2575895,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 18.8,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 29.2,
+     "title": "The drawing"
+    },
+    {
+     "t": 76.9,
+     "title": "Five points"
+    },
+    {
+     "t": 121.6,
+     "title": "Check yourself"
+    },
+    {
+     "t": 150.8,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-89--v7-paymentwallet-có-kafka--saga-chủ-nhật-tuần-9-40-phút"
+   ],
+   "points": [
+    {
+     "id": "v7-diagram",
+     "t": 29.2,
+     "text": "Sơ đồ V7: app → Transfer API (Idempotency-Key) → orchestrator (saga_instance + outbox) → lệnh hold/check/post qua Kafka (transfer.commands / transfer.events) → ledger append-only, fraud/limit, interbank gateway (idempotency key sang đối tác) trả lời qua Kafka; gateway → ngân hàng đối tác; transfer.completed → notification idempotent; job đối soát file đối tác với sổ cái",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-89--v7-paymentwallet-có-kafka--saga-chủ-nhật-tuần-9-40-phút",
+     "section": "20 · Track S tuần 8–9: V7"
+    },
+    {
+     "id": "v7-points",
+     "t": 76.9,
+     "text": "5 điểm phải nói: orchestrator lưu trạng thái + outbox cùng transaction; key topic = transferId cho lệnh, accountId cho sự kiện tài khoản; gateway là pivot, timeout trả unknown, không bù mù (7.3); mọi consumer idempotent vì outbox và Kafka at-least-once; job đối soát là bằng chứng cuối cùng tiền đúng",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#track-s-tuần-89--v7-paymentwallet-có-kafka--saga-chủ-nhật-tuần-9-40-phút",
+     "section": "20 · Track S tuần 8–9: V7"
+    }
+   ]
+  },
+  {
+   "id": "ep19-clocks-raft",
+   "ep": 19,
+   "week": 10,
+   "title": "Clocks lie, and Raft in five lines",
+   "subtitle": "Week 10 opens: wall clock versus monotonic time, why last-write-wins can pick the older write, and how Raft agrees on one log",
+   "file": "ep19-clocks-raft.mp4",
+   "poster": "ep19-clocks-raft.jpg",
+   "source": "ep19-clocks-raft.yaml",
+   "duration": 337.0,
+   "bytes": 4693228,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 14.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 41.0,
+     "title": "Week 10"
+    },
+    {
+     "t": 109.6,
+     "title": "Clocks lie"
+    },
+    {
+     "t": 155.6,
+     "title": "Exercise 10.1"
+    },
+    {
+     "t": 215.1,
+     "title": "Raft"
+    },
+    {
+     "t": 272.5,
+     "title": "Exercise 10.2"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#tuần-10--đồng-thuận-khoá-phân-tán-đồng-hồ",
+    "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-1",
+    "20-implement-gd2-du-lieu-phan-tan.md#đọc-3",
+    "20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-3",
+    "20-implement-gd2-du-lieu-phan-tan.md#101-đồng-hồ-nói-dối",
+    "20-implement-gd2-du-lieu-phan-tan.md#102-raft-trong-năm-dòng",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10"
+   ],
+   "points": [
+    {
+     "id": "w10-outputs",
+     "t": 41.0,
+     "text": "Cuối tuần 10: lab 10A fencing token trên Postgres thật có test client 'sống lại' sau pause; lab 10B job scheduler SKIP LOCKED + lease (tùy chọn); hai đề bấm giờ Hotel reservation, Distributed job scheduler; cập nhật V6 bằng số đo lab 8; qua mốc tuần 10; bài nói 2 phút về khoá phân tán và fencing token",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-1",
+     "section": "20 · Tuần 10: đầu ra"
+    },
+    {
+     "id": "w10-reading",
+     "t": 76.4,
+     "text": "Đọc: DDIA ch. 8 The Trouble with Distributed Systems, ch. 9 Consistency and Consensus; Kleppmann How to do distributed locking (2016); bài báo Raft + raft.github.io; Alex Xu Vol 2 ch. 7 Hotel reservation",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#đọc-3",
+     "section": "20 · Tuần 10: đọc"
+    },
+    {
+     "id": "clocks",
+     "t": 109.6,
+     "text": "System.currentTimeMillis() là wall clock, NTP chỉnh được kể cả lùi; đo khoảng thời gian dùng System.nanoTime() (monotonic)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#101-đồng-hồ-nói-dối",
+     "section": "20 §10.1 · Đồng hồ nói dối"
+    },
+    {
+     "id": "lww-skew",
+     "t": 130.6,
+     "text": "Hai máy lệch vài ms tới vài chục ms là bình thường; LWW theo timestamp có thể để lệnh ghi cũ hơn thắng; thứ tự đáng tin: một log (một partition Kafka, một sequence DB) hoặc đồng hồ logic (Lamport, version vector)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#101-đồng-hồ-nói-dối",
+     "section": "20 §10.1 · Đồng hồ nói dối"
+    },
+    {
+     "id": "ex101",
+     "t": 184.4,
+     "text": "BT 10.1: X ghi timestamp 10:00:00.020, Y ghi 10:00:00.010; LWW chọn lệnh 1 (5tr) dù lệnh 2 xảy ra sau: sai và không có lỗi nào được báo; với hạn mức tiền dùng một nguồn thứ tự (một leader, một sequence) hoặc update có điều kiện theo version",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập tuần 10 (10.1, 10.2)"
+    },
+    {
+     "id": "raft-five",
+     "t": 215.1,
+     "text": "Node là follower/candidate/leader; thời gian chia term; hết hạn không nghe leader → candidate xin phiếu; đa số → leader term mới; leader nhận ghi, chép log, commit khi đa số đã chép; chỉ bầu cho candidate có log ít nhất mới bằng mình nên leader mới có mọi entry đã commit",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#102-raft-trong-năm-dòng",
+     "section": "20 §10.2 · Raft trong năm dòng"
+    },
+    {
+     "id": "raft-tolerance",
+     "t": 250.7,
+     "text": "5 node chịu được 2 node chết; mạng chia 2/3 thì phía 3 node vẫn chạy, phía 2 node không ghi được; dùng ở etcd, Consul, Kafka KRaft (từ Kafka 4.0 không còn ZooKeeper)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#102-raft-trong-năm-dòng",
+     "section": "20 §10.2 · Raft trong năm dòng"
+    },
+    {
+     "id": "ex102",
+     "t": 298.6,
+     "text": "BT 10.2: (a) 2; (b) leader cũ không chép tới đa số nên không commit, client timeout; phía 3 node bầu leader term lớn hơn; nối lại thì leader cũ xuống follower, bỏ entry chưa commit; (c) 4 node chịu 1 như 3 node nhưng tốn thêm máy, 6 chịu 2 như 5",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập tuần 10 (10.1, 10.2)"
+    }
+   ]
+  },
+  {
+   "id": "ep20-locks-fencing",
+   "ep": 20,
+   "week": 10,
+   "title": "Distributed locks and fencing tokens",
+   "subtitle": "A lock for efficiency or for correctness, the gap no client can close, labs 10A and 10B, and when you need no lock at all",
+   "file": "ep20-locks-fencing.mp4",
+   "poster": "ep20-locks-fencing.jpg",
+   "source": "ep20-locks-fencing.yaml",
+   "duration": 318.5,
+   "bytes": 4499273,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 12.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 44.2,
+     "title": "Two kinds of lock"
+    },
+    {
+     "t": 73.1,
+     "title": "The gap"
+    },
+    {
+     "t": 112.7,
+     "title": "Lab 10A"
+    },
+    {
+     "t": 173.3,
+     "title": "Lab 10B"
+    },
+    {
+     "t": 216.5,
+     "title": "Exercise 10.3"
+    },
+    {
+     "t": 281.3,
+     "title": "2-minute talk"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#103-khoá-phân-tán-cho-hiệu-năng-hay-cho-đúng-đắn",
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-10a--fencing-token-thứ-bảy-15-giờ",
+    "20-implement-gd2-du-lieu-phan-tan.md#lab-10b--job-scheduler-phân-tán-tùy-chọn-thứ-bảy-2-giờ",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-3"
+   ],
+   "points": [
+    {
+     "id": "lock-purpose",
+     "t": 44.2,
+     "text": "Khoá cho hiệu năng (tránh hai worker làm trùng việc tốn kém): hỏng thì thỉnh thoảng làm trùng, tốn tiền không sai, Redis SET key value NX PX 30000 đủ; khoá cho đúng đắn (hai bên cùng ghi là sai dữ liệu): khoá + fencing token do chính nơi lưu trữ kiểm",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#103-khoá-phân-tán-cho-hiệu-năng-hay-cho-đúng-đắn",
+     "section": "20 §10.3 · Khoá phân tán"
+    },
+    {
+     "id": "lock-gap",
+     "t": 73.1,
+     "text": "Khoá có TTL luôn có kẽ hở: client giữ khoá bị GC pause hoặc mạng treo quá TTL, khoá hết hạn, client khác lấy khoá, client cũ tỉnh dậy vẫn tin mình giữ khoá và ghi; client không tự biết mình bị pause, chỉ nơi lưu trữ chặn được bằng cách từ chối token cũ; tài nguyên chính là Postgres thì dùng khoá dòng hoặc update có điều kiện",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#103-khoá-phân-tán-cho-hiệu-năng-hay-cho-đúng-đắn",
+     "section": "20 §10.3 · Khoá phân tán"
+    },
+    {
+     "id": "lab10a-sim",
+     "t": 112.7,
+     "text": "Bản mô phỏng Fencing.java đã chạy: không fencing thì A (token 1) và B (token 2) đều ghi, giá trị cuối là giá trị cũ của A; có fencing thì A bị từ chối (ghi=false), giá trị cuối là của B",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-10a--fencing-token-thứ-bảy-15-giờ",
+     "section": "20 · Lab 10A: fencing token"
+    },
+    {
+     "id": "lab10a-real",
+     "t": 135.7,
+     "text": "Bản thật trên Postgres: khoá = một dòng lock(name, owner, token, expires_at), cấp bằng update có điều kiện where expires_at < now() và token = token + 1 returning token; config(name, value, last_token), ghi where last_token <= token (0 dòng = bị từ chối); test A lấy khoá, pause quá TTL, B lấy khoá và ghi, A ghi → 0 dòng, giá trị cuối của B",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-10a--fencing-token-thứ-bảy-15-giờ",
+     "section": "20 · Lab 10A: fencing token"
+    },
+    {
+     "id": "lab10b",
+     "t": 173.3,
+     "text": "Lab 10B: worker claim job READY bằng update … for update skip locked, lease 30 s, lease_version + 1; gia hạn mỗi 10 s; reaper trả lease_until < now() về READY; ghi kết quả kèm where lease_version = :v: worker bị coi là chết mà vẫn chạy ghi 0 dòng; lease_version chính là fencing token",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-10b--job-scheduler-phân-tán-tùy-chọn-thứ-bảy-2-giờ",
+     "section": "20 · Lab 10B: job scheduler (tùy chọn)"
+    },
+    {
+     "id": "lab10b-test",
+     "t": 204.8,
+     "text": "Test lab 10B: 4 worker, 1.000 job, kill một worker giữa chừng: mọi job chạy ít nhất một lần, kết quả ghi đúng một lần",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#lab-10b--job-scheduler-phân-tán-tùy-chọn-thứ-bảy-2-giờ",
+     "section": "20 · Lab 10B: job scheduler (tùy chọn)"
+    },
+    {
+     "id": "ex103",
+     "t": 248.0,
+     "text": "BT 10.3: (a) khoá cho hiệu năng (Redis hoặc ShedLock) + email idempotent theo (khách, ngày); (b) không cần khoá phân tán, tài nguyên là Postgres: update có điều kiện hoặc khoá dòng (giai đoạn 1 lab 3A); (c) gọi trùng chỉ tốn tiền: Redis lock đủ + idempotency key gửi nhà cung cấp nếu họ hỗ trợ",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.3"
+    },
+    {
+     "id": "talk-w10",
+     "t": 281.3,
+     "text": "Bài nói 'How can a distributed lock fail, and what is a fencing token?': TTL + process pause là kẽ hở không đóng được từ phía client; token tăng dần cấp cùng khoá; nơi lưu trữ từ chối token cũ; số của lab (A ghi bị từ chối); khi nào không cần khoá phân tán (tài nguyên chính là DB)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-3",
+     "section": "20 · Bài nói 2 phút tuần 10"
+    }
+   ]
+  },
+  {
+   "id": "ep21-hotel-scheduler",
+   "ep": 21,
+   "week": 10,
+   "title": "Timed designs: hotel reservation and a distributed job scheduler",
+   "subtitle": "Exercises 10.4 and 10.5 — inventory rows per night, deliberate overbooking, cron without duplicates, and an honest “exactly-once?”",
+   "file": "ep21-hotel-scheduler.mp4",
+   "poster": "ep21-hotel-scheduler.jpg",
+   "source": "ep21-hotel-scheduler.yaml",
+   "duration": 264.8,
+   "bytes": 3586430,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 15.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 23.9,
+     "title": "10.4 Hotel reservation"
+    },
+    {
+     "t": 146.2,
+     "title": "10.5 Job scheduler"
+    },
+    {
+     "t": 231.8,
+     "title": "Interview line"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10"
+   ],
+   "points": [
+    {
+     "id": "ex104-sql",
+     "t": 49.0,
+     "text": "BT 10.4 Hotel reservation: room_type_inventory một dòng mỗi (khách sạn, loại phòng, ngày) với total, reserved; đặt nhiều đêm là MỘT transaction update có điều kiện date between :in and :out - 1 and reserved + :rooms <= total * 1.1; số dòng < số đêm → rollback",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    },
+    {
+     "id": "ex104-decisions",
+     "t": 77.6,
+     "text": "BT 10.4 quyết định: chống đặt trùng bằng reservation_id client sinh (idempotency key, unique); chống overbooking bằng update có điều kiện (ngày cao điểm tranh một dòng, vẫn ổn); giữ phòng PENDING 15 phút → saga thanh toán → xác nhận hoặc nhả; tìm phòng đọc cache/replica, kiểm lại lúc đặt",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    },
+    {
+     "id": "ex104-family",
+     "t": 124.0,
+     "text": "Hotel reservation thuộc họ G (đọc → tính → ghi trên trạng thái chia sẻ), như bài 06",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    },
+    {
+     "id": "ex105",
+     "t": 171.1,
+     "text": "BT 10.5 Distributed job scheduler: lõi lab 10B; lịch cron chỉ một nơi sinh lần chạy, unique (schedule_id, fire_time) để sinh trùng vô hại; ưu tiên và công bằng giữa tenant (họ B, bài 02); job treo = lease hết hạn, reaper trả về READY; kết quả ghi kèm lease_version",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    },
+    {
+     "id": "ex105-exactly",
+     "t": 211.5,
+     "text": "'Exactly-once?' của scheduler: không; at-least-once + job idempotent + fencing khi ghi kết quả",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10",
+     "section": "20 · Bài tập 10.4, 10.5"
+    }
+   ]
+  },
+  {
+   "id": "ep22-capstone-milestone",
+   "ep": 22,
+   "week": 10,
+   "title": "Capstone kickoff and the week-10 milestone",
+   "subtitle": "Pick A or B, write the design doc and the first ADR, build the MVP skeleton — then check the ten criteria that end phase 2",
+   "file": "ep22-capstone-milestone.mp4",
+   "poster": "ep22-capstone-milestone.jpg",
+   "source": "ep22-capstone-milestone.yaml",
+   "duration": 383.8,
+   "bytes": 5909851,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 19.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 55.4,
+     "title": "The capstone"
+    },
+    {
+     "t": 106.1,
+     "title": "Design doc"
+    },
+    {
+     "t": 193.7,
+     "title": "MVP scope"
+    },
+    {
+     "t": 240.0,
+     "title": "The milestone"
+    },
+    {
+     "t": 311.3,
+     "title": "Honest boundaries"
+    },
+    {
+     "t": 361.2,
+     "title": "What's next"
+    }
+   ],
+   "covers": [
+    "20-implement-gd2-du-lieu-phan-tan.md#capstone-khởi-động--tuần-910",
+    "20-implement-gd2-du-lieu-phan-tan.md#mẫu-design-doc-my-workcapstonedesign-docmd",
+    "20-implement-gd2-du-lieu-phan-tan.md#phạm-vi-mvp-gợi-ý",
+    "20-implement-gd2-du-lieu-phan-tan.md#mốc-tuần-10--tiêu-chí-qua-giai-đoạn",
+    "20-implement-gd2-du-lieu-phan-tan.md#ranh-giới-trung-thực",
+    "00-lo-trinh-6-thang.md#dự-án-thực-hành-capstone"
+   ],
+   "points": [
+    {
+     "id": "capstone-phase2",
+     "t": 0.0,
+     "text": "Capstone chạy tuần 9–16; giai đoạn 2 chỉ làm design doc v1 (tuần 9) và khung MVP chạy được (tuần 10)",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#capstone-khởi-động--tuần-910",
+     "section": "20 · Capstone khởi động"
+    },
+    {
+     "id": "capstone-ab",
+     "t": 55.4,
+     "text": "Chọn capstone theo công ty: A Mini Core Transfer (ngân hàng, ví) cần sổ cái kép, idempotency key, saga + outbox, chống chi trùng, đối soát cuối ngày, audit log, chứng minh bằng gửi lại 100 lần ra 1 giao dịch, kill consumer không mất/trùng tiền, load test 500 TPS; B Distributed Test Runner (SaaS) cần queue + worker autoscale, chia công bằng giữa tenant, retry job treo, log realtime, webhook retry, chứng minh 10.000 job một tenant không nghẽn tenant khác, kill worker job chạy lại đúng",
+     "src": "00-lo-trinh-6-thang.md#dự-án-thực-hành-capstone",
+     "section": "00 · Capstone A hoặc B"
+    },
+    {
+     "id": "design-doc-11",
+     "t": 106.1,
+     "text": "Design doc 11 mục: bối cảnh (5 dòng), mục tiêu/không phải mục tiêu, yêu cầu phi chức năng có số (SLO p99, availability, RPO/RTO, nhất quán theo luồng), tải ở ba bậc 100k/1M/10M, kiến trúc C4, dữ liệu và API, luồng chính + 3 luồng lỗi, phương án đã cân nhắc, vận hành, rủi ro, kế hoạch",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#mẫu-design-doc-my-workcapstonedesign-docmd",
+     "section": "20 · Mẫu design doc"
+    },
+    {
+     "id": "adr",
+     "t": 163.8,
+     "text": "Mỗi quyết định lớn ở mục 8 thành một ADR một trang (adr/0001-outbox-polling-thay-cdc.md): Bối cảnh · Quyết định · Hệ quả · Phương án đã loại",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#mẫu-design-doc-my-workcapstonedesign-docmd",
+     "section": "20 · Mẫu design doc"
+    },
+    {
+     "id": "mvp-scope",
+     "t": 193.7,
+     "text": "Tuần 10 khung: A API mở tài khoản + chuyển tiền nội bộ có idempotency key, sổ cái kép, outbox → Kafka, consumer thông báo idempotent (lab 8); B API nhận job + bảng job, worker SKIP LOCKED + lease (lab 10B); tuần 11–14 saga liên ngân hàng, đối soát, Keycloak / hàng đợi theo tenant, log, MinIO; tuần 15–16 load test 500 TPS, thử phá / 10.000 job một tenant, kill worker, autoscale",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#phạm-vi-mvp-gợi-ý",
+     "section": "20 · Phạm vi MVP"
+    },
+    {
+     "id": "milestone-1",
+     "t": 240.0,
+     "text": "Mốc tuần 10 tiêu chí 1–5: trả lời 6 chủ đề không tài liệu ≤ 2 phút; lab 8 bảy test xanh có test trùng do relay crash; lab 7 recovery + pivot timeout; lab 5A, 10A bắt buộc; lab 5B, 10B tùy chọn",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#mốc-tuần-10--tiêu-chí-qua-giai-đoạn",
+     "section": "20 · Mốc tuần 10"
+    },
+    {
+     "id": "milestone-2",
+     "t": 272.5,
+     "text": "Tiêu chí 6–10: D20 sửa một consumer có số trước/sau; V6 (× 10, số thật lab 8) và V7; 6 đề bấm giờ tự chấm ≥ 7/10; design doc v1 đủ 11 mục + khung MVP chạy được; 4 bài nói 2 phút đã ghi âm",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#mốc-tuần-10--tiêu-chí-qua-giai-đoạn",
+     "section": "20 · Mốc tuần 10"
+    },
+    {
+     "id": "late-rule",
+     "t": 300.1,
+     "text": "Trễ quá 2 tuần: bỏ lab tùy chọn và bớt một đề bấm giờ, không bỏ lab 8 và design doc vì capstone phụ thuộc cả hai",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#mốc-tuần-10--tiêu-chí-qua-giai-đoạn",
+     "section": "20 · Mốc tuần 10"
+    },
+    {
+     "id": "honest",
+     "t": 311.3,
+     "text": "Đã chạy: ConsistentHash, Fencing, Saga (JDK 21); OutboxLab 2 lần với PostgreSQL 16.4 và Kafka 4.1.2 thật (KRaft), kết quả giống hệt; D20 2 lần, max.poll.interval.ms hạ còn 6 s. Chưa làm: lab Spring 7, 8, 5B, 10A bản Postgres, 10B; bước 5 (DLT) và 7 (thứ tự) của lab 8 là suy luận; đáp án đề bấm giờ là khung hợp lý, số liệu là giả định",
+     "src": "20-implement-gd2-du-lieu-phan-tan.md#ranh-giới-trung-thực",
+     "section": "20 · Ranh giới trung thực"
+    }
+   ]
+  }
+ ]
+}

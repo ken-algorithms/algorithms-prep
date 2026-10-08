@@ -1,0 +1,169 @@
+id: ep16-p20-rebalance-storm
+ep: 16
+week: 8
+tag: "EP16 · WEEKS 8–9"
+title: "Track P: P20, the slow consumer and the rebalance storm"
+subtitle: "One slow call per message, a batch that never commits, and the D20 numbers from real Kafka"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#track-p-tuần-89--p20-consumer-chậm-và-rebalance-storm
+  - 01-java-code-cham-duoi-tai-cao.md#p20--kafka-consumer-xử-lý-đồng-bộ-từng-message-
+  - 01-java-code-cham-duoi-tai-cao.md#7-bắt-chúng-trên-production--metric-nào-công-cụ-nào
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 01 · P20 and §7 (production metrics); 20 · Track P weeks 8–9 (run D20, exercise P20)"}
+      - {t: "Weeks 8–9 · Friday: read P20, then run D20 against Kafka on localhost:9092"}
+    lines:
+      - emma: "Episode sixteen is Track P for weeks eight and nine: P20, a Kafka consumer that makes one slow call per message. It doesn't just run slowly. Under the wrong conditions, it never finishes, and it sends customers thousands of duplicate notifications."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức của web và API"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+    lines:
+      - emma: "Only two short forms today. HTTP is the web's protocol, and an API is an application programming interface: here, the notification service we call."
+        focus: 1
+
+  - kind: code
+    chapter: "The bug"
+    heading: "P20 · One downstream call per message"
+    points: [p20-code]
+    code: |
+      // BAD: one HTTP call per message, 200 ms each; a poll of 500 records = 100 s before the next poll
+      @KafkaListener(topics = "transfer.completed")
+      void on(TransferCompleted e) { notificationClient.send(e); }
+
+      // FIX: a batch listener + a batch API (and an idempotent consumer, as in lab 8)
+      @KafkaListener(topics = "transfer.completed", batch = "true")
+      void on(List<TransferCompleted> events) { notificationClient.sendBatch(events); }
+    items:
+      - {lines: [1, 3], t: "500 records × 200 ms = 100 s between two polls"}
+      - {lines: [5, 7], t: "One call for the whole batch"}
+    lines:
+      - emma: "Here's the bad version. For every message, the listener makes one HTTP call to the notification service, two hundred milliseconds each. A poll returns up to five hundred records, so it's a hundred seconds before the consumer polls again."
+        focus: 0
+      - emma: "The fix is a batch listener that sends the whole batch in one call. And the consumer must still be idempotent, as in lab eight."
+        focus: 1
+
+  - kind: flow
+    chapter: "The storm"
+    heading: "How one slow partner starts a rebalance storm"
+    sub: "The partner slows down to 1 s per call; max.poll.interval.ms is 300 s by default"
+    points: [p20-storm]
+    build: true
+    items:
+      - {t: "500 × 1 s = 500 s", s: "one poll's batch takes longer than 300 s"}
+      - {t: "“Consumer is dead”", s: "the broker evicts it and rebalances"}
+      - {t: "Another consumer", s: "takes the partition, starts again from the uncommitted offset"}
+      - {t: "Also slow", s: "same partner, same batch size"}
+      - {t: "Rebalance again", s: "and every replay sends duplicate notifications", tone: bad}
+    lines:
+      - emma: "Now the partner slows down to one second per call. Five hundred records take five hundred seconds, longer than max poll interval, three hundred seconds by default."
+        focus: 0
+      - emma: "The broker decides the consumer is dead, and rebalances. Another consumer takes the partition, and starts again from the last committed offset, because the slow one never managed to commit."
+        focus: 2
+      - emma: "But it calls the same slow partner with the same batch size, so it's evicted too, and the cycle repeats. That's a rebalance storm. And every replay sends the same notifications again."
+        focus: 4
+
+  - kind: table
+    chapter: "D20 numbers"
+    heading: "D20 on real Kafka 4.1.2 · 2,000 messages, 4 partitions, 2 consumers, 20 ms per call"
+    sub: "max.poll.interval.ms lowered to 6 s so the demo runs in seconds · 2 runs"
+    columns: ["Mode", "One poll takes", "Result"]
+    widths: [2.5, 3.3, 4.4]
+    build: true
+    points: [p20-d20]
+    rows:
+      - ["PER_MESSAGE_500", "500 × 20 ms = 10 s > 6 s", "NOT finished after 45 s: 1,267–1,619 of 2,000 done, 1,847–2,245 duplicate sends, 6 partitions revoked, 6–7 failed commits"]
+      - ["PER_MESSAGE_50", "50 × 20 ms = 1 s", "done in 24.6 s, 0 duplicates"]
+      - ["BATCH_CALL_500", "one 20 ms call + 1 ms per message", "done in 1.3 s, 0 duplicates"]
+    lines:
+      - emma: "Here's D20, run twice on real Kafka. Two thousand messages, four partitions, two consumers, and a downstream call of twenty milliseconds. To make the demo run in seconds, max poll interval is lowered to six seconds."
+      - emma: "The bad version takes ten seconds per poll, more than six. After forty-five seconds it still hasn't finished: only about thirteen to sixteen hundred messages done, about two thousand duplicate sends, partitions revoked six times, and six or seven failed commits."
+        focus: 0
+      - emma: "Fix A, fifty records per poll: one second per poll, no rebalances, done in twenty-four point six seconds."
+        focus: 1
+      - emma: "Fix B, one batch call: done in one point three seconds. That's eighteen times faster than fix A."
+        focus: 2
+
+  - kind: stats
+    heading: "What the numbers mean"
+    points: [p20-d20-meaning]
+    items:
+      - {v: "never", l: "the bad version finishes", s: "each batch is evicted before it commits, so it comes back from the start", tone: bad}
+      - {v: "> 2,000", l: "duplicate notifications", s: "sent to real customers", tone: bad}
+      - {v: "18×", l: "batch call vs fewer records", s: "fix A stops the storm; fix B also makes it fast", tone: ok}
+    lines:
+      - emma: "The bad version isn't just slow. It never finishes, because every batch is evicted before it can commit, so the same batch comes back from the start."
+        focus: 0
+      - emma: "Meanwhile, more than two thousand duplicate notifications reach customers."
+        focus: 1
+      - emma: "Fewer records per poll stops the storm but stays slow. The batch call is eighteen times faster."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Fix it, in order"
+    heading: "Fix it in this order"
+    style: num
+    points: [p20-fix-order]
+    items:
+      - {t: "Call downstream in batches", s: "18× faster than only lowering max.poll.records"}
+      - {t: "Size max.poll.records by the downstream p99, not the average"}
+      - {t: "Process in parallel with a bounded executor — but keep the order per key"}
+      - {t: "pause() the partition while downstream is slow"}
+      - {t: "Make the consumer idempotent", s: "duplicates will happen"}
+    lines:
+      - emma: "Fix it in this order. First, call downstream in batches."
+        focus: 0
+      - emma: "Second, size max poll records by the downstream's p99 latency, not its average."
+        focus: 1
+      - emma: "Third, if you process in parallel, use a bounded executor and keep the order per key. Fourth, pause the partition while downstream is slow."
+        focus: 3
+      - emma: "And fifth, make the consumer idempotent, because duplicates will happen."
+        focus: 4
+
+  - kind: exercise
+    chapter: "Exercise P20"
+    n: "P20"
+    q: "Three questions with the default settings: max.poll.records=500, max.poll.interval.ms=300000."
+    items:
+      - {t: "(a) How slow, per message, can downstream get before the storm starts?"}
+      - {t: "(b) Downstream p99 is 1.2 s. What max.poll.records do you choose?"}
+      - {t: "(c) Which three metrics on a dashboard signal P20?"}
+    lines:
+      - emma: "Exercise P20, with the default settings. A: how slow per message can downstream get before the storm starts? B: downstream p99 is one point two seconds; what max poll records do you choose? And C: which three metrics on a dashboard signal P20?"
+      - wait: 7
+
+  - kind: table
+    heading: "Answer P20"
+    columns: ["", "Answer"]
+    widths: [0.9, 8.4]
+    build: true
+    points: [ex-p20]
+    rows:
+      - ["(a)", "300,000 ms ÷ 500 = 600 ms per message. Normally 50 ms is fine; an incident that slows it to 700 ms starts the storm, exactly when the system is weakest"]
+      - ["(b)", "Use the p99 with a safety factor of 2: 300 s ÷ (1.2 s × 2) ≈ 125 → choose 100. Better: batch calls, or a bounded executor that pause()s the partition when full"]
+      - ["(c)", "Consumer lag rising (records-lag-max); the number of rebalances and group joins rising; failed commits. Plus duplicate notifications downstream, if you measure them"]
+    lines:
+      - emma: "A: three hundred thousand milliseconds divided by five hundred is six hundred milliseconds per message. Normally, at fifty milliseconds, you're fine. But an incident that slows downstream to seven hundred milliseconds starts the storm, exactly when the system is at its weakest."
+        focus: 0
+      - emma: "B: use the p99, not the average, with a safety factor of two. Three hundred seconds divided by two point four is about a hundred twenty-five, so choose a hundred. Better still, call in batches, or use a bounded executor and pause the partition when it's full."
+        focus: 1
+      - emma: "C: consumer lag going up, records lag max; the number of rebalances and group joins going up; and failed commits. Plus duplicate notifications downstream, if you measure them."
+        focus: 2
+
+  - kind: compare
+    chapter: "In production"
+    heading: "01 §7 · Catching P20 in production"
+    points: [p20-metric]
+    items:
+      - {title: "The metric (Micrometer)", tone: ok, lines: ["kafka.consumer.fetch.manager.records.lag.max going up", "the number of rebalances"]}
+      - {title: "The confirmation", tone: warn, lines: ["“Member … has left the group” repeating in the logs", "and always: look at the p99, never the average"]}
+    lines:
+      - emma: "In production, the metric that gives P20 away is consumer lag: records lag max keeps rising, together with the number of rebalances."
+        focus: 0
+      - emma: "Confirm it in the logs: the message “member has left the group” keeps repeating. And as with every performance problem, look at the p99, never the average. Next episode: stream processing and the ad click design."
+        focus: 1

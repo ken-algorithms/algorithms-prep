@@ -1,6 +1,6 @@
 """Dòng lệnh `python -m lesson_video` (chạy trong thư mục tools/).
 
-    check    <kịch bản.yaml>… [--points points.yaml] [--glossary bang-chu-viet-tat.md]
+    check    <kịch bản.yaml>… [--points points.yaml] [--glossary bang-chu-viet-tat.md]…
     build    <kịch bản.yaml>… [--engine kokoro|silent] [--speed 0.9] [--model F.onnx] [--voices DIR]
                               [--out DIR] [--work DIR] [--no-cache]
     frames   <kịch bản.yaml> --out DIR        ảnh PNG cuối mỗi cảnh (dựng im lặng), để soát bố cục
@@ -29,7 +29,7 @@ def _default_points(path: Path):
 
 def _check(args) -> int:
     bad = 0
-    terms = coverage.glossary_terms(Path(args.glossary)) if args.glossary else None
+    terms = set().union(*(coverage.glossary_terms(Path(g)) for g in args.glossary)) if args.glossary else None
     for p in args.lessons:
         lesson = sc.load(Path(p))
         points = sc.load_points(Path(args.points)) if args.points else _default_points(Path(p))
@@ -136,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
     c = sub.add_parser("check", help="kiểm tra kịch bản: cú pháp, anchor nguồn, ý chính, chữ viết tắt")
     c.add_argument("lessons", nargs="+")
     c.add_argument("--points", help="points.yaml (mặc định: cạnh kịch bản)")
-    c.add_argument("--glossary", help="bảng chữ viết tắt .md để kiểm chữ viết tắt")
+    c.add_argument("--glossary", action="append", help="bảng chữ viết tắt .md để kiểm chữ viết tắt (lặp lại được)")
     b = sub.add_parser("build", help="đọc lời, vẽ slide, ghép video")
     b.add_argument("lessons", nargs="+")
     b.add_argument("--engine", default="kokoro", choices=["kokoro", "silent"])

@@ -1,0 +1,162 @@
+id: ep11-payment-wallet
+ep: 11
+week: 7
+tag: "EP11 · WEEK 7"
+title: "Timed designs: a payment system and a digital wallet"
+subtitle: "Exercises 7.5 and 7.7 — the payment flow, its three deep dives, and when the book's wallet design is overkill"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-7
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · exercise 7.5 (payment system, 45 minutes) and 7.7 (digital wallet: when do you need the complex design?)"}
+      - {t: "Week 7 · Sunday timed designs · reading: Alex Xu Vol 2, ch. 11 and 12"}
+    lines:
+      - emma: "Episode eleven: the two timed designs of week seven. A payment system, where the hard part is never charging twice and proving it. And a digital wallet, where the senior answer is knowing what you don't need yet."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: PSP, full: "payment service provider", vi: "cổng thanh toán, trừ thẻ thay merchant"}
+      - {abbr: PCI DSS, full: "Payment Card Industry Data Security Standard", vi: "chuẩn bảo mật dữ liệu thẻ"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: TPS, full: "transactions per second", vi: "số giao dịch nghiệp vụ mỗi giây"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "A PSP is a payment service provider, the company that charges the card. PCI DSS is the Payment Card Industry Data Security Standard, the rules you must follow if you store card numbers."
+        focus: 1
+      - emma: "API is an application programming interface, TPS means transactions per second, and ID is an identifier."
+        focus: 4
+
+  - kind: exercise
+    chapter: "7.5 Payment system"
+    n: "7.5"
+    q: "Timed design, 45 minutes: a payment system that charges customers' cards for merchants."
+    items:
+      - {t: "A customer must never be charged twice, even when the client retries or the PSP times out"}
+      - {t: "Every charge must show up correctly in the ledger and the merchant's wallet"}
+      - {t: "You must be able to prove, every day, that the money is right"}
+    lines:
+      - emma: "Exercise 7.5: a payment system that charges cards for merchants. Never charge twice, even when the client retries or the PSP times out. Every charge lands correctly in the ledger and the merchant's wallet. And you can prove, every day, that the money is right. Pause and sketch the flow."
+        say: "Exercise seven point five: a payment system that charges cards for merchants. Never charge twice, even when the client retries or the PSP times out. Every charge lands correctly in the ledger and the merchant's wallet. And you can prove, every day, that the money is right. Pause and sketch the flow."
+      - wait: 8
+
+  - kind: diagram
+    heading: "7.5 · The payment flow"
+    sub: "The card number never touches your system: the PSP hosts the payment page"
+    points: [ex75-flow]
+    nodes:
+      - {id: c, label: "Client", x: 80, y: 70, w: 130, h: 60, shape: user}
+      - {id: api, label: "Payment API", sub: "Idempotency-Key", x: 290, y: 70, w: 190, h: 70}
+      - {id: svc, label: "Payment service", sub: "payment CREATED", x: 530, y: 70, w: 200, h: 70}
+      - {id: ex, label: "Payment executor", sub: "idempotency key → PSP", x: 780, y: 70, w: 200, h: 70, at: 1}
+      - {id: psp, label: "PSP", sub: "hosts the card page", x: 1050, y: 70, w: 180, h: 70, at: 1}
+      - {id: res, label: "Result", sub: "webhook or poll → SUCCEEDED / FAILED", x: 1050, y: 230, w: 210, h: 80, at: 2}
+      - {id: led, label: "Ledger", sub: "double entry", x: 780, y: 230, w: 180, h: 70, shape: db, at: 2}
+      - {id: w, label: "Wallet", x: 530, y: 230, w: 160, h: 60, shape: db, at: 2}
+      - {id: n, label: "Outbox → notification", x: 290, y: 230, w: 210, h: 60, at: 2}
+      - {id: rec, label: "Daily reconciliation", sub: "PSP settlement file vs ledger; mismatch → manual queue", x: 780, y: 360, w: 420, h: 64, tone: ok, at: 3}
+    edges:
+      - {a: c, b: api}
+      - {a: api, b: svc}
+      - {a: svc, b: ex, at: 1}
+      - {a: ex, b: psp, at: 1}
+      - {a: psp, b: res, dashed: true, at: 2}
+      - {a: res, b: led, at: 2}
+      - {a: led, b: w, at: 2}
+      - {a: w, b: n, at: 2}
+      - {a: rec, b: led, dashed: true, at: 3}
+    lines:
+      - emma: "The client calls the payment API with an idempotency key. The payment service records the payment as created."
+        focus: 0
+      - emma: "A payment executor sends it to the PSP, again with an idempotency key. The PSP hosts the card page, so the card number never touches your system."
+        focus: 1
+      - emma: "The result comes back by webhook or by polling: succeeded or failed. Then the ledger posts double entries, the merchant's wallet is credited, and the outbox triggers the notification."
+        focus: 2
+      - emma: "And every day a reconciliation job compares the PSP's settlement file with your ledger. Anything that doesn't match goes to a queue for a human."
+        focus: 3
+
+  - kind: flow
+    heading: "7.5 · One payment row and its states"
+    sub: "The ledger is posted only after SUCCEEDED; UNKNOWN is resolved by asking, then by reconciliation"
+    points: [ex75-states]
+    items:
+      - {t: "CREATED", s: "stored with its idempotency key before anything leaves the system"}
+      - {t: "Sent to the PSP", s: "the executor calls with the same key on every retry"}
+      - {t: "SUCCEEDED or FAILED", s: "from the webhook — or by polling if the webhook never comes"}
+      - {t: "UNKNOWN", s: "timeout: ask the PSP by key; still unknown → the settlement file decides"}
+    lines:
+      - emma: "Keep one payment row with a clear state. It's created, with its idempotency key, before anything leaves your system."
+        focus: 0
+      - emma: "The executor sends it to the PSP, using the same key on every retry, so the PSP can't charge twice."
+        focus: 1
+      - emma: "The result usually arrives by webhook. If the webhook never comes, you poll. Only a succeeded payment posts to the ledger."
+        focus: 2
+      - emma: "And a timeout puts the payment in an unknown state. You ask the PSP by key, and if it's still unknown, the next settlement file decides."
+        focus: 3
+
+  - kind: table
+    heading: "7.5 · The three deep dives"
+    columns: ["Question", "Answer"]
+    widths: [2.2, 5.6]
+    build: true
+    points: [ex75-deep]
+    rows:
+      - ["“Exactly-once?”", "At-least-once retries + an idempotency key at both ends: your API and the PSP"]
+      - ["The result is unknown", "Same as exercise 7.3: an unknown state, ask by key, then reconcile — never charge again blindly"]
+      - ["How do you know it's right?", "Reconciliation proves it, not “trusting the code”: the PSP file vs the ledger, every day"]
+      - ["Card numbers", "Don't store them: otherwise the whole system falls into the scope of PCI DSS"]
+    lines:
+      - emma: "Expect three deep dives. Exactly-once? There's no such thing on the wire. It's at-least-once retries plus an idempotency key at both ends: your API and the PSP."
+        focus: 0
+      - emma: "What if the result is unknown? Exactly exercise 7.3: an unknown state, ask by key, reconcile. Never charge again blindly."
+        say: "What if the result is unknown? Exactly exercise seven point three: an unknown state, ask by key, reconcile. Never charge again blindly."
+        focus: 1
+      - emma: "How do you know it's right? Reconciliation is the proof, not trust in the code."
+        focus: 2
+      - emma: "And don't store card numbers. If you do, your whole system falls into the scope of PCI DSS."
+        focus: 3
+
+  - kind: exercise
+    chapter: "7.7 Digital wallet"
+    n: "7.7"
+    q: "Alex Xu Vol 2 designs a wallet for 1 million transactions per second, with event sourcing and a state machine replicated by Raft. Mini Core Transfer at L2 does ~25 transactions per second on salary day (L3: ~250). In three sentences: what do you use, and why don't you need the book's design yet?"
+    items:
+      - {t: "Every transfer writes about 6 rows: transfer, 2 ledger entries, outbox, idempotency key, audit"}
+    lines:
+      - emma: "Exercise 7.7. The book designs a wallet for a million transactions per second, using event sourcing and a state machine replicated with Raft. Our bank at level L2 does about twenty-five per second on salary day, and about two hundred fifty at L3. In three sentences: what do you use, and why don't you need the book's design yet?"
+        say: "Exercise seven point seven. The book designs a wallet for a million transactions per second, using event sourcing and a state machine replicated with Raft. Our bank at level L two does about twenty-five per second on salary day, and about two hundred fifty at L three. In three sentences: what do you use, and why don't you need the book's design yet?"
+      - wait: 7
+
+  - kind: stats
+    heading: "Answer 7.7 — know what you don't need"
+    points: [ex77]
+    items:
+      - {v: "1,500 writes/s", l: "250 TPS × 6 rows", s: "fits one Postgres primary", tone: ok}
+      - {v: "1M TPS", l: "the book's target", s: "event sourcing + Raft split accounts across partitions"}
+      - {v: "50–70%", l: "of the primary's measured capacity", s: "the threshold to switch — or when an audit needs replay", tone: warn}
+    lines:
+      - emma: "Sentence one: Postgres, an append-only ledger and an outbox. Two hundred fifty transactions per second times six rows is fifteen hundred writes per second, which fits one primary."
+        focus: 0
+      - emma: "Sentence two: event sourcing with Raft solves a different problem, going past the ceiling of one primary by splitting accounts across partitions and replicating state yourself. We're orders of magnitude below that ceiling."
+        focus: 1
+      - emma: "Sentence three: the switch point. Revisit it when writes reach fifty to seventy percent of the primary's measured capacity, or when an audit requirement means you must replay history to rebuild state."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    items:
+      - {t: "“Exactly-once is at-least-once plus idempotency keys at both ends, and a daily reconciliation that proves it.”"}
+      - {t: "“The PSP hosts the card page, so card numbers never enter our scope.”"}
+      - {t: "“At 1,500 writes a second, one primary is enough; I'd revisit at 50–70% of its measured capacity.”"}
+    lines:
+      - emma: "In an interview: exactly-once is at-least-once plus idempotency keys at both ends, and a daily reconciliation that proves it."
+        focus: 0
+      - emma: "The PSP hosts the card page, so card numbers never enter our scope."
+        focus: 1
+      - emma: "And at fifteen hundred writes a second, one primary is enough. I'd revisit at fifty to seventy percent of its measured capacity. Next episode: Kafka, ordering and durable writes."
+        focus: 2

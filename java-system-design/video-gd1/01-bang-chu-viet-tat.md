@@ -44,7 +44,7 @@
 | G1 | Garbage-First (collector) | GC mặc định của JDK hiện đại, chia heap thành vùng | `G one` | Ep01 |
 | **OOM** | Out Of Memory (`OutOfMemoryError`) | JVM hết heap, process chết | ✓ | Ep04 |
 | **SLA** | Service Level Agreement | Cam kết có hợp đồng với khách hàng, vi phạm thì bồi thường | ✓ | Ep01 |
-| **SLO** | Service Level Objective | Mục tiêu nội bộ cho một chỉ số, ví dụ "99,9% request dưới 300 ms" | ✓ | Ep00 |
+| **SLO** | Service Level Objective | Mục tiêu nội bộ cho một chỉ số, ví dụ "99,9% request dưới 300 ms" | `S L O` (để nguyên Kokoro đọc *slow*) | Ep00 |
 | **SLI** | Service Level Indicator | Chỉ số đo được để so với SLO, ví dụ tỉ lệ request thành công | ✓ | Ep00 |
 | **SPOF** | Single Point Of Failure | Điểm chết đơn: một thành phần hỏng là cả hệ thống ngừng | ✓ (*spoff*) | Ep01 |
 | **HA** | High Availability | Sẵn sàng cao: có bản dự phòng để một thành phần chết vẫn chạy | ✓ | Ep25 |
@@ -70,7 +70,7 @@
 | **CSV** | Comma-Separated Values | File bảng, mỗi dòng các giá trị cách nhau dấu phẩy; dùng cho export | ✓ | Ep05 |
 | UTF-8 | Unicode Transformation Format, 8-bit | Bảng mã chữ dùng khi ghi CSV ra byte | ✓ | Ep23 |
 | **DTO** | Data Transfer Object | Object chỉ chứa dữ liệu để truyền giữa các tầng hoặc qua API | ✓ | Ep05 |
-| **JPA** | Jakarta Persistence API | Chuẩn ánh xạ object ↔ bảng (object-relational mapping) của Java; Hibernate là bản cài đặt Spring dùng | ✓ | Ep04 |
+| **JPA** | Jakarta Persistence API | Chuẩn ánh xạ object ↔ bảng (object-relational mapping) của Java; Hibernate là bản cài đặt Spring dùng | `J P eigh` (chữ A đứng riêng giữa câu bị đọc thành mạo từ *a*) | Ep04 |
 | **JDBC** | Java Database Connectivity | API cấp thấp để Java nói chuyện với database; `fetchSize` là của JDBC | ✓ | Ep23 |
 | **MVC** | Model-View-Controller | Ở đây là Spring MVC, tầng web xử lý HTTP request | ✓ | Ep04 |
 | **AOP** | Aspect-Oriented Programming | Cơ chế Spring bọc method (transaction, log) bằng proxy; làm stack sâu thêm | ✓ | Ep04 |
@@ -149,7 +149,7 @@
 | **PACELC** | if Partition: Availability or Consistency; Else: Latency or Consistency | Thêm vế lúc bình thường: chọn độ trễ hay nhất quán | `pass-elk` | Ep19 |
 | **CDC** | Change Data Capture | Đọc log thay đổi của database để phát sự kiện | ✓ | Ep06 |
 | **CQRS** | Command Query Responsibility Segregation | Tách mô hình ghi và mô hình đọc (read model riêng) | ✓ | Ep25 |
-| **DDIA** | *Designing Data-Intensive Applications* (Martin Kleppmann) | Sách đọc tuần 3–4 | `dee dee eye ay` | Ep13 |
+| **DDIA** | *Designing Data-Intensive Applications* (Martin Kleppmann) | Sách đọc tuần 3–4 | `D D I eigh` (*ay* bị đọc thành *eye*) | Ep13 |
 | **NTP** | Network Time Protocol | Đồng bộ đồng hồ; có thể kéo đồng hồ lùi, làm Snowflake sinh trùng | ✓ | Ep18 |
 | INCR, EXPIRE, PEXPIRE | increment; expire (giây); P = milliseconds | Lệnh Redis: tăng bộ đếm; đặt hạn sống của key | `increment`, `expire`, `P expire` | Ep11 |
 | HMGET, HSET | hash multi-get, hash set | Lệnh Redis đọc, ghi nhiều trường của một hash | ✓ | Ep11 |

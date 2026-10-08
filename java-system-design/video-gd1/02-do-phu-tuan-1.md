@@ -12,7 +12,7 @@
 | Ep03 · Estimation workout | 10:23 | 8 | 8 |
 | Ep04 · Track P, group 1: per-request waste | 10:44 | 6 | 13 |
 | Ep05 · Measure before you fix | 11:03 | 10 | 11 |
-| Ep06 · Track S: drawing V1 and V2 | 9:55 | 9 | 10 |
+| Ep06 · Track S: drawing V1 and V2 | 9:56 | 9 | 10 |
 
 ## Theo mục của tài liệu nguồn
 
@@ -412,5 +412,5 @@ Nguồn: [02-ve-he-thong-100k-1m-10m.md#4-lộ-trình-vẽ--10-bản-vẽ-từ-c
 |:---:|---|---|
 | ✅ | V1–V10 theo tuần, bậc, giới hạn thời gian; drill 'một hệ thống, ba quy mô' tuần 17–24 | Ep06 · 7:26 (Ten drawings) |
 | ✅ | Quy ước: C4 mức Container; mũi tên liền = đồng bộ, đứt = bất đồng bộ; ghi số trên mũi tên; AZ/region là hộp bao; cylinder cho thứ có trạng thái; Excalidraw / mermaid / draw.io | Ep06 · 8:12 (How to draw) |
-| ✅ | Tự chấm 6 câu: có số và giả định; bản sao ở AZ khác; chỗ nghẽn đầu tiên khi × 10; luồng tiền qua hộp nào; hộp thừa; ít nhất 3 câu 'đánh đổi là…' | Ep06 · 8:56 (How to draw) |
+| ✅ | Tự chấm 6 câu: có số và giả định; bản sao ở AZ khác; chỗ nghẽn đầu tiên khi × 10; luồng tiền qua hộp nào; hộp thừa; ít nhất 3 câu 'đánh đổi là…' | Ep06 · 8:57 (How to draw) |
 

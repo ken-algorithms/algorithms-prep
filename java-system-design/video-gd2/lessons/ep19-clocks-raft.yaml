@@ -1,0 +1,214 @@
+id: ep19-clocks-raft
+ep: 19
+week: 10
+tag: "EP19 · WEEK 10"
+title: "Clocks lie, and Raft in five lines"
+subtitle: "Week 10 opens: wall clock versus monotonic time, why last-write-wins can pick the older write, and how Raft agrees on one log"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#tuần-10--đồng-thuận-khoá-phân-tán-đồng-hồ
+  - 20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-1
+  - 20-implement-gd2-du-lieu-phan-tan.md#đọc-3
+  - 20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm-3
+  - 20-implement-gd2-du-lieu-phan-tan.md#101-đồng-hồ-nói-dối
+  - 20-implement-gd2-du-lieu-phan-tan.md#102-raft-trong-năm-dòng
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · week 10 (outputs, reading), §10.1 clocks lie, §10.2 Raft in five lines; exercises 10.1 and 10.2"}
+      - {t: "Week 10 · Monday reading, Wednesday exercises"}
+    lines:
+      - emma: "Episode nineteen opens week ten, the last week of phase two: consensus, distributed locks, and clocks. We start with time, because almost every bug this week begins with trusting a clock."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: NTP, full: "Network Time Protocol", vi: "đồng bộ đồng hồ; có thể kéo đồng hồ lùi"}
+      - {abbr: LWW, full: "last-write-wins", vi: "giữ bản ghi có timestamp lớn nhất"}
+      - {abbr: KRaft, full: "Kafka Raft", vi: "Kafka tự bầu controller bằng Raft, không cần ZooKeeper"}
+      - {abbr: DDIA, full: "Designing Data-Intensive Applications", vi: "sách của Martin Kleppmann"}
+      - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo chạy bytecode Java"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: etcd, full: "a key-value store built on Raft", vi: "kho khoá–giá trị dùng Raft, nơi Kubernetes lưu trạng thái"}
+    lines:
+      - emma: "NTP is the Network Time Protocol, which keeps clocks in sync and can move them backwards. LWW is last-write-wins."
+        focus: 1
+      - emma: "KRaft is Kafka's own Raft mode, and DDIA is Kleppmann's book. JVM is the Java Virtual Machine, and DB the database."
+        focus: 5
+      - emma: "And etcd is a key-value store built on Raft. Kubernetes keeps its state there."
+        focus: 6
+
+  - kind: bullets
+    chapter: "Week 10"
+    heading: "By the end of week 10 you must have"
+    style: check
+    points: [w10-outputs]
+    items:
+      - {t: "Lab 10A: a fencing token on real Postgres", s: "with a test that reproduces a client “coming back to life” after a pause"}
+      - {t: "Lab 10B: a distributed job scheduler with SKIP LOCKED + a lease", s: "optional if you're short of time"}
+      - {t: "Two timed designs: Hotel reservation, Distributed job scheduler"}
+      - {t: "V6 updated with the numbers measured in lab 8", s: "outbox latency, duplicates"}
+      - {t: "Pass the week-10 milestone"}
+      - {t: "A 2-minute talk: “How can a distributed lock fail, and what is a fencing token?”"}
+    lines:
+      - emma: "By the end of week ten: lab 10A, a fencing token on real Postgres, with a test that reproduces a client coming back to life after a pause. Lab 10B, a job scheduler built on skip locked and a lease, is optional."
+        say: "By the end of week ten: lab ten A, a fencing token on real Postgres, with a test that reproduces a client coming back to life after a pause. Lab ten B, a job scheduler built on skip locked and a lease, is optional."
+        focus: 1
+      - emma: "Two timed designs, a hotel reservation system and a distributed job scheduler. V6 updated with the numbers you measured in lab eight."
+        say: "Two timed designs, a hotel reservation system and a distributed job scheduler. V six updated with the numbers you measured in lab eight."
+        focus: 3
+      - emma: "You pass the week-ten milestone, and record the talk: how can a distributed lock fail, and what is a fencing token?"
+        focus: 5
+
+  - kind: table
+    heading: "Reading for week 10"
+    columns: ["When", "What", "Focus on"]
+    widths: [1.1, 4.6, 3.0]
+    build: true
+    points: [w10-reading]
+    rows:
+      - ["Mon", "DDIA ch. 8 The Trouble with Distributed Systems, ch. 9 Consistency and Consensus", "clocks, process pauses, fencing; linearizability; consensus"]
+      - ["Wed", "Martin Kleppmann, How to do distributed locking (2016)", "locks for efficiency vs locks for correctness"]
+      - ["Fri", "The Raft paper, In Search of an Understandable Consensus Algorithm, + raft.github.io", "leader election, log replication"]
+      - ["Sun", "Alex Xu Vol 2, ch. 7 Hotel reservation system", ""]
+    lines:
+      - emma: "The reading. On Monday, DDIA chapters eight and nine: the trouble with distributed systems, and consistency and consensus. Clocks, process pauses, fencing, and consensus."
+        focus: 0
+      - emma: "On Wednesday, Martin Kleppmann's 2016 post, How to do distributed locking: locks for efficiency versus locks for correctness."
+        say: "On Wednesday, Martin Kleppmann's twenty sixteen post, How to do distributed locking: locks for efficiency versus locks for correctness."
+        focus: 1
+      - emma: "On Friday, the Raft paper, with the animation at raft.github.io. And on Sunday, Alex Xu's hotel reservation chapter."
+        say: "On Friday, the Raft paper, with the animation at raft dot github dot I O. And on Sunday, Alex Xu's hotel reservation chapter."
+        focus: 3
+
+  - kind: code
+    chapter: "Clocks lie"
+    heading: "10.1 · Two clocks in every JVM"
+    points: [clocks]
+    code: |
+      long start = System.currentTimeMillis();   // wall clock: NTP can move it, even BACKWARDS
+      doWork();
+      long wrong = System.currentTimeMillis() - start;   // can be negative, or far too big
+
+      long t0 = System.nanoTime();               // monotonic: only goes forward
+      doWork();
+      long elapsedNs = System.nanoTime() - t0;   // the right way to measure a duration
+    items:
+      - {lines: [1, 3], t: "Wall clock: time of day, adjusted by NTP"}
+      - {lines: [5, 7], t: "Monotonic: use it to measure durations"}
+    lines:
+      - emma: "Every JVM has two clocks. System current time millis is the wall clock. NTP adjusts it, and can even move it backwards, so a duration measured with it can come out negative."
+        focus: 0
+      - emma: "System nano time is monotonic: it only moves forward. Use it whenever you measure how long something took."
+        focus: 1
+
+  - kind: bullets
+    heading: "10.1 · Skew is normal, so don't let a timestamp decide"
+    style: dot
+    points: [lww-skew]
+    items:
+      - {t: "Two machines a few ms to tens of ms apart is normal"}
+      - {t: "So last-write-wins by timestamp can let the older write win", s: "and nothing reports an error"}
+      - {t: "Trust order from a single log", s: "one Kafka partition, one DB sequence"}
+      - {t: "Or from logical clocks", s: "Lamport clocks, version vectors"}
+    lines:
+      - emma: "Two machines whose clocks differ by a few milliseconds, even tens of milliseconds, is normal. So last-write-wins by timestamp can let the older write win, and nothing reports an error."
+        focus: 1
+      - emma: "Order you can trust comes from a single log, like one Kafka partition or one database sequence. Or from logical clocks: Lamport clocks and version vectors."
+        focus: 3
+
+  - kind: exercise
+    chapter: "Exercise 10.1"
+    n: "10.1"
+    q: "Node X's clock runs 20 ms ahead of node Y's. Write 1 (limit = 5,000,000) reaches X at 10:00:00.000 real time; write 2 (limit = 3,000,000) reaches Y at 10:00:00.010. Conflicts are resolved by last-write-wins on the receiving node's timestamp. What's the final value, and is it right?"
+    items:
+      - {t: "Write 2 really happens 10 ms after write 1"}
+    lines:
+      - emma: "Exercise 10.1. Node X's clock is twenty milliseconds ahead of node Y's. Write one sets a limit of five million and reaches X at ten o'clock exactly. Write two sets three million and reaches Y ten milliseconds later. Last-write-wins on the receiving node's timestamp. What's the final value, and is it right?"
+        say: "Exercise ten point one. Node X's clock is twenty milliseconds ahead of node Y's. Write one sets a limit of five million and reaches X at ten o'clock exactly. Write two sets three million and reaches Y ten milliseconds later. Last-write-wins on the receiving node's timestamp. What's the final value, and is it right?"
+      - wait: 6
+
+  - kind: stats
+    heading: "Answer 10.1 — the older write wins, silently"
+    points: [ex101]
+    items:
+      - {v: "10:00:00.020", l: "X stamps write 1", s: "its clock is 20 ms fast"}
+      - {v: "10:00:00.010", l: "Y stamps write 2", s: "even though it happened later"}
+      - {v: "5,000,000", l: "the final limit: write 1 wins", s: "wrong, and no error is reported", tone: bad}
+    note: "For money limits: no LWW by clock. Use one source of order (one leader, one sequence) or a conditional update on a version."
+    lines:
+      - emma: "X stamps write one at ten o'clock and twenty milliseconds, because its clock is fast. Y stamps write two at ten milliseconds past."
+        focus: 1
+      - emma: "So last-write-wins keeps write one, five million, even though write two really happened later. The result is wrong, and no error is reported anywhere."
+        focus: 2
+      - emma: "For a money limit, never use last-write-wins by clock. Use a single source of order, one leader or one sequence, or a conditional update on a version number."
+
+  - kind: bullets
+    chapter: "Raft"
+    heading: "10.2 · Raft in five lines"
+    style: num
+    points: [raft-five]
+    items:
+      - {t: "Roles and terms", s: "every node is a follower, a candidate or the leader; time is split into numbered terms"}
+      - {t: "Election", s: "no word from a leader before the timeout → become a candidate and ask for votes"}
+      - {t: "Majority wins", s: "a majority of the votes → leader of the new term"}
+      - {t: "Replicate, then commit", s: "the leader takes writes and copies its log; an entry commits once a majority has it"}
+      - {t: "Safe leaders", s: "a vote only goes to a log at least as up to date → every new leader has every committed entry"}
+    lines:
+      - emma: "Raft in five lines. Every node is a follower, a candidate, or the leader, and time is divided into numbered terms."
+        focus: 0
+      - emma: "A follower that hears nothing from a leader before its timeout becomes a candidate and asks for votes. With a majority, it becomes leader of the new term."
+        focus: 2
+      - emma: "The leader accepts writes and copies its log to the followers. An entry is committed once a majority has it."
+        focus: 3
+      - emma: "And a node only votes for a candidate whose log is at least as up to date as its own, so a new leader always has every committed entry."
+        focus: 4
+
+  - kind: stats
+    heading: "10.2 · What a five-node cluster survives"
+    points: [raft-tolerance]
+    items:
+      - {v: "2 of 5", l: "nodes can die", s: "the other 3 are still a majority", tone: ok}
+      - {v: "3 | 2", l: "a network split", s: "the 3-node side keeps going; the 2-node side can't write", tone: warn}
+      - {v: "etcd · Consul · KRaft", l: "where Raft runs", s: "Kafka needs no ZooKeeper since 4.0"}
+    lines:
+      - emma: "Five nodes survive two failures, because the remaining three are still a majority."
+        focus: 0
+      - emma: "If the network splits three and two, the three-node side keeps working, and the two-node side can't write."
+        focus: 1
+      - emma: "You'll meet Raft in etcd, in Consul, and in Kafka's KRaft mode. Since Kafka 4.0 there's no ZooKeeper at all."
+        say: "You'll meet Raft in etcd, in Consul, and in Kafka's KRaft mode. Since Kafka four point oh there's no ZooKeeper at all."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 10.2"
+    n: "10.2"
+    q: "A 5-node Raft cluster."
+    items:
+      - {t: "(a) At most how many nodes can die while writes still work?"}
+      - {t: "(b) The network splits 2 | 3 and the old leader is on the 2-node side. What happens to clients writing to it?"}
+      - {t: "(c) Why do consensus clusters usually have an odd number of nodes?"}
+    lines:
+      - emma: "Exercise 10.2, a five-node cluster. A: how many nodes can die while writes still work? B: the network splits two and three, and the old leader is on the two-node side. What happens to its clients? C: why do consensus clusters have an odd number of nodes?"
+        say: "Exercise ten point two, a five-node cluster. A: how many nodes can die while writes still work? B: the network splits two and three, and the old leader is on the two-node side. What happens to its clients? C: why do consensus clusters have an odd number of nodes?"
+      - wait: 7
+
+  - kind: table
+    heading: "Answer 10.2"
+    columns: ["", "Answer"]
+    widths: [0.9, 8.4]
+    build: true
+    points: [ex102]
+    rows:
+      - ["(a)", "2: the remaining 3 are a majority of 5"]
+      - ["(b)", "The old leader can't reach a majority, so it commits nothing and its clients time out. The 3-node side elects a leader with a higher term. When the network heals, the old leader sees the higher term, steps down, and drops its uncommitted entries"]
+      - ["(c)", "4 nodes survive 1 failure, the same as 3, for one more machine and a bigger majority; 6 survive 2, the same as 5"]
+    lines:
+      - emma: "A: two. The remaining three are still a majority of five."
+        focus: 0
+      - emma: "B: the old leader can't reach a majority, so it commits nothing, and its clients time out. The three-node side elects a new leader with a higher term. When the network heals, the old leader sees that higher term, steps down to follower, and drops its uncommitted entries."
+        focus: 1
+      - emma: "C: four nodes survive one failure, exactly like three, but cost one more machine and need a bigger majority. Six survive two, exactly like five. Next episode: distributed locks and fencing tokens."
+        focus: 2

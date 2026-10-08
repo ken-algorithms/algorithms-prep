@@ -1,0 +1,216 @@
+id: ep20-locks-fencing
+ep: 20
+week: 10
+tag: "EP20 · WEEK 10"
+title: "Distributed locks and fencing tokens"
+subtitle: "A lock for efficiency or for correctness, the gap no client can close, labs 10A and 10B, and when you need no lock at all"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#103-khoá-phân-tán-cho-hiệu-năng-hay-cho-đúng-đắn
+  - 20-implement-gd2-du-lieu-phan-tan.md#lab-10a--fencing-token-thứ-bảy-15-giờ
+  - 20-implement-gd2-du-lieu-phan-tan.md#lab-10b--job-scheduler-phân-tán-tùy-chọn-thứ-bảy-2-giờ
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-10
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-nói-2-phút-3
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · §10.3 distributed locks; lab 10A (fencing token), lab 10B (job scheduler, optional); exercise 10.3; the 2-minute talk for week 10"}
+      - {t: "Week 10 · Saturday labs: 10A 1.5 hours, 10B 2 hours · dist-lab Fencing.java"}
+    lines:
+      - emma: "Episode twenty: distributed locks. The question to ask first isn't which lock to use. It's what the lock is for. And for correctness, a lock alone is never enough."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: TTL, full: "time to live", vi: "thời gian sống của khoá hoặc key"}
+      - {abbr: GC, full: "garbage collection", vi: "bộ dọn rác của JVM; có thể dừng cả ứng dụng"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: eKYC, full: "electronic know your customer", vi: "định danh khách hàng điện tử"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: "SET … NX PX", full: "set if absent, expiry in ms", vi: "Redis: đặt key nếu chưa có, kèm hạn sống"}
+    lines:
+      - emma: "TTL is time to live: how long a lock lasts. GC is garbage collection, which can pause a whole application. DB is the database."
+        focus: 2
+      - emma: "API is an application programming interface, eKYC is electronic know-your-customer, and ID an identifier."
+        focus: 5
+      - emma: "And in Redis, set with N X and P X sets a key only if it doesn't exist yet, with an expiry in milliseconds. That's how you take a simple lock."
+        focus: 6
+
+  - kind: table
+    chapter: "Two kinds of lock"
+    heading: "10.3 · A lock for efficiency, or a lock for correctness?"
+    columns: ["Purpose", "If it fails", "Enough"]
+    widths: [3.4, 2.6, 3.4]
+    build: true
+    points: [lock-purpose]
+    rows:
+      - ["Efficiency: stop two workers doing the same expensive job", "occasional duplicate work: costs money, nothing is wrong", "Redis SET key value NX PX 30000"]
+      - ["Correctness: two writers at once corrupt the data", "wrong data", "a lock + a fencing token, checked by the storage itself"]
+    lines:
+      - emma: "Two very different reasons to lock. A lock for efficiency stops two workers doing the same expensive job. If it fails now and then, you do some work twice. It costs money, but nothing is wrong. A Redis set with N X and an expiry is enough."
+        focus: 0
+      - emma: "A lock for correctness is different: two writers at once means wrong data. Then you need a lock plus a fencing token, and the storage itself must check that token."
+        focus: 1
+
+  - kind: flow
+    chapter: "The gap"
+    heading: "10.3 · Every lock with a TTL has this gap"
+    sub: "No client can tell it was paused; only the storage can stop it, by rejecting the old token"
+    points: [lock-gap]
+    build: true
+    items:
+      - {t: "A gets the lock", s: "token 1, TTL 10 s"}
+      - {t: "A pauses", s: "a GC pause or a hung network, longer than the TTL"}
+      - {t: "B gets the lock", s: "token 2, and writes"}
+      - {t: "A wakes up", s: "still believes it holds the lock, and writes", tone: bad}
+    note: "If the resource you protect IS Postgres, use a row lock or a conditional update in Postgres: no distributed lock at all."
+    lines:
+      - emma: "Every lock with a TTL has this gap. Client A gets the lock, token one, for ten seconds. Then A pauses, a long garbage collection or a hung network, for longer than the TTL."
+        focus: 1
+      - emma: "The lock expires, and B gets it, with token two, and writes. Then A wakes up. It still believes it holds the lock, and it writes too."
+        focus: 3
+      - emma: "There's no way for A to know it was paused. Only the storage can stop it, by rejecting the old token. And if the resource you're protecting is Postgres itself, don't use a distributed lock at all: use a row lock or a conditional update."
+
+  - kind: code
+    chapter: "Lab 10A"
+    heading: "Lab 10A · The simulation that already ran (Fencing.java)"
+    sub: "In the output: ghi = write · gia tri cuoi = final value · so du = balance · gia tri cu = old value"
+    points: [lab10a-sim]
+    code: |
+      synchronized boolean write(String v, long tok) {
+          if (checkToken && tok < maxSeen) return false;     // an older token: rejected
+          maxSeen = Math.max(maxSeen, tok); value = v; return true;
+      }
+
+      KHONG fencing token  A token=1 ghi=true  | B token=2 ghi=true | gia tri cuoi: A: so du = 100 (gia tri cu)
+      CO fencing token     A token=1 ghi=false | B token=2 ghi=true | gia tri cuoi: B: so du = 50
+    items:
+      - {lines: [1, 4], t: "The storage remembers the largest token it has seen"}
+      - {lines: [6, 6], t: "No token check: A's stale write wins"}
+      - {lines: [7, 7], t: "With the check: A is rejected, B's value stays"}
+    lines:
+      - emma: "The simulation in dist-lab already ran. The storage remembers the largest token it has seen, and rejects any write that carries an older one."
+        focus: 0
+      - emma: "Without the check, both writes succeed, and A's stale value, a balance of a hundred, overwrites B's."
+        focus: 1
+      - emma: "With the check, A's write with token one is rejected, and B's balance of fifty stays."
+        focus: 2
+
+  - kind: code
+    heading: "Lab 10A · Your part: the real thing on Postgres"
+    points: [lab10a-real]
+    code: |
+      -- the lock is one row: take it only if it expired, and bump the token
+      update lock set owner = :me, expires_at = now() + interval '10 seconds', token = token + 1
+       where name = 'config-writer' and expires_at < now()
+      returning token;                                -- no row → someone else holds it
+
+      -- the resource checks the token itself
+      update config set value = :v, last_token = :token
+       where name = :name and last_token <= :token;   -- 0 rows → an older token: rejected
+
+      -- test: A locks, “pauses” (sleeps past the TTL); B locks and writes; A wakes and writes → 0 rows
+    items:
+      - {lines: [2, 4], t: "Acquire with a conditional update; the token only goes up"}
+      - {lines: [7, 8], t: "The write carries the token; an older token updates 0 rows"}
+      - {lines: [10, 10], t: "The test: A's late write changes nothing, the final value is B's"}
+    lines:
+      - emma: "Your part is the real version. The lock is one row. You take it with a conditional update that only succeeds if the lock has expired, and that bumps the token. No row returned means someone else holds it."
+        focus: 0
+      - emma: "The resource, a config table, stores the last token it accepted. A write succeeds only if its token is at least that big. An older token updates zero rows."
+        focus: 1
+      - emma: "And the test: A takes the lock and sleeps past the TTL. B takes it and writes. Then A wakes up and writes: zero rows, and the final value is B's."
+        focus: 2
+
+  - kind: code
+    chapter: "Lab 10B"
+    heading: "Lab 10B (optional) · A job scheduler: SKIP LOCKED + a lease"
+    sub: "job(id, run_at, status, attempts, lease_owner, lease_until, lease_version)"
+    points: [lab10b]
+    code: |
+      update job set status = 'RUNNING', lease_owner = :me, lease_until = now() + interval '30 seconds',
+                     lease_version = lease_version + 1
+       where id in (select id from job where status = 'READY' and run_at <= now()
+                     order by run_at limit 50 for update skip locked)
+      returning id, lease_version;
+
+      -- renew the lease every 10 s while running; a reaper puts lease_until < now() back to READY
+      -- write the result with “where lease_version = :v”: a worker presumed dead writes 0 rows
+    items:
+      - {lines: [1, 5], t: "Claim up to 50 ready jobs; other workers skip them"}
+      - {lines: [7, 7], t: "Renew while alive; the reaper frees expired leases"}
+      - {lines: [8, 8], t: "lease_version is the fencing token"}
+    lines:
+      - emma: "Lab 10B is optional. Workers claim up to fifty ready jobs with for update skip locked, and take a thirty-second lease, bumping the lease version."
+        say: "Lab ten B is optional. Workers claim up to fifty ready jobs with for update skip locked, and take a thirty-second lease, bumping the lease version."
+        focus: 0
+      - emma: "A worker renews its lease every ten seconds while it runs. A reaper puts jobs whose lease has expired back to ready."
+        focus: 1
+      - emma: "And the result is written with where lease version equals the version you claimed. A worker that was presumed dead but kept running writes zero rows. The lease version is the fencing token."
+        focus: 2
+
+  - kind: stats
+    heading: "Lab 10B · the test"
+    points: [lab10b-test]
+    items:
+      - {v: "4 workers", l: "1,000 jobs", s: "kill one worker half-way"}
+      - {v: "≥ 1", l: "every job runs at least once", s: "the reaper hands its jobs to others", tone: warn}
+      - {v: "= 1", l: "every result is written exactly once", s: "the lease version fences the stale worker", tone: ok}
+    lines:
+      - emma: "The test: four workers, a thousand jobs, and you kill one worker half-way."
+        focus: 0
+      - emma: "Every job must run at least once, and every result must be written exactly once."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 10.3"
+    n: "10.3"
+    q: "Redis SET NX PX, a lock + a fencing token, or no distributed lock at all?"
+    items:
+      - {t: "(a) Only one instance may run the morning job that emails payment reminders"}
+      - {t: "(b) Updating one account's balance"}
+      - {t: "(c) Two workers must not both call the eKYC vendor's paid API for the same application"}
+    lines:
+      - emma: "Exercise 10.3. Which do you need: a Redis lock, a lock plus a fencing token, or no distributed lock at all? A: only one instance may run the morning job that emails payment reminders. B: updating one account's balance. C: two workers must not both call the eKYC vendor's paid API for the same application."
+        say: "Exercise ten point three. Which do you need: a Redis lock, a lock plus a fencing token, or no distributed lock at all? A: only one instance may run the morning job that emails payment reminders. B: updating one account's balance. C: two workers must not both call the eKYC vendor's paid API for the same application."
+      - wait: 7
+
+  - kind: table
+    heading: "Answer 10.3"
+    columns: ["", "Choose", "Because"]
+    widths: [0.7, 3.6, 4.9]
+    build: true
+    points: [ex103]
+    rows:
+      - ["(a)", "A lock for efficiency (Redis or ShedLock) + an email that is idempotent per (customer, day)", "if two instances ever run, nobody gets two emails"]
+      - ["(b)", "No distributed lock", "the resource is Postgres: a conditional update or a row lock (phase 1, lab 3A)"]
+      - ["(c)", "A Redis lock is enough + an idempotency key to the vendor, if they support one", "a duplicate call only costs money; it doesn't corrupt data"]
+    lines:
+      - emma: "A: a lock for efficiency, Redis or ShedLock, plus an email that's idempotent per customer and day. If two instances ever run together, nobody gets two emails."
+        focus: 0
+      - emma: "B: no distributed lock. The resource is Postgres, so use a conditional update or a row lock, as in lab 3A from phase one."
+        say: "B: no distributed lock. The resource is Postgres, so use a conditional update or a row lock, as in lab three A from phase one."
+        focus: 1
+      - emma: "C: a duplicate call only costs money, it doesn't corrupt data. A Redis lock is enough, plus an idempotency key sent to the vendor, if they support one."
+        focus: 2
+
+  - kind: bullets
+    chapter: "2-minute talk"
+    heading: "2-minute talk: “How can a distributed lock fail, and what is a fencing token?”"
+    style: check
+    points: [talk-w10]
+    items:
+      - {t: "A TTL plus a process pause is a gap that no client can close"}
+      - {t: "A token that increases, issued with every lock"}
+      - {t: "The storage rejects any token older than the newest it has seen"}
+      - {t: "The lab's result: A's late write is rejected; B's value stays"}
+      - {t: "When you need no distributed lock: the resource is the database itself"}
+    lines:
+      - emma: "The two-minute talk: how can a distributed lock fail, and what is a fencing token? Say that a TTL plus a process pause is a gap no client can close."
+        focus: 0
+      - emma: "The fix is a token that increases with every lock, and a storage that rejects any token older than the newest it has seen."
+        focus: 2
+      - emma: "Quote the lab: A's late write is rejected, and B's value stays. And end with when you need no distributed lock at all: when the resource is the database itself. Next episode: two timed designs, a hotel and a job scheduler."
+        focus: 4

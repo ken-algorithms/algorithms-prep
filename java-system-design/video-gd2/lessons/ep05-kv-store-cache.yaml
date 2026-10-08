@@ -1,0 +1,213 @@
+id: ep05-kv-store-cache
+ep: 5
+week: 5
+tag: "EP05 · WEEKS 5–6"
+title: "Timed designs: a key-value store and a distributed cache"
+subtitle: "Exercise 5.7 and 5.8 — the decision tables, and the deep-dive questions you will get"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · exercise 5.7 (distributed key-value store) and 5.8 (distributed cache), 45 minutes each"}
+      - {t: "Weeks 5–6 · Sunday of week 5 and Sunday of week 6"}
+    lines:
+      - emma: "Episode five: the two timed designs of weeks five and six. Forty-five minutes each, one on each Sunday. A distributed key-value store, and a distributed cache."
+      - emma: "Both reuse everything from the last three episodes. For each one I'll show a decision table: what you choose, and the trade-off you say out loud."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: KV, full: "key-value (store)", vi: "kho dữ liệu khoá–giá trị"}
+      - {abbr: AZ, full: "availability zone", vi: "trung tâm dữ liệu độc lập trong một region"}
+      - {abbr: LWW, full: "last-write-wins", vi: "giữ bản có timestamp lớn nhất; bản kia mất im lặng"}
+      - {abbr: LSM, full: "log-structured merge-tree", vi: "cấu trúc lưu trữ ghi tuần tự: commit log → memtable → SSTable"}
+      - {abbr: I/O, full: "input/output", vi: "đọc ghi đĩa hoặc mạng"}
+      - {abbr: L1, full: "level-1 cache (in-process)", vi: "cache trong JVM, trước Redis"}
+      - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo chạy Java"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: TTL, full: "time to live", vi: "thời gian sống của một khoá trong cache"}
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+    lines:
+      - emma: "KV is key-value. An AZ is an availability zone. LWW is last-write-wins. LSM is the log-structured merge-tree, the storage engine behind most key-value stores."
+        focus: 3
+      - emma: "I O is input and output, disk or network. And an L1 cache is a cache inside the process, the JVM, the Java Virtual Machine, in front of Redis."
+        say: "I O is input and output, disk or network. And an L1 cache is a cache inside the process, the J V M, the Java Virtual Machine, in front of Redis."
+        focus: 6
+      - emma: "DB is the database, TTL is time to live, how long a cache entry lasts, RPS is requests per second, and API is an application programming interface."
+        focus: 10
+
+  - kind: flow
+    chapter: "45 minutes"
+    heading: "How to spend the 45 minutes (the framework from file 00)"
+    points: [timed-framework]
+    items:
+      - {t: "Requirements", s: "3–5 features, numbers, consistency, out of scope", f: "5–7 min"}
+      - {t: "Estimate", s: "only the numbers that change the design", f: "3–5 min"}
+      - {t: "API + data", s: "endpoints, schema, which store and why", f: "5–8 min"}
+      - {t: "High level", s: "an end-to-end diagram that works", f: "~10 min"}
+      - {t: "Deep dives", s: "2–3 hard points, 2 options each", f: "15–20 min"}
+      - {t: "Wrap up", s: "monitoring, risks, × 10", f: "3–5 min"}
+    lines:
+      - emma: "First, the clock. Use the same framework as phase one. Five to seven minutes on requirements, then a quick estimate with only the numbers that change the design."
+        focus: 1
+      - emma: "Five to eight minutes on the API and the data model, about ten on a high-level diagram that works end to end."
+        focus: 3
+      - emma: "Then the part that is scored most: fifteen to twenty minutes of deep dives, two or three hard points, each with at least two options and a trade-off. And a short wrap-up: monitoring, risks, and what breaks at ten times the load."
+        focus: 5
+
+  - kind: exercise
+    chapter: "5.7 Key-value store"
+    n: "5.7"
+    q: "Timed design, 45 minutes: a distributed key-value store."
+    items:
+      - {t: "get(key), put(key, value); values up to a few KB"}
+      - {t: "Highly available: writes must keep working when a node or an AZ fails"}
+      - {t: "Scale out by adding nodes"}
+    lines:
+      - emma: "Exercise 5.7, a distributed key-value store. Gets and puts of small values, highly available even when a node or a whole zone fails, and it must scale by adding nodes. Pause and sketch your answer: how you split, copy, and reconcile the data."
+        say: "Exercise five point seven, a distributed key-value store. Gets and puts of small values, highly available even when a node or a whole zone fails, and it must scale by adding nodes. Pause and sketch your answer: how you split, copy, and reconcile the data."
+      - wait: 8
+
+  - kind: table
+    heading: "5.7 · A key-value store: the decision table (1/2)"
+    columns: ["Part", "Choose", "The trade-off is…"]
+    widths: [1.5, 3.2, 3.0]
+    build: true
+    points: [kv-frame]
+    rows:
+      - ["Partitioning", "Hash ring + virtual nodes", "no range queries"]
+      - ["Replication", "N = 3, one copy per AZ, picked clockwise", "3 × the storage"]
+      - ["Consistency", "Quorum W/R, tunable per request", "default W = 2, R = 2 is slower than W = 1"]
+      - ["Conflicts", "Versions (vector clocks) return all conflicting copies to the client — or LWW if loss is acceptable", "vector clocks push merging to the client"]
+    lines:
+      - emma: "Partition with a hash ring and virtual nodes; you give up range queries. Replicate three times, one copy per availability zone, chosen clockwise; that triples the storage."
+        focus: 1
+      - emma: "Consistency is a quorum you can tune per request. The default, W two and R two, is slower than W one."
+        say: "Consistency is a quorum you can tune per request. The default, W two and R two, is slower than W one."
+        focus: 2
+      - emma: "Conflicts: keep versions with vector clocks and hand every conflicting copy back to the client to merge, or use last-write-wins if losing a write is acceptable."
+        focus: 3
+
+  - kind: table
+    heading: "5.7 · A key-value store: the decision table (2/2)"
+    columns: ["Part", "Choose", "The trade-off is…"]
+    widths: [1.5, 3.2, 3.0]
+    build: true
+    points: [kv-frame-2]
+    rows:
+      - ["A node is briefly down", "Sloppy quorum + hinted handoff", "breaks R + W > N during the incident"]
+      - ["Re-sync", "Read repair + anti-entropy with Merkle trees", "Merkle trees must be rebuilt when key ranges change owner"]
+      - ["Membership", "Gossip + heartbeat failure detection", "converges in a few seconds"]
+      - ["Storage on a node", "LSM: commit log → memtable → SSTable + bloom filter", "compaction costs I/O"]
+    lines:
+      - emma: "When a node is briefly down, use a sloppy quorum with hinted handoff, and admit it breaks R plus W greater than N during the incident."
+        say: "When a node is briefly down, use a sloppy quorum with hinted handoff, and admit it breaks R plus W greater than N during the incident."
+        focus: 0
+      - emma: "Replicas re-sync through read repair, plus background anti-entropy that compares Merkle trees, hash trees over key ranges. Those trees must be rebuilt when ranges change owner."
+        focus: 1
+      - emma: "Nodes learn who's alive by gossip and heartbeats, which takes a few seconds to converge."
+        focus: 2
+      - emma: "And on each node, an LSM engine: a commit log, a memtable in memory, then sorted files called SSTables with bloom filters. The price is compaction, which costs disk I O."
+        say: "And on each node, an L S M engine: a commit log, a memtable in memory, then sorted files called S S tables with bloom filters. The price is compaction, which costs disk I O."
+        focus: 3
+
+  - kind: exercise
+    chapter: "5.8 Distributed cache"
+    n: "5.8"
+    q: "Timed design, 45 minutes: a distributed cache in front of the bank's databases."
+    items:
+      - {t: "Hundreds of thousands of reads per second at peak; values are small"}
+      - {t: "Survive the loss of one node or one AZ"}
+      - {t: "Expect follow-up questions on hot keys, stampedes, and failover"}
+    lines:
+      - emma: "Exercise 5.8, a distributed cache in front of the bank's databases: very high read rates, small values, and it must survive the loss of a node or a zone. Pause and sketch it, then think about the three follow-up questions you'll surely get."
+        say: "Exercise five point eight, a distributed cache in front of the bank's databases: very high read rates, small values, and it must survive the loss of a node or a zone. Pause and sketch it, then think about the three follow-up questions you'll surely get."
+      - wait: 8
+
+  - kind: diagram
+    heading: "5.8 · Redis Cluster: 16,384 hash slots"
+    sub: "Each master owns a range of slots and has a replica in another AZ; the client knows the slot map"
+    points: [cache-frame]
+    nodes:
+      - {id: c, label: "Client", sub: "slot = hash(key) mod 16,384; keeps a slot map", x: 130, y: 195, w: 230, h: 100, shape: user}
+      - {id: m1, label: "Master 1", sub: "slots 0–5,460", x: 560, y: 60, w: 210, h: 70, shape: db}
+      - {id: m2, label: "Master 2", sub: "slots 5,461–10,922", x: 560, y: 195, w: 210, h: 70, shape: db}
+      - {id: m3, label: "Master 3", sub: "slots 10,923–16,383", x: 560, y: 330, w: 210, h: 70, shape: db}
+      - {id: r1, label: "Replica 1", sub: "other AZ", x: 950, y: 60, w: 180, h: 64, shape: db, at: 1}
+      - {id: r2, label: "Replica 2", sub: "other AZ", x: 950, y: 195, w: 180, h: 64, shape: db, at: 1}
+      - {id: r3, label: "Replica 3", sub: "other AZ", x: 950, y: 330, w: 180, h: 64, shape: db, at: 1}
+    edges:
+      - {a: c, b: m1}
+      - {a: c, b: m2, label: "direct, by slot"}
+      - {a: c, b: m3}
+      - {a: m1, b: r1, label: "async", dashed: true, at: 1}
+      - {a: m2, b: r2, label: "async", dashed: true, at: 1}
+      - {a: m3, b: r3, label: "async", dashed: true, at: 1}
+    lines:
+      - emma: "The standard answer is Redis Cluster. Keys map to 16,384 hash slots, and the slots are split across the masters. The client knows the slot map and calls the right node directly."
+        focus: 0
+      - emma: "Each master has a replica in another availability zone, replicated asynchronously. When the map changes, a node answers MOVED and the client updates its map. Resharding simply means moving slots from one master to another."
+        focus: 1
+
+  - kind: table
+    heading: "5.8 · Size it before you draw it (assumptions, said out loud)"
+    columns: ["Number", "Working", "So…"]
+    widths: [1.8, 3.0, 2.9]
+    mono: [1]
+    build: true
+    points: [cache-size]
+    rows:
+      - ["Peak reads", "assume 300,000 RPS of simple reads", "this is the load to plan for"]
+      - ["One Redis node", "~100k simple ops/s (phase 1's quick number): one core", "3 masters at 100%"]
+      - ["Headroom", "run masters at ≤ 50%", "6 masters, each with a replica → 12 nodes"]
+      - ["Memory", "10 million keys × 1 KB ≈ 10 GB", "fits easily in 6 masters"]
+    lines:
+      - emma: "Before drawing, size it, and say the assumptions out loud. Say peak reads are three hundred thousand per second."
+        focus: 0
+      - emma: "From phase one: one Redis node does about a hundred thousand simple operations per second, because it executes commands on one core. So three masters at full load."
+        focus: 1
+      - emma: "Never plan at full load: at half load you need six masters, and with one replica each, twelve nodes."
+        focus: 2
+      - emma: "Memory is rarely the limit: ten million keys of one kilobyte is about ten gigabytes."
+        focus: 3
+
+  - kind: table
+    heading: "5.8 · The three deep-dive questions"
+    columns: ["Question", "Answer", "Why"]
+    widths: [1.6, 3.1, 3.0]
+    build: true
+    points: [cache-deep]
+    rows:
+      - ["Hot key", "An L1 cache (Caffeine) in front of Redis, or copy the key under several names", "one key always lands on one slot, one master"]
+      - ["Stampede", "Single-flight + jittered TTL — lab 4 of phase 1", "a popular key expires and every request hits the DB"]
+      - ["Failover loses writes", "Redis replication is asynchronous: a dead master loses its last writes", "so a cache is never the system of record for money"]
+    note: "Multi-key commands only work when the keys share a slot: use a hash tag, {account:42}:balance and {account:42}:limit."
+    lines:
+      - emma: "Then the three deep dives. A hot key: one key always lands in one slot on one master. Put a small in-process cache, Caffeine, in front of Redis, or copy the key under several names."
+        focus: 0
+      - emma: "A stampede: a popular key expires and every request hits the database at once. You solved that in lab four of phase one, with single-flight and jittered expiry."
+        focus: 1
+      - emma: "And failover losing writes: Redis replicates asynchronously, so when a master dies, its last few writes are gone. That's why a cache is never the place where money data lives."
+        focus: 2
+      - emma: "One more trade-off: commands that touch several keys only work if the keys share a slot. Use a hash tag, the part in curly braces, like account 42, so related keys land together."
+        say: "One more trade-off: commands that touch several keys only work if the keys share a slot. Use a hash tag, the part in curly braces, like account forty-two, so related keys land together."
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    items:
+      - {t: "“For the store: a ring with vnodes, three replicas across AZs, quorum two and two by default, hinted handoff when a node blinks.”"}
+      - {t: "“For the cache: Redis Cluster, a replica per master in another AZ, an L1 cache for hot keys, and single-flight against stampedes.”"}
+      - {t: "“Neither is where the balance lives: the ledger stays in Postgres.”"}
+    lines:
+      - emma: "In an interview, summarise each design in one breath. For the store: a ring with virtual nodes, three replicas across zones, quorums of two and two by default, and hinted handoff when a node blinks."
+        focus: 0
+      - emma: "For the cache: Redis Cluster with a replica per master in another zone, an in-process cache for hot keys, and single-flight against stampedes."
+        focus: 1
+      - emma: "And neither one is where the balance lives: the ledger stays in Postgres. Next episode: drawing V6, the bank at one million users."
+        focus: 2

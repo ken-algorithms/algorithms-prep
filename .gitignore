@@ -16,3 +16,6 @@ leetcode-38-bai-video/**/*-preview.mp4
 
 # Python test cache
 .pytest_cache/
+
+# khoá file khi tools/lesson_video ghi lessons.json
+java-system-design/video-gd*/lessons/lessons.json.lock

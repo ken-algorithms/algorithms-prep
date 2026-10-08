@@ -17,6 +17,21 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import markdown
+import markdown.extensions.toc as md_toc
+
+
+def gh_unique(id: str, ids: set) -> str:
+    """Heading trùng tên: GitHub thêm -1, -2… (python-markdown mặc định thêm _1). Làm giống GitHub để anchor
+    viết trong file .md (ví dụ #đọc-1 của tuần 7) mở được cả trên GitHub lẫn ở bản dựng này."""
+    base, n = id, 0
+    while id in ids or not id:
+        n += 1
+        id = f"{base}-{n}"
+    ids.add(id)
+    return id
+
+
+md_toc.unique = gh_unique  # toc gọi unique() qua biến toàn cục của module, nên thay ở đây là đủ
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "site"
@@ -96,7 +111,7 @@ def section_for(rel: str) -> tuple[str, int]:
 def collect() -> list[Page]:
     pages: list[Page] = []
     for p in sorted(ROOT.rglob("*.md")):
-        if any(part in SKIP_DIRS for part in p.relative_to(ROOT).parts):
+        if any(part in SKIP_DIRS or part.startswith(".") for part in p.relative_to(ROOT).parts):
             continue
         rel = p.relative_to(ROOT).as_posix()
         raw = p.read_text(encoding="utf-8", errors="ignore")
@@ -441,6 +456,9 @@ def build_home(pages: list[Page]) -> str:
         li("java-system-design/video-gd1/00-ke-hoach-va-lich-su.md", "30 video tiếng Anh tuần 1–4: kế hoạch, nhật ký", "mới"),
         li("java-system-design/video-gd1/02-do-phu-tuan-1.md", "7 video tuần 1: ý chính nào dạy ở phút nào", "mới"),
         li("java-system-design/video-gd1/01-bang-chu-viet-tat.md", "148 chữ viết tắt giai đoạn 1, cách đọc"),
+        li("java-system-design/video-gd2/00-ke-hoach-va-lich-su.md", "23 video tiếng Anh tuần 5–10, giọng Emma: kế hoạch, nhật ký", "mới"),
+        li("java-system-design/video-gd2/02-do-phu.md", "23 video giai đoạn 2: ý chính nào dạy ở phút nào", "mới"),
+        li("java-system-design/video-gd2/01-bang-chu-viet-tat.md", "chữ viết tắt mới của giai đoạn 2, cách đọc"),
         li("java-system-design/perf-lab/README.md", "JMH + demo, 33 test"),
         li("java-system-design/dist-lab/README.md", "lời giải giai đoạn 2, Postgres + Kafka thật"),
         li("java-system-design/ops-lab/README.md", "lời giải giai đoạn 3, Gatling + Hikari thật"),

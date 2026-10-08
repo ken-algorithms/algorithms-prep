@@ -1,0 +1,225 @@
+id: ep01-replication
+ep: 1
+week: 5
+tag: "EP01 · WEEKS 5–6"
+title: "Replication: leaders, followers, and lag"
+subtitle: "Three models, synchronous or asynchronous, the anomalies of lag, and a dangerous failover"
+covers:
+  - 20-implement-gd2-du-lieu-phan-tan.md#tuần-56--replication-partitioning-consistent-hashing
+  - 20-implement-gd2-du-lieu-phan-tan.md#đầu-ra-phải-có-cuối-tuần-6
+  - 20-implement-gd2-du-lieu-phan-tan.md#đọc
+  - 20-implement-gd2-du-lieu-phan-tan.md#ghi-chú-khái-niệm
+  - 20-implement-gd2-du-lieu-phan-tan.md#51-ba-mô-hình-replication
+  - 20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 20 · weeks 5–6 (outputs, reading), §5.1 replication models, exercises 5.1 and 5.3"}
+      - {t: "Weeks 5–6 · Monday reading + Wednesday exercises"}
+    lines:
+      - emma: "Episode one. Once your data lives on more than one machine, every write has to reach several copies. How you do that decides what you lose when a machine dies."
+      - emma: "We'll look at the three ways to replicate, the price of waiting for a copy, what readers see when copies lag behind, and a failover that hands out the same ID twice."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: AZ, full: "availability zone", vi: "trung tâm dữ liệu độc lập trong một region"}
+      - {abbr: RPO, full: "recovery point objective", vi: "lượng dữ liệu tối đa được phép mất khi sự cố"}
+      - {abbr: RTT, full: "round-trip time", vi: "thời gian gói tin đi và về"}
+      - {abbr: LWW, full: "last-write-wins", vi: "giữ bản có timestamp lớn nhất; bản kia mất im lặng"}
+      - {abbr: CRDT, full: "conflict-free replicated data type", vi: "kiểu dữ liệu tự gộp được khi hai bên cùng sửa"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã 128 bit sinh không cần nơi cấp trung tâm"}
+      - {abbr: DDIA, full: "Designing Data-Intensive Applications", vi: "sách của Martin Kleppmann"}
+      - {abbr: KV, full: "key-value (store)", vi: "kho dữ liệu khoá–giá trị"}
+    lines:
+      - emma: "DB is the database. An AZ is an availability zone, an independent data center inside a region. RPO, the recovery point objective, is how much data you may lose in a disaster. RTT is round-trip time."
+        focus: 3
+      - emma: "LWW means last-write-wins: keep the copy with the latest timestamp. A CRDT is a conflict-free replicated data type, a structure that merges by itself."
+        focus: 5
+      - emma: "ID is an identifier, and a UUID is a universally unique identifier. DDIA is Kleppmann's book, and KV means key-value."
+        focus: 9
+
+  - kind: bullets
+    chapter: "Weeks 5–6"
+    heading: "By the end of week 6 you must have"
+    style: check
+    points: [w56-outputs]
+    items:
+      - {t: "Lab 5A: a hash ring with virtual nodes and replication factor 3", s: "plus a table of how many keys move"}
+      - {t: "Lab 5B: a quorum simulation with N, W, R", s: "reproduce a stale read when R + W ≤ N"}
+      - {t: "Two timed designs: a distributed key-value store and a distributed cache"}
+      - {t: "Drawing V6: Mini Core Transfer at L2 (1M users)", s: "with the paragraph “what breaks first at × 10”"}
+      - {t: "A 2-minute talk: how consistent hashing reduces data movement when you add a node"}
+    lines:
+      - emma: "Weeks five and six are one block. By the end of week six you need two labs: lab 5A, a hash ring with virtual nodes and three replicas, and lab 5B, a quorum simulation that reproduces a stale read."
+        say: "Weeks five and six are one block. By the end of week six you need two labs: lab 5A, a hash ring with virtual nodes and three replicas, and lab 5B, a quorum simulation that reproduces a stale read."
+        focus: 1
+      - emma: "Two timed designs: a distributed key-value store and a distributed cache."
+        focus: 2
+      - emma: "Drawing V6, your bank at one million users, with a paragraph on what breaks first at ten times the load. And a two-minute talk on consistent hashing."
+        focus: 4
+
+  - kind: table
+    heading: "Reading for weeks 5–6"
+    columns: ["When", "What", "Focus on"]
+    widths: [1.2, 3.2, 3.4]
+    build: true
+    points: [w56-reading]
+    rows:
+      - ["Mon, week 5", "DDIA ch. 5 Replication", "leader-follower, sync/async, failover, lag, multi-leader, leaderless, quorums"]
+      - ["Mon, week 6", "DDIA ch. 6 Partitioning", "key range vs hash, hot spots, local/global secondary indexes, rebalancing"]
+      - ["Wed", "Alex Xu Vol 1, ch. 5 Consistent hashing, ch. 6 Key-value store", ""]
+      - ["Wed, week 6", "Amazon's Dynamo paper (2007), section 4", "where sloppy quorum and hinted handoff come from"]
+      - ["Optional", "Martin Kleppmann, Distributed Systems lectures (Cambridge)", "the replication and quorum lectures"]
+    lines:
+      - emma: "The reading. Monday of week five, DDIA chapter five on replication. Monday of week six, chapter six on partitioning."
+        focus: 1
+      - emma: "On Wednesdays, Alex Xu volume one, the chapters on consistent hashing and the key-value store, and in week six section four of Amazon's Dynamo paper, where sloppy quorums come from."
+        focus: 3
+      - emma: "Optionally, Martin Kleppmann's distributed systems lectures from Cambridge."
+        focus: 4
+
+  - kind: table
+    chapter: "Three models"
+    heading: "5.1 · Three ways to replicate"
+    columns: ["", "Single-leader", "Multi-leader", "Leaderless"]
+    widths: [1.5, 2.1, 2.3, 2.3]
+    build: true
+    points: [repl-models]
+    rows:
+      - ["Who accepts writes", "One leader", "Several leaders, often one per region", "Every replica"]
+      - ["Write conflicts", "None", "Yes: resolve with LWW, merge, or CRDT", "Yes: versions + read repair"]
+      - ["Examples", "Postgres, MySQL, a Kafka partition", "offline-first apps, active-active across regions", "Cassandra, DynamoDB (from Dynamo)"]
+      - ["Good for a ledger?", "Yes", "No — unless two regions never write the same account", "No: LWW silently loses a write"]
+    lines:
+      - emma: "Three models. With a single leader, one node accepts writes and the others copy it. With multi-leader, several nodes accept writes, usually one per region. With leaderless, any replica accepts a write."
+        focus: 0
+      - emma: "The big difference is conflicts. A single leader has none. Multi-leader and leaderless both get conflicting writes, resolved by last-write-wins, by merging, by a CRDT, or by versions plus read repair."
+        focus: 1
+      - emma: "Postgres, MySQL and each Kafka partition are single-leader. Multi-leader shows up in offline-first apps and active-active setups across regions. Cassandra and DynamoDB, both descended from Amazon's Dynamo, are leaderless."
+        focus: 2
+      - emma: "For a bank ledger, single-leader is the answer. Multi-leader works only if you split data so two regions never write the same account. And leaderless with last-write-wins silently drops one of two writes, which is unacceptable for money."
+        focus: 3
+
+  - kind: compare
+    heading: "Synchronous or asynchronous replication?"
+    points: [repl-sync]
+    items:
+      - {title: "Synchronous", tone: ok, lines: ["Commit waits for the replica to confirm", "+1–2 ms inside one region", "~90 ms with the replica in Singapore and the leader in Sydney", "Leader dies → nothing committed is lost"]}
+      - {title: "Asynchronous", tone: warn, lines: ["Commit returns at once", "Fast, the replica catches up later", "Leader dies → failover can lose the last few seconds of writes"]}
+    lines:
+      - emma: "Next decision: does the commit wait for a replica? With synchronous replication it does. That costs one to two milliseconds inside a region, but about 90 milliseconds if the leader is in Sydney and the replica in Singapore."
+        focus: 0
+      - emma: "In return, when the leader dies, nothing that was committed is lost."
+        focus: 0
+      - emma: "Asynchronous replication returns immediately and is fast. The price: a failover can lose the last few seconds of writes that hadn't reached the replica yet."
+        focus: 1
+
+  - kind: bullets
+    heading: "Three anomalies when you read from a lagging follower"
+    style: num
+    points: [repl-lag]
+    items:
+      - {t: "Read-your-writes", s: "you don't see what you just wrote"}
+      - {t: "Monotonic reads", s: "a refresh goes back in time: the second read hits a slower follower"}
+      - {t: "Consistent prefix", s: "you see the answer before the question"}
+      - {t: "Fix for read-your-writes: phase 1, exercise 3.4", s: "read from the primary for N seconds after a write, or by version"}
+    lines:
+      - emma: "Reading from followers is how you scale reads, but followers lag. That gives three anomalies. Read-your-writes: you transfer money, open the history, and your transfer isn't there."
+        focus: 0
+      - emma: "Monotonic reads: you refresh and the data goes back in time, because the second read hit a follower that is further behind."
+        focus: 1
+      - emma: "Consistent prefix: you see an answer before the question it answers."
+        focus: 2
+      - emma: "You already fixed read-your-writes in phase one, exercise 3.4: read from the primary for a few seconds after a write, or read by version."
+        say: "You already fixed read-your-writes in phase one, exercise three point four: read from the primary for a few seconds after a write, or read by version."
+        focus: 3
+
+  - kind: exercise
+    chapter: "Exercise 5.1"
+    n: "5.1"
+    q: "A bank's leader is in Sydney. For each option, how much commit latency does it add, and what do you lose if the whole Sydney region is lost?"
+    items:
+      - {t: "(a) a synchronous replica in Melbourne, RTT ~12 ms"}
+      - {t: "(b) a synchronous replica in Singapore, RTT ~90 ms"}
+      - {t: "(c) synchronous in the same region, another AZ (~1–2 ms), plus asynchronous to Melbourne"}
+    lines:
+      - emma: "Exercise 5.1. The leader is in Sydney. Option (a): a synchronous replica in Melbourne, twelve milliseconds away. Option (b): synchronous to Singapore, ninety milliseconds. Option (c): synchronous inside the region, plus asynchronous to Melbourne. What does each add to a commit, and what do you lose if all of Sydney goes down?"
+        say: "Exercise five point one. The leader is in Sydney. Option eigh: a synchronous replica in Melbourne, twelve milliseconds away. Option B: synchronous to Singapore, ninety milliseconds. Option C: synchronous inside the region, plus asynchronous to Melbourne. What does each add to a commit, and what do you lose if all of Sydney goes down?"
+      - wait: 6
+        note: "Think about the p99 budget of a transfer and the RPO of each option."
+
+  - kind: table
+    heading: "Answer 5.1"
+    columns: ["", "Added per commit", "Lose the Sydney region"]
+    widths: [1.6, 2.4, 3.6]
+    build: true
+    points: [ex51]
+    rows:
+      - ["(a) sync Melbourne", "+12 ms", "Nothing committed: RPO = 0"]
+      - ["(b) sync Singapore", "+90 ms: a third of a 300 ms p99 transfer budget", "Nothing — but the latency is usually unacceptable"]
+      - ["(c) sync other AZ + async Melbourne", "+1–2 ms", "Losing one AZ costs nothing; losing the region loses the last seconds (RPO in seconds) → reconcile those transactions"]
+    note: "Banks usually pick (c) for most data, and (a) only for data that must not lose a single row."
+    lines:
+      - emma: "Option (a) adds twelve milliseconds to every commit, and losing the region loses nothing that was committed. The RPO is zero."
+        say: "Option eigh adds twelve milliseconds to every commit, and losing the region loses nothing that was committed. The R P O is zero."
+        focus: 0
+      - emma: "Option (b) adds ninety milliseconds. If a transfer has a 300-millisecond p99 budget, a third of it goes to the commit alone. Usually not acceptable."
+        say: "Option B adds ninety milliseconds. If a transfer has a three-hundred-millisecond p ninety-nine budget, a third of it goes to the commit alone. Usually not acceptable."
+        focus: 1
+      - emma: "Option (c) adds one to two milliseconds. Losing an AZ costs nothing. Losing the whole region loses the last few seconds that hadn't reached Melbourne, so you need a process to reconcile those transactions."
+        say: "Option C adds one to two milliseconds. Losing an AZ costs nothing. Losing the whole region loses the last few seconds that hadn't reached Melbourne, so you need a process to reconcile those transactions."
+        focus: 2
+      - emma: "Banks usually choose (c) for most data, and (a) only for data that must not lose a single row, accepting the slower commits."
+        say: "Banks usually choose C for most data, and eigh only for data that must not lose a single row, accepting the slower commits."
+
+  - kind: exercise
+    chapter: "Exercise 5.3"
+    n: "5.3"
+    q: "Postgres replicates asynchronously. The leader dies; a follower that is 2 seconds behind is promoted automatically. Transaction IDs are a bigserial. Another service caches data by ID. What can go wrong?"
+    items:
+      - {t: "The new leader never received the last 2 seconds of writes"}
+      - {t: "Think about the sequence behind bigserial"}
+    lines:
+      - emma: "Exercise 5.3. Asynchronous replication. The leader dies, and a follower that is two seconds behind is promoted automatically. Transaction IDs come from a bigserial sequence, and another service caches data by ID. What can go wrong?"
+        say: "Exercise five point three. Asynchronous replication. The leader dies, and a follower that is two seconds behind is promoted automatically. Transaction IDs come from a big serial sequence, and another service caches data by ID. What can go wrong?"
+      - wait: 6
+
+  - kind: flow
+    heading: "Answer 5.3 — the same ID, twice"
+    points: [ex53]
+    items:
+      - {t: "Promoted follower", s: "is missing the last 2 s of writes"}
+      - {t: "Its bigserial sequence", s: "hands out IDs that were already used"}
+      - {t: "Two transactions, one ID", s: "caches and other systems still hold the old one"}
+      - {t: "Wrong customer's data", s: "a real incident: DDIA ch. 5 (GitHub, an outdated MySQL follower)"}
+    note: "Prevent: IDs that don't depend on the DB (Snowflake, UUID — lab 3B) · no automatic failover to a lagging replica for money · reconcile after every failover."
+    lines:
+      - emma: "The promoted follower is missing the last two seconds of writes. So its sequence hands out IDs that were already used."
+        focus: 1
+      - emma: "Now a new record carries an old ID, while caches and other services still hold the old data under that ID. Two different transactions share one ID, and you can show one customer's data to another."
+        focus: 2
+      - emma: "This isn't theory. DDIA chapter five tells a real incident of this shape at GitHub, after an outdated MySQL follower was promoted."
+        focus: 3
+      - emma: "To prevent it: use IDs that don't depend on the database, like Snowflake or UUIDs from lab 3B. Don't fail over automatically to a lagging replica for money data. And reconcile after every failover."
+        say: "To prevent it: use IDs that don't depend on the database, like Snowflake or U U I Ds from lab 3B. Don't fail over automatically to a lagging replica for money data. And reconcile after every failover."
+
+  - kind: bullets
+    chapter: "Interview line"
+    heading: "Say it in an interview"
+    style: dot
+    items:
+      - {t: "“For the ledger I'd keep a single leader with a synchronous standby in another AZ, and asynchronous replication to the second region.”"}
+      - {t: "“Reads that must see the user's own write go to the primary for a few seconds; history can come from replicas.”"}
+      - {t: "“After a failover we reconcile, and IDs never come from a sequence that a failover can rewind.”"}
+    lines:
+      - emma: "Here's how to say it in an interview. For the ledger, I'd keep a single leader with a synchronous standby in another AZ, and asynchronous replication to the second region."
+        focus: 0
+      - emma: "Reads that must see the user's own write go to the primary for a few seconds. History can come from replicas."
+        focus: 1
+      - emma: "And after a failover we reconcile, and our IDs never come from a sequence that a failover can rewind. Next episode: quorums."
+        focus: 2

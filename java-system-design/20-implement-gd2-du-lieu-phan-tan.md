@@ -996,7 +996,8 @@ CO fencing token     A token=1 ghi=false | B token=2 ghi=true | gia tri cuoi: B:
 Việc của bạn: làm bản thật. Khoá = một dòng trong bảng `lock(name, owner, token, expires_at)`, cấp
 khoá bằng update có điều kiện `… where expires_at < now()` và `token = token + 1 returning token`.
 Tài nguyên = bảng `config(name, value, last_token)`; lệnh ghi:
-`update config set value = ?, last_token = ? where name = ? and last_token < ?` (0 dòng = bị từ chối).
+`update config set value = ?, last_token = ? where name = ? and last_token <= ?` (0 dòng = bị từ chối;
+token bằng nhau là cùng người đang giữ khoá nên vẫn được ghi tiếp).
 Test: client A lấy khoá, "pause" (sleep quá TTL), B lấy khoá và ghi, A tỉnh dậy ghi → **0 dòng**, giá
 trị cuối là của B.
 

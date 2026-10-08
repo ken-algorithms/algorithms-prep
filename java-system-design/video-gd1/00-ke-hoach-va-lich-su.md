@@ -404,9 +404,9 @@ Trạng thái: **—** chưa làm · **Kịch bản** đã viết YAML · **Dự
 | Ep01 | 1 | **Chờ duyệt** | 9:01 | 7,7 | 7 | 1 | 15 ý chính · 19 chữ viết tắt |
 | Ep02 | 1 | **Chờ duyệt** | 10:14 | 8,7 | 11 | 1 | 16 ý chính · 9 chữ viết tắt |
 | Ep03 | 1 | **Chờ duyệt** | 10:23 | 8,7 | 8 | 1 | 8 ý chính · 12 chữ viết tắt |
-| Ep04 | 1 | **Chờ duyệt** | 10:44 | 9,5 | 6 | 1 | 13 ý chính · 17 chữ viết tắt |
+| Ep04 | 1 | **Chờ duyệt** | 10:44 | 9,4 | 6 | 1 | 13 ý chính · 17 chữ viết tắt |
 | Ep05 | 1 | **Chờ duyệt** | 11:03 | 9,7 | 10 | 1 | 11 ý chính · 16 chữ viết tắt |
-| Ep06 | 1 | **Chờ duyệt** | 9:55 | 8,9 | 9 | 1 | 10 ý chính · 20 chữ viết tắt |
+| Ep06 | 1 | **Chờ duyệt** | 9:56 | 8,9 | 9 | 1 | 10 ý chính · 20 chữ viết tắt |
 | Ep07 | 2 | — | | | | | |
 | Ep08 | 2 | — | | | | | |
 | Ep09 | 2 | — | | | | | |
@@ -501,6 +501,16 @@ của bài học; xong thì tạo PR.
 - **Chưa làm**: chưa có người nghe lại toàn bộ, đó là bước duyệt. Góp ý về giọng, tốc độ, độ dài, bố cục
   sẽ áp vào tuần 1 (dựng lại nhanh vì tiếng đã có trong bộ nhớ) trước khi làm tuần 2.
 - Commit trên nhánh `claude/wizardly-pascal-9yhum5`.
+
+### Đợt 1b — 08/10/2026: dựng lại Ep04 và Ep06 vì sửa phát âm
+
+- Lúc làm [video giai đoạn 2](../video-gd2/00-ke-hoach-va-lich-su.md#5-phát-âm), `speak.py` được sửa
+  thêm. Chữ A đứng riêng giữa câu nay đọc là chữ cái (trước đó "JPA" thành *J P a*); tên có dấu chấm như
+  `list.contains` đọc liền; `draw.io` đọc *draw dot I O*. Hai video tuần 1 có câu bị ảnh hưởng là Ep04
+  và Ep06.
+- Dựng lại hai video đó; các câu khác lấy tiếng từ bộ nhớ đệm. Ep04 vẫn dài 10:44,
+  Ep06 từ 9:55 thành 9:56. Đã sinh lại [độ phủ tuần 1](02-do-phu-tuan-1.md).
+- Sửa cột *Tom đọc* của DDIA, SLO, JPA trong [bảng chữ viết tắt](01-bang-chu-viet-tat.md).
 
 ---
 
