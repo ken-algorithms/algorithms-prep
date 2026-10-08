@@ -13,3 +13,6 @@ target/
 leetcode-38-bai-video/**/build/
 leetcode-38-bai-video/**/audio/
 leetcode-38-bai-video/**/*-preview.mp4
+
+# Python test cache
+.pytest_cache/

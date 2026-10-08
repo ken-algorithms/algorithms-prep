@@ -1,0 +1,355 @@
+id: ep04-trackp-group1
+ep: 4
+week: 1
+title: "Track P, group 1: per-request waste"
+subtitle: "Four mechanisms, and anti-patterns P01 to P07 with measured numbers"
+covers:
+  - 01-java-code-cham-duoi-tai-cao.md#0-đọc-file-này-trong-60-giây
+  - 01-java-code-cham-duoi-tai-cao.md#1-ba-cơ-chế-biến-code-xấu-thành-sự-cố-hệ-thống
+  - 01-java-code-cham-duoi-tai-cao.md#2-nhóm-1--lãng-phí-cpu-và-rác-mỗi-request-p01p07
+  - 01-java-code-cham-duoi-tai-cao.md#p01--tạo-lại-object-đắt-mỗi-request
+  - 01-java-code-cham-duoi-tai-cao.md#p02--biên-dịch-regex-trên-đường-nóng
+  - 01-java-code-cham-duoi-tai-cao.md#p03--nối-chuỗi-trong-vòng-lặp
+  - 01-java-code-cham-duoi-tai-cao.md#p04--exception-làm-luồng-điều-khiển
+  - 01-java-code-cham-duoi-tai-cao.md#p05--autoboxing-trên-đường-nóng
+  - 01-java-code-cham-duoi-tai-cao.md#p06--dựng-chuỗi-log-khi-level-đang-tắt
+  - 01-java-code-cham-duoi-tai-cao.md#p07--on²-ẩn
+  - 01-java-code-cham-duoi-tai-cao.md#7-bắt-chúng-trên-production--metric-nào-công-cụ-nào
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 01 §0 (60-second summary), §1 (mechanisms), §2 (P01–P07 with JMH numbers), §7 (production signals)"}
+      - {t: "Week 1 · Friday Track P session"}
+    lines:
+      - tom: "Episode four starts Track P: Java code that gets slow under load, however good the architecture is."
+      - tom: "First the four mechanisms that turn bad code into an incident. Then group one, seven patterns that waste CPU and memory on every request, each with its measured cost."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video (1/2)"
+    items:
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý"}
+      - {abbr: GC, full: "garbage collection", vi: "bộ dọn rác của JVM"}
+      - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo chạy bytecode Java"}
+      - {abbr: JDK, full: "Java Development Kit", vi: "bộ công cụ và runtime Java"}
+      - {abbr: JMH, full: "Java Microbenchmark Harness", vi: "thư viện đo hiệu năng hàm Java"}
+      - {abbr: JFR, full: "Java Flight Recorder", vi: "profiler có sẵn trong JDK"}
+      - {abbr: OOM, full: "out of memory (OutOfMemoryError)", vi: "JVM hết heap, process chết"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu của REST API"}
+      - {abbr: SLF4J, full: "Simple Logging Facade for Java", vi: "API log chung của Java"}
+    lines:
+      - tom: "CPU is the processor, GC is garbage collection, and the JVM is the Java Virtual Machine. JDK is the Java Development Kit."
+        focus: 3
+      - tom: "JMH is the benchmark harness, and JFR the Java Flight Recorder profiler. OOM means out of memory, JSON is the data format, and SLF4J is the Simple Logging Facade for Java."
+        say: "J M H is the benchmark harness, and J F R the Java Flight Recorder profiler. O O M means out of memory, JSON is the data format, and SLF4J is the Simple Logging Facade for Java."
+        focus: 8
+  - kind: acronyms
+    heading: "Acronyms in this video (2/2)"
+    items:
+      - {abbr: "QPS · RPS", full: "queries / requests per second", vi: "số truy vấn / request mỗi giây"}
+      - {abbr: RTT, full: "round-trip time", vi: "thời gian gói tin đi và về"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: vCPU, full: "virtual CPU", vi: "một luồng phần cứng trên cloud"}
+      - {abbr: ReDoS, full: "regular-expression denial of service", vi: "regex viết kém bị input làm treo thread"}
+      - {abbr: "MVC · AOP", full: "Model-View-Controller · aspect-oriented programming", vi: "tầng web của Spring · bọc method bằng proxy"}
+      - {abbr: JPA, full: "Jakarta Persistence API", vi: "chuẩn ánh xạ object ↔ bảng (Hibernate)"}
+      - {abbr: "N+1", full: "the N+1 query problem", vi: "1 query lấy danh sách + N query lấy từng phần tử"}
+    lines:
+      - tom: "QPS and RPS are queries and requests per second. RTT is round-trip time, DB is the database, and a vCPU is one virtual CPU in the cloud."
+        say: "Q P S and R P S are queries and requests per second. R T T is round-trip time, D B is the database, and a v C P U is one virtual CPU in the cloud."
+        focus: 3
+      - tom: "ReDoS is a denial of service through a regular expression. MVC and AOP are the Spring web layer and its method proxies. JPA is the Jakarta Persistence API. And N+1 is a query pattern we'll study in week 3."
+        say: "ReDoS is a denial of service through a regular expression. M V C and AOP are the Spring web layer and its method proxies. J P A is the Jakarta Persistence API. And N plus one is a query pattern we'll study in week 3."
+        focus: 7
+
+  - kind: table
+    chapter: "Four mechanisms"
+    heading: "Four ways bad code becomes a system incident"
+    columns: ["Mechanism", "Formula", "What it hits", "More pods help?"]
+    widths: [1.3, 3.2, 1.8, 1.6]
+    points: [tp-mechanisms]
+    rows:
+      - ["Multiply by QPS", "CPU per request × RPS = cores; garbage per request × RPS = MB/s for the GC", "CPU, GC", "Yes — at linear cost"]
+      - ["Little's Law", "L = λ × W: busy slots = throughput × hold time", "Connection pools, threads, locks, queues", "No, if the resource is shared"]
+      - ["Round trip", "latency = trips × RTT + work; DB load = queries per request × RPS", "Latency, database CPU", "No — more pods, more queries on one DB"]
+      - ["Live heap", "big live heap → long old-generation GC → bad p99 → OOM", "Memory, GC pauses", "No — each pod fails on its own"]
+    lines:
+      - tom: "Four mechanisms. One: multiply by QPS. CPU per request times requests per second is the number of cores; garbage per request times RPS is the load on the garbage collector. More pods help, at a linear cost."
+        say: "Four mechanisms. One: multiply by Q P S. CPU per request times requests per second is the number of cores; garbage per request times R P S is the load on the garbage collector. More pods help, at a linear cost."
+        focus: 0
+      - tom: "Two: Little's Law. Code that holds a connection, a thread or a lock for too long sets a ceiling. More pods don't help when the resource is shared."
+        focus: 1
+      - tom: "Three: round trips. Every trip over the network costs a round-trip time, and more pods just send more queries to the same database."
+        focus: 2
+      - tom: "Four: the live heap. A big live heap means long garbage-collection pauses, a bad p99, and finally out-of-memory. Each pod fails on its own."
+        focus: 3
+
+  - kind: bullets
+    heading: "Three lessons, in order of importance"
+    points: [tp-lessons]
+    items:
+      - {t: "What brings systems down is code that holds scarce resources", s: "connections, threads, queues — not code that burns CPU (group 2, weeks 2–3)"}
+      - {t: "CPU waste per call is usually a few microseconds", s: "new ObjectMapper() per request at 10k RPS = +0.14 core; it hurts inside data-sized loops"}
+      - {t: "Round trips are a fixed tax", s: "~1 ms per query even for one row: N+1 turns 200 req/s into 20,200 queries/s (week 3)"}
+    lines:
+      - tom: "Three lessons, in order of importance. One: what brings systems down is code that holds scarce resources, not code that burns CPU. That's group two, in weeks two and three."
+        focus: 0
+      - tom: "Two: wasted CPU per call is usually a few microseconds. It only hurts inside a loop over data: concatenating 10,000 rows took 0.64 seconds and 2.2 gigabytes of garbage for one request."
+        say: "Two: wasted CPU per call is usually a few microseconds. It only hurts inside a loop over data: concatenating ten thousand rows took zero point six four seconds and two point two gigabytes of garbage for one request."
+        focus: 1
+      - tom: "Three: round trips are a fixed tax. About a millisecond per query, even for one row. An N+1 pattern turns 200 requests per second into 20,200 queries per second."
+        say: "Three: round trips are a fixed tax. About a millisecond per query, even for one row. An N plus one pattern turns two hundred requests per second into twenty thousand two hundred queries per second."
+        focus: 2
+
+  - kind: bullets
+    chapter: "P01 to P07"
+    heading: "How group 1 was measured"
+    style: dot
+    points: [p-measure]
+    items:
+      - {t: "JMH with -prof gc, 3 warm-up + 5 measurement iterations, 1 fork"}
+      - {t: "Lab machine: Linux, 4 vCPU, JDK 21"}
+      - {t: "ns/op = time per call · B/op = bytes allocated per call (garbage)"}
+      - {t: "Each pair Bad / Fix does the same job — a test checks they return the same result"}
+    lines:
+      - tom: "All group-one numbers come from JMH with the GC profiler: three warm-up and five measurement rounds, one fork, on a 4-core Linux machine with JDK 21."
+        say: "All group-one numbers come from J M H with the G C profiler: three warm-up and five measurement rounds, one fork, on a four-core Linux machine with J D K twenty-one."
+        focus: 1
+      - tom: "Two columns matter: nanoseconds per call, which is CPU, and bytes allocated per call, which is garbage. And every bad and fixed pair is tested to return the same result."
+        focus: 3
+
+  - kind: pattern
+    heading: "P01 · Recreating expensive objects on every request"
+    sub: "Same family: DateTimeFormatter.ofPattern, Pattern.compile, JAXBContext, new RestTemplate(), MessageDigest"
+    points: [p01]
+    bad: |
+      public String toJson(Transfer t) throws Exception {
+          // rebuilds serializer caches every call
+          return new ObjectMapper().writeValueAsString(t);
+      }
+    good: |
+      private final ObjectMapper mapper;  // one bean, injected
+
+      public String toJson(Transfer t) throws Exception {
+          return mapper.writeValueAsString(t);
+      }
+    stats:
+      - ["JSON serialize", "14.6 µs", "0.48 µs", "30×", "19.6 KB → 688 B"]
+      - ["DateTimeFormatter.ofPattern", "474 ns", "175 ns", "2.7×", "872 B → 256 B"]
+    lines:
+      - tom: "P01: creating an expensive object on every request. A new ObjectMapper rebuilds its serializer caches every time."
+        focus: 0
+      - tom: "The fix: one instance for the whole JVM. In Spring, inject the ObjectMapper bean that Boot already configured."
+        focus: 1
+      - tom: "Measured: 14.6 microseconds down to 0.48. Thirty times faster, and 19.6 kilobytes of garbage down to 688 bytes."
+        say: "Measured: fourteen point six microseconds down to zero point four eight. Thirty times faster, and nineteen point six kilobytes of garbage down to six hundred eighty-eight bytes."
+        focus: 2
+      - tom: "The rule: if it's thread-safe, share it. If it isn't, use the thread-safe replacement, like DateTimeFormatter instead of SimpleDateFormat. Don't create a new one each time."
+        focus: 1
+
+  - kind: pattern
+    heading: "P02 · Compiling a regex on the hot path"
+    sub: "String.matches, replaceAll and split with a multi-character regex call Pattern.compile every time"
+    points: [p02]
+    bad: |
+      boolean ok = account.matches(
+          "^[0-9]{3}-[0-9]{6,10}$");
+    good: |
+      private static final Pattern ACCOUNT =
+          Pattern.compile("^[0-9]{3}-[0-9]{6,10}$");
+
+      boolean ok = ACCOUNT.matcher(account).matches();
+    stats:
+      - ["s.matches(regex)", "429 ns", "116 ns", "3.7×", "1,472 B → 208 B"]
+      - ["s.split(\"\\\\s*,\\\\s*\")", "648 ns", "418 ns", "1.5×", "1,152 B → 544 B"]
+    lines:
+      - tom: "P02: compiling a regular expression on the hot path. String.matches compiles the pattern every single time."
+        focus: 0
+      - tom: "Compile it once into a static Pattern. 429 nanoseconds become 116."
+        focus: 2
+      - tom: "Bonus for code review: a regex with catastrophic backtracking, fed by user input, is a ReDoS hole. One request can hang a thread for seconds. Precompiling doesn't fix that; fix the regex or limit the input length."
+        focus: 0
+
+  - kind: pattern
+    heading: "P03 · Concatenating strings in a loop"
+    sub: "Every += creates a new String and copies everything before it: O(n²) bytes copied"
+    points: [p03]
+    bad: |
+      String out = "";
+      for (String r : rows)
+          out += r + "\n";
+    good: |
+      StringBuilder sb = new StringBuilder(rows.size() * 48);
+      for (String r : rows)
+          sb.append(r).append('\n');
+    stats:
+      - ["1,000 rows", "5.58 ms", "0.033 ms", "171×", "21.9 MB → 92 KB"]
+      - ["10,000 rows", "639 ms", "0.35 ms", "1,841×", "2.23 GB → 928 KB"]
+    lines:
+      - tom: "P03: string concatenation in a loop. Each plus-equals copies everything built so far, so the cost grows with the square of the rows."
+        focus: 0
+      - tom: "Use a StringBuilder. Since Java 9, a single concatenation expression is already fast; a loop is not, because the compiler can't merge iterations."
+        focus: 1
+      - tom: "With 10,000 rows: 639 milliseconds and 2.23 gigabytes of garbage, against 0.35 milliseconds. For big exports, better still: don't build a string at all, write straight to the response stream."
+        say: "With ten thousand rows: six hundred thirty-nine milliseconds and two point two three gigabytes of garbage, against zero point three five milliseconds. For big exports, better still: don't build a string at all, write straight to the response stream."
+        focus: 2
+
+  - kind: pattern
+    heading: "P04 · Exceptions as control flow"
+    sub: "The cost is fillInStackTrace(), which walks the whole stack — and Spring stacks are 100–200 frames deep"
+    points: [p04]
+    bad: |
+      // 30% of discount codes are typos:
+      // a normal case, but it takes the exception path
+      try { return Integer.parseInt(s); }
+      catch (NumberFormatException e) { return def; }
+    good: |
+      // check first; keep exceptions for rare cases
+      if (!looksLikeInt(s)) return def;
+      return Integer.parseInt(s);
+    stats:
+      - ["Bad input 50%, shallow stack", "942 ns", "8.8 ns", "107×", "440 B → 0"]
+      - ["Same, 150-frame stack (like Spring)", "4,995 ns", "556 ns", "9×", "2,176 B → 16 B"]
+    lines:
+      - tom: "P04: using exceptions for normal control flow. If 30% of discount codes are typos, a typo is not exceptional."
+        focus: 0
+      - tom: "Check the input first, and keep exceptions for truly rare cases."
+        focus: 1
+      - tom: "The cost is building the stack trace, and it grows with stack depth: about 900 nanoseconds of exception cost on a shallow stack, about 4,400 on a 150-frame stack, which is normal in Spring with filters, proxies and JPA."
+        say: "The cost is building the stack trace, and it grows with stack depth: about nine hundred nanoseconds of exception cost on a shallow stack, about four thousand four hundred on a hundred-fifty-frame stack, which is normal in Spring with filters, proxies and J P A."
+        focus: 2
+      - tom: "If a business exception must cross layers, like InsufficientFundsException, you can turn off its stack trace with the four-argument constructor."
+        focus: 1
+
+  - kind: pattern
+    heading: "P05 · Autoboxing on the hot path"
+    sub: "Every boxed Integer or Long outside the -128..127 cache is a new object"
+    points: [p05]
+    bad: |
+      Map<Integer, Integer> h = new HashMap<>();
+      for (int v : codes) h.merge(v, 1, Integer::sum);
+
+      Long total = 0L;            // looks harmless
+      for (long a : amounts) total += a;
+    good: |
+      int[] h = new int[1000];    // small, dense keys
+      for (int v : codes) h[v]++;
+
+      long total = 0L;            // primitive accumulator
+      for (long a : amounts) total += a;
+    stats:
+      - ["Histogram, 10,000 items", "213 µs", "6.5 µs", "33×", "188 KB → 4 KB"]
+      - ["Long total += x, 10,000 items", "50 µs", "3.1 µs", "16×", "240 KB → 0"]
+    lines:
+      - tom: "P05: autoboxing. A map of Integer to Integer creates a new object for every count. And the sneaky one: a capital-L Long total creates a new Long on every addition."
+        focus: 0
+      - tom: "Use a primitive array for small dense keys, and a primitive long for the total."
+        focus: 1
+      - tom: "The histogram goes from 213 microseconds to 6.5. The Long total from 50 to 3.1, and 240 kilobytes of garbage to zero. People say escape analysis removes boxing; in this measurement it didn't."
+        say: "The histogram goes from two hundred thirteen microseconds to six point five. The Long total from fifty to three point one, and two hundred forty kilobytes of garbage to zero. People say escape analysis removes boxing; in this measurement it didn't."
+        focus: 2
+
+  - kind: pattern
+    heading: "P06 · Building log strings when the level is off"
+    sub: "Production runs at INFO, but the debug message is still built — and then thrown away"
+    points: [p06]
+    bad: |
+      log.debug("processing " + describe(payment));
+
+      // still bad with SLF4J: the {} placeholder
+      // delays toString(), but describe() runs first
+      log.debug("processing {}", describe(payment));
+    good: |
+      if (log.isDebugEnabled())
+          log.debug("processing {}", describe(payment));
+
+      // or SLF4J 2 fluent API with a supplier
+      log.atDebug()
+         .addArgument(() -> describe(payment))
+         .log("processing {}");
+    stats:
+      - ["Debug message, level off", "1,023 ns", "~1 ns", "~1,000×", "1,584 B → 0"]
+    lines:
+      - tom: "P06: building a log message when that level is switched off. Production runs at INFO, but the debug string is still built, then thrown away."
+        focus: 0
+      - tom: "Careful: the SLF4J placeholder delays toString, but describe() still runs first, because Java evaluates arguments before the call. Guard it with isDebugEnabled, or pass a supplier."
+        say: "Careful: the S L F four J placeholder delays toString, but describe still runs first, because Java evaluates arguments before the call. Guard it with isDebugEnabled, or pass a supplier."
+        focus: 1
+      - tom: "1,023 nanoseconds become about one. A placeholder with a variable you already have, like an id, is fine without a guard."
+        focus: 2
+
+  - kind: pattern
+    heading: "P07 · A hidden O(n²)"
+    sub: "Ask in every review: what is the maximum n of this list?"
+    points: [p07]
+    bad: |
+      // 10,000 items = 50 million comparisons
+      for (String id : ids)
+          if (!out.contains(id)) out.add(id);
+    good: |
+      // keeps first-seen order, O(n)
+      List<String> out =
+          new ArrayList<>(new LinkedHashSet<>(ids));
+    stats:
+      - ["De-duplicate 1,000 items", "879 µs", "29 µs", "30×", "—"]
+      - ["De-duplicate 10,000 items", "117 ms", "0.46 ms", "255×", "—"]
+    lines:
+      - tom: "P07: a hidden quadratic loop. De-duplicating with list.contains compares every item with every other: 50 million comparisons for 10,000 items, in one request."
+        focus: 0
+      - tom: "A LinkedHashSet keeps the first-seen order and does it in linear time. 117 milliseconds become 0.46."
+        say: "A LinkedHashSet keeps the first-seen order and does it in linear time. One hundred seventeen milliseconds become zero point four six."
+        focus: 2
+      - tom: "Same family: remove(0) on an ArrayList, a nested stream filter to join two lists, indexOf inside a loop. In review, ask: what's the maximum n? If nobody knows, n can be a million."
+        focus: 1
+
+  - kind: compare
+    chapter: "Reading the numbers"
+    heading: "Read the table like a senior"
+    points: [p-read-table]
+    items:
+      - {title: "Microseconds per call: P01, P02, P04, P06", lines: ["At 10k RPS, P01 adds 0.14 core — under 0.2% of a ~75 vCPU fleet", "Garbage: P01 190 MB/s + P06 317 MB/s ≈ 500 MB/s for the cluster, ~13 MB/s per pod", "Verdict: fix when convenient, not worth a sprint"]}
+      - {title: "Grows with data: P03, P05, P07", tone: bad, lines: ["Microseconds become hundreds of milliseconds", "One export of 10,000 rows with += holds a core for 0.64 s and allocates 2.2 GB", "Ten users clicking Export at once: 22 GB of garbage in seconds"]}
+    lines:
+      - tom: "How to read this table. P01, P02, P04 and P06 cost microseconds. At 10,000 requests per second, P01 adds 0.14 of a core, under 0.2% of a fleet of about 75 vCPUs."
+        say: "How to read this table. P01, P02, P04 and P06 cost microseconds. At ten thousand requests per second, P01 adds zero point one four of a core, under zero point two percent of a fleet of about seventy-five v C P Us."
+        focus: 0
+      - tom: "Their garbage adds up to about 500 megabytes per second for the cluster, around 13 per pod. Fix them when convenient. They are not worth a sprint."
+        focus: 0
+      - tom: "P03, P05 and P07 are different: they grow with the data. One export of 10,000 rows with plus-equals holds a core for 0.64 seconds and allocates 2.2 gigabytes. Ten users clicking Export means 22 gigabytes of garbage in seconds."
+        say: "P03, P05 and P07 are different: they grow with the data. One export of ten thousand rows with plus-equals holds a core for zero point six four seconds and allocates two point two gigabytes. Ten users clicking Export means twenty-two gigabytes of garbage in seconds."
+        focus: 1
+
+  - kind: bullets
+    heading: "Don't optimise blindly"
+    points: [p-blind, p-catch]
+    items:
+      - {t: "Fix group 1 when a profiler (async-profiler, JFR) shows it near the top", s: "or when code review finds it inside a loop over data"}
+      - {t: "Fixing P01–P07 everywhere while one P09 sits in the code is the wrong order", s: "holding a connection costs whole requests per second, not microseconds"}
+      - {t: "In production: CPU high for the RPS, jvm.gc.memory.allocated high", s: "confirm with an async-profiler flame graph in cpu and alloc mode"}
+      - {t: "Measure jvm.gc.memory.allocated ÷ RPS before and after a fix", s: "young-GC frequency follows the allocation rate"}
+    lines:
+      - tom: "So, don't optimise blindly. Fix group one when a profiler, like async-profiler or JFR, shows it near the top, or when a review finds it inside a loop over data."
+        say: "So, don't optimise blindly. Fix group one when a profiler, like async-profiler or J F R, shows it near the top, or when a review finds it inside a loop over data."
+        focus: 0
+      - tom: "Polishing P01 to P07 everywhere while one P09 sits in the code is the wrong priority."
+        focus: 1
+      - tom: "In production, the signal is CPU that is high for the request rate, and a high value of the metric jvm.gc.memory.allocated. Confirm with an async-profiler flame graph, in CPU and allocation mode."
+        say: "In production, the signal is CPU that is high for the request rate, and a high value of the J V M allocated-memory metric. Confirm with an async-profiler flame graph, in CPU and allocation mode."
+        focus: 2
+      - tom: "And measure allocated bytes divided by requests per second, before and after any fix."
+        focus: 3
+
+  - kind: speech
+    chapter: "Interview line"
+    heading: "Interview line — say it out loud"
+    items:
+      - {t: "Creating a new ObjectMapper per request costs about fourteen microseconds; at ten thousand requests per second that's a seventh of a core, so I fix it in review but I don't schedule a sprint for it."}
+      - {t: "What I look for first are loops over data, like string concatenation or list contains, because those grow with the input, and code that holds a connection while it waits."}
+    lines:
+      - read: tom
+        focus: 0
+      - read: tom
+        focus: 1
+      - tom: "Next, episode five: measuring your own code with JMH, multiplying by requests per second, and a code-review drill."
+        say: "Next, episode five: measuring your own code with J M H, multiplying by requests per second, and a code-review drill."

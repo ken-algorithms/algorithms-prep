@@ -1,0 +1,343 @@
+id: ep01-estimation-toolkit
+ep: 1
+week: 1
+title: "The estimation toolkit"
+subtitle: "Conversions, availability nines, latency numbers, and Little's Law"
+covers:
+  - 10-implement-gd1-nen-tang.md#tuần-1--khung-tư-duy-ước-lượng-và-chi-phí-của-một-request
+  - 10-implement-gd1-nen-tang.md#đầu-ra-phải-có-cuối-tuần
+  - 10-implement-gd1-nen-tang.md#đọc
+  - 10-implement-gd1-nen-tang.md#ghi-chú-khái-niệm
+  - 10-implement-gd1-nen-tang.md#11-quy-đổi-phải-nhẩm-được
+  - 10-implement-gd1-nen-tang.md#12-bảng-latency-bậc-độ-lớn-là-thứ-cần-nhớ-không-phải-chữ-số
+  - 10-implement-gd1-nen-tang.md#13-littles-law--công-thức-dùng-nhiều-nhất-cả-lộ-trình
+  - 01-java-code-cham-duoi-tai-cao.md#1-ba-cơ-chế-biến-code-xấu-thành-sự-cố-hệ-thống
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 10 · week 1 (outputs, reading), §1.1 conversions, §1.2 latency table, §1.3 Little's Law · 01 §1 (the P09 example)"}
+      - {t: "Week 1 · Monday session"}
+    lines:
+      - tom: "Episode one. Week one is about thinking in numbers."
+      - tom: "In this video: the conversions you should do in your head, the latency numbers to know by order of magnitude, and Little's Law, the formula you'll use for the whole roadmap."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video (1/2)"
+    items:
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: QPS, full: "queries per second", vi: "thường dùng như RPS; với database là số truy vấn mỗi giây"}
+      - {abbr: JMH, full: "Java Microbenchmark Harness", vi: "thư viện đo hiệu năng hàm Java đúng cách"}
+      - {abbr: SPOF, full: "single point of failure", vi: "điểm chết đơn: một thứ hỏng là cả hệ thống ngừng"}
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức của web và REST API"}
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý"}
+      - {abbr: RAM, full: "random-access memory", vi: "bộ nhớ chính"}
+      - {abbr: SSD, full: "solid-state drive", vi: "ổ cứng thể rắn"}
+      - {abbr: AZ, full: "availability zone", vi: "một trung tâm dữ liệu độc lập trong một region"}
+      - {abbr: "ns · µs · ms", full: "nanosecond · microsecond · millisecond", vi: "một phần tỷ · phần triệu · phần nghìn giây"}
+    lines:
+      - tom: "RPS is requests per second. QPS is queries per second; people use it like RPS. JMH is the Java Microbenchmark Harness, the tool we use to measure code."
+        focus: 1
+      - tom: "SPOF is a single point of failure. HTTP is the web protocol. CPU is the processor, RAM is main memory, SSD a solid-state drive, and an AZ is an availability zone, one data center inside a cloud region."
+        focus: 8
+      - tom: "And the time units: nanoseconds, microseconds and milliseconds. Each one is a thousand times the previous one."
+        focus: 9
+  - kind: acronyms
+    heading: "Acronyms in this video (2/2)"
+    items:
+      - {abbr: RTT, full: "round-trip time", vi: "thời gian gói tin đi và về"}
+      - {abbr: TCP, full: "Transmission Control Protocol", vi: "giao thức truyền tin cậy, có bắt tay"}
+      - {abbr: TLS, full: "Transport Layer Security", vi: "lớp mã hoá kết nối (HTTPS)"}
+      - {abbr: GC, full: "garbage collection", vi: "bộ dọn rác của JVM"}
+      - {abbr: G1, full: "Garbage-First collector", vi: "GC mặc định của JDK hiện đại"}
+      - {abbr: p99, full: "99th percentile latency", vi: "99% request nhanh hơn con số này"}
+      - {abbr: SLA, full: "service level agreement", vi: "cam kết có hợp đồng với khách hàng"}
+      - {abbr: NAB, full: "National Australia Bank", vi: "một hướng ứng tuyển: app ở VN gọi hệ thống ở Úc"}
+      - {abbr: "KB … TB", full: "kilobyte, megabyte, gigabyte, terabyte", vi: "đơn vị dung lượng, mỗi bậc × 1.000 khi ước lượng"}
+    lines:
+      - tom: "RTT is round-trip time. TCP and TLS are the transport protocol and the encryption layer under HTTPS."
+        focus: 2
+      - tom: "GC is garbage collection, and G1 is Java's default collector. p99 is the 99th percentile latency. SLA is a service level agreement. And NAB is National Australia Bank."
+        say: "G C is garbage collection, and G one is Java's default collector. p99 is the ninety-ninth percentile latency. SLA is a service level agreement. And NAB is National Australia Bank."
+        focus: 7
+      - tom: "Sizes go kilobyte, megabyte, gigabyte, terabyte; for estimates, each step is a thousand times bigger."
+        focus: 8
+
+  - kind: bullets
+    chapter: "This week"
+    heading: "Week 1: what you must have by Sunday"
+    style: check
+    points: [w1-outputs]
+    items:
+      - {t: "An estimation table for 3 systems", s: "exercises 1.1–1.3; every number with the assumption behind it"}
+      - {t: "JMH numbers from your own machine", s: "next to the lab's numbers, plus a 'multiply by QPS' table"}
+      - {t: "Drawings V1 and V2", s: "V1: one machine and its SPOF list · V2: 100k users, with numbers"}
+      - {t: "The latency table, memorised", s: "well enough to use it without looking"}
+      - {t: "A 2-minute talk", s: "“How would you estimate the load for a banking app with 5 million users?”"}
+    lines:
+      - tom: "By Sunday you need five things. An estimation table for three systems, with an assumption behind every number."
+        focus: 0
+        reveal: 0
+      - tom: "Benchmark numbers from your own machine, measured with JMH."
+        focus: 1
+        reveal: 1
+      - tom: "Two drawings: V1, a single machine with its list of single points of failure, and V2, the same system for 100k users."
+        focus: 2
+        reveal: 2
+      - tom: "The latency table, memorised. And a 2-minute talk: how would you estimate the load for a banking app with 5 million users?"
+        focus: 4
+        reveal: [3, 4]
+
+  - kind: table
+    heading: "Reading this week"
+    columns: ["Session", "Read", "Read it with this question"]
+    widths: [1, 3, 3]
+    points: [w1-reading]
+    rows:
+      - ["Monday", "System Design Interview Vol 1 (Alex Xu), ch. 1 Scale from zero to millions, ch. 2 Back-of-the-envelope estimation", "Which numbers decide each architecture step?"]
+      - ["Wednesday", "Discord: How Discord Stores Trillions of Messages (2023)", "Which number forced them to change database?"]
+      - ["Friday", "Track P: 01 §1–2 · Track S: 02 §1", "Three mechanisms; the 4-step formula"]
+      - ["Sunday", "Alex Xu ch. 3, A framework for system design interviews", "Compare its 4 steps with the roadmap's 6 steps"]
+    lines:
+      - tom: "The reading. Monday: chapters one and two of System Design Interview, volume one, by Alex Xu."
+        say: "The reading. Monday: chapters one and two of System Design Interview, volume one, by Alex Shoo."
+        focus: 0
+      - tom: "Wednesday: Discord's article on how they store trillions of messages. Read it with one question: which number forced them to change database?"
+        focus: 1
+      - tom: "Friday: the first sections of the Track P and Track S files. Sunday: chapter three, the interview framework."
+        focus: 3
+
+  - kind: table
+    chapter: "Conversions"
+    heading: "Conversions to do in your head"
+    columns: ["Quantity", "Remember as", "Note"]
+    widths: [1.3, 2, 2.6]
+    mono: [1]
+    points: [conv-day]
+    rows:
+      - ["1 day", "86,400 s ≈ 10⁵ s", "16% off — fine for estimates"]
+      - ["1 month", "≈ 2.5 × 10⁶ s", ""]
+      - ["1 year", "≈ 3.15 × 10⁷ s", "used for yearly storage"]
+    lines:
+      - tom: "Start with time. One day is 86,400 seconds. Round it to 10^5. That's 16% off, which is fine for an estimate."
+        say: "Start with time. One day is eighty-six thousand four hundred seconds. Round it to ten to the fifth. That's sixteen percent off, which is fine for an estimate."
+        focus: 0
+      - tom: "A month is about 2.5 × 10^6 seconds, and a year about 3.15 × 10^7."
+        say: "A month is about two point five times ten to the sixth seconds, and a year about three point one five times ten to the seventh."
+        focus: 2
+
+  - kind: table
+    heading: "From requests per day to requests per second"
+    columns: ["Per day", "Per second (average)"]
+    widths: [2, 3]
+    mono: [1]
+    accent: [1]
+    points: [conv-rps, conv-peak]
+    rows:
+      - ["1 million requests", "≈ 12 RPS"]
+      - ["1 billion requests", "≈ 12,000 RPS"]
+      - ["Peak", "average × 2–3, or by peak-hour share: 10% of the day in one hour → × 2.4"]
+    lines:
+      - tom: "Requests per day to requests per second. One million a day is about 12 RPS on average."
+        focus: 0
+      - tom: "One billion a day is about 12,000 RPS."
+        focus: 1
+      - tom: "The peak is two to three times the average. Or, if you know that the busiest hour carries 10% of the day, multiply by 2.4, because an even spread would put only one twenty-fourth in each hour."
+        say: "The peak is two to three times the average. Or, if you know that the busiest hour carries ten percent of the day, multiply by two point four, because an even spread would put only one twenty-fourth in each hour."
+        focus: 2
+
+  - kind: table
+    heading: "Storage and bandwidth"
+    columns: ["What", "Formula"]
+    widths: [1, 4]
+    mono: [1]
+    points: [conv-storage]
+    rows:
+      - ["Storage per year", "writes per second × bytes per record × 3.15 × 10⁷ × replication factor (usually × 2–3)"]
+      - ["Bandwidth", "RPS × average response size"]
+    lines:
+      - tom: "Storage per year is writes per second, times bytes per record, times seconds in a year, times the replication factor, usually two or three copies."
+        focus: 0
+      - tom: "Bandwidth is RPS times the average response size. You'll use both formulas in exercise 1.1, in episode three."
+        say: "Bandwidth is RPS times the average response size. You'll use both formulas in exercise one point one, in episode three."
+        focus: 1
+
+  - kind: table
+    heading: "Availability: count the nines"
+    columns: ["Availability", "Down per year", "Down per month"]
+    widths: [1, 1, 1]
+    accent: [1, 2]
+    points: [conv-nines]
+    rows:
+      - ["99.9%", "8.8 hours", "43 minutes"]
+      - ["99.99%", "53 minutes", "4.3 minutes"]
+    note: "Each extra nine divides the allowed downtime by ten."
+    lines:
+      - tom: "Availability. 99.9% allows 8.8 hours of downtime a year, or 43 minutes a month."
+        focus: 0
+      - tom: "99.99% allows 53 minutes a year, or 4.3 minutes a month. Each extra nine divides the downtime by ten. A single restart can eat a whole month's budget."
+        focus: 1
+
+  - kind: table
+    chapter: "Latency numbers"
+    heading: "Latency: remember the order of magnitude, not the digits"
+    sub: "Part 1 · inside one machine"
+    columns: ["Operation", "Order", "Remember by"]
+    widths: [2.6, 1, 2.6]
+    accent: [1]
+    points: [lat-memory]
+    rows:
+      - ["Read from the CPU's L1 cache", "~1 ns", ""]
+      - ["Read from RAM", "~100 ns", "100 × L1 cache"]
+      - ["Small Java call, small object allocation", "10–100 ns", "P01–P06 of Track P live around here"]
+      - ["Random read from an SSD", "~100 µs", ""]
+    lines:
+      - tom: "Now latency. Inside one machine: reading the CPU's level-one cache takes about one nanosecond. That L1 is a cache level, not scale level L1."
+        say: "Now latency. Inside one machine: reading the CPU's level-one cache takes about one nanosecond. That L one is a cache level, not scale level L one."
+        focus: 0
+      - tom: "RAM is about 100 nanoseconds, a hundred times slower."
+        focus: 1
+      - tom: "A small Java method call or object allocation is 10 to 100 nanoseconds. Most of the Track P waste lives here."
+        focus: 2
+      - tom: "A random read from an SSD is about 100 microseconds."
+        focus: 3
+
+  - kind: table
+    heading: "Latency: remember the order of magnitude, not the digits"
+    sub: "Part 2 · network and garbage collection"
+    columns: ["Operation", "Order", "Remember by"]
+    widths: [2.7, 1.2, 2.8]
+    accent: [1]
+    points: [lat-network, lat-geo, lat-gc]
+    rows:
+      - ["Round trip in the same AZ (app ↔ database, app ↔ Redis)", "~0.5–1 ms", "Every query pays at least this, even for one row (P15)"]
+      - ["Round trip to another AZ, same region", "~1–2 ms", "The price of a Multi-AZ synchronous commit"]
+      - ["TCP + TLS 1.3 handshake to a far server", "2 × RTT", "Why we keep connections alive: keep-alive (P08)"]
+      - ["Ho Chi Minh City ↔ Singapore", "~30–40 ms", ""]
+      - ["Ho Chi Minh City ↔ Sydney", "~100–150 ms", "NAB: an app in Vietnam calling systems in Australia"]
+      - ["Young-generation GC pause (G1, heap of a few GB)", "a few ms → tens of ms", "Lands in your p99"]
+    lines:
+      - tom: "Over the network, a round trip inside one availability zone costs half a millisecond to one millisecond. Every database query pays at least that, even for a single row."
+        focus: 0
+      - tom: "Crossing to another zone in the same region costs one to two milliseconds. That is what every commit pays with a synchronous Multi-AZ standby."
+        focus: 1
+      - tom: "A new connection to a far server needs a TCP and a TLS 1.3 handshake: two round trips before the first byte. That's why clients keep connections alive."
+        focus: 2
+      - tom: "From Ho Chi Minh City, Singapore is 30 to 40 milliseconds away, and Sydney 100 to 150. That matters for NAB, where an app in Vietnam calls systems in Australia."
+        focus: 4
+      - tom: "And a young-generation pause of the G1 garbage collector, with a heap of a few gigabytes, takes a few milliseconds up to tens of milliseconds. It shows up in your p99."
+        say: "And a young-generation pause of the G one garbage collector, with a heap of a few gigabytes, takes a few milliseconds up to tens of milliseconds. It shows up in your p99."
+        focus: 5
+
+  - kind: bullets
+    heading: "How to use these numbers"
+    style: dot
+    points: [lat-caveat]
+    items:
+      - {t: "They are typical values: re-measure with ping and GC logs from your own machine"}
+      - {t: "Use them to make decisions on the whiteboard — never as numbers in an SLA contract"}
+      - {t: "Keep the ratios: one same-AZ round trip costs as much time as thousands of RAM reads"}
+    lines:
+      - tom: "These are typical values. Re-measure the network and GC numbers with ping and GC logs from your own machine."
+        focus: 0
+      - tom: "Use them to decide on the whiteboard, never as numbers in an SLA. What you must keep is the ratio: one network round trip costs as much as thousands of memory reads."
+        focus: 2
+
+  - kind: table
+    chapter: "Little's Law"
+    heading: "Little's Law: L = λ × W"
+    sub: "The formula you will use most in the whole roadmap"
+    columns: ["Symbol", "Meaning", "Examples"]
+    widths: [0.7, 2.6, 2.8]
+    accent: [0]
+    points: [little-def]
+    rows:
+      - ["L", "how many things are inside the system right now", "requests in flight, busy connections, running tests"]
+      - ["λ", "throughput: how many arrive (and leave) per second", "requests per second"]
+      - ["W", "how long each one stays", "seconds per request, per connection hold"]
+    lines:
+      - tom: "Little's Law. L equals lambda times W."
+        say: "Little's Law. L equals lambda times W."
+      - tom: "L is how many things are inside the system right now: requests in flight, busy connections, running tests."
+        focus: 0
+      - tom: "Lambda is the throughput, how many arrive per second. And W is how long each one stays."
+        focus: 2
+
+  - kind: bullets
+    heading: "Three ways to use it"
+    points: [little-uses]
+    items:
+      - {t: "Know λ and W → how many workers, connections or pods you need", s: "L = λ × W"}
+      - {t: "Know the maximum L (a pool size) and W → the throughput ceiling", s: "λ max = L max ÷ W — this is P09 in Track P"}
+      - {t: "L grows while λ stays flat → W is growing", s: "something got slower: look for it before adding machines"}
+    lines:
+      - tom: "Three ways to use it. One: you know the throughput and the time, so you get how many workers, connections or pods you need."
+        focus: 0
+      - tom: "Two: you know the maximum L, for example a connection pool size, and the hold time. Then you get the throughput ceiling. This is anti-pattern P09."
+        focus: 1
+      - tom: "Three: L keeps growing while the throughput stays flat. Then W is growing: something got slower."
+        focus: 2
+
+  - kind: table
+    heading: "Example: P09 — an HTTP call inside a transaction"
+    sub: "From 01 §1: the formula predicted the measurement within 7%"
+    columns: ["Step", "Value"]
+    widths: [2, 3.2]
+    mono: [1]
+    build: true
+    points: [little-p09]
+    rows:
+      - ["Connection pool", "10 connections"]
+      - ["Hold time per request", "5 + 50 + 5 = 60 ms (read, partner call, write)"]
+      - ["Ceiling", "10 ÷ 0.060 s = 166 req/s"]
+      - ["Measured", "162.7 req/s"]
+      - ["Fix: call the partner outside the transaction", "hold 5 + 5 = 10 ms → 10 ÷ 0.010 s = 1,000 req/s"]
+      - ["Measured after the fix", "928–935 req/s"]
+    lines:
+      - tom: "Here's way two in action. A pool of 10 database connections."
+        focus: 0
+      - tom: "Each request holds a connection for 60 milliseconds: 5 to read, 50 waiting for a partner's HTTP call, 5 to write."
+        focus: 1
+      - tom: "So the ceiling is 10 divided by 0.06 seconds: 166 requests per second, no matter how many pods you add."
+        say: "So the ceiling is ten divided by zero point zero six seconds: one hundred sixty-six requests per second, no matter how many pods you add."
+        focus: 2
+      - tom: "The lab measured 162.7."
+        focus: 3
+      - tom: "Move the partner call out of the transaction, and the hold time drops to 10 milliseconds. The ceiling becomes 1,000 requests per second."
+        focus: 4
+      - tom: "Measured: 928 to 935. The formula was within 7% before running anything. That is what you say on the whiteboard."
+        focus: 5
+
+  - kind: speech
+    chapter: "Interview line and recap"
+    heading: "Interview line — say it out loud"
+    items:
+      - {t: "A pool of ten connections, each held for sixty milliseconds, caps the service at about a hundred and sixty-six requests per second."}
+      - {t: "Adding pods doesn't raise that ceiling; shortening the hold time does."}
+    lines:
+      - read: tom
+        focus: 0
+      - read: tom
+        focus: 1
+
+  - kind: bullets
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "1 day ≈ 10⁵ s · 1 million requests a day ≈ 12 RPS · peak ≈ average × 2–3"}
+      - {t: "99.9% ≈ 8.8 hours down a year · 99.99% ≈ 53 minutes"}
+      - {t: "RAM ~100 ns · SSD ~100 µs · same-AZ round trip ~0.5–1 ms · Sydney ~100–150 ms"}
+      - {t: "L = λ × W: a pool size divided by the hold time is a hard ceiling"}
+    lines:
+      - tom: "Recap. A day is about 10^5 seconds, a million requests a day is about 12 per second, and the peak is two to three times the average."
+        say: "Recap. A day is about ten to the fifth seconds, a million requests a day is about twelve per second, and the peak is two to three times the average."
+        reveal: 0
+        focus: 0
+      - tom: "Three nines is almost nine hours of downtime a year; four nines is under an hour."
+        reveal: 1
+        focus: 1
+      - tom: "Know the latency ladder by order of magnitude, and remember Little's Law: a pool size divided by the hold time is a hard ceiling."
+        reveal: [2, 3]
+        focus: 3
+      - tom: "Next, episode two: turning a number of users into concurrent users and requests per second."

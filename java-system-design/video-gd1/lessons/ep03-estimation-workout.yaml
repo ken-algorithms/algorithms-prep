@@ -1,0 +1,303 @@
+id: ep03-estimation-workout
+ep: 3
+week: 1
+title: "Estimation workout"
+subtitle: "A bank, a test platform, and a chat app — plus your first 2-minute talk"
+covers:
+  - 10-implement-gd1-nen-tang.md#lab-1a--sổ-ước-lượng-thứ-bảy-15-giờ
+  - 10-implement-gd1-nen-tang.md#bài-tập-tuần-1
+  - 10-implement-gd1-nen-tang.md#bài-nói-2-phút-chủ-nhật
+  - 10-implement-gd1-nen-tang.md#ranh-giới-trung-thực
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 10 · Lab 1A (estimation notebook), exercises 1.1–1.3 with answers, the week-1 2-minute talk, honest limits"}
+      - {t: "Week 1 · Saturday lab (1.5 hours) + Sunday talk"}
+    lines:
+      - tom: "Episode three is a workout. Three systems, three full estimates, done the way you'd do them on a whiteboard."
+      - tom: "Pause at each countdown and do the estimate yourself first. Then compare."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DAU, full: "daily active users", vi: "số user dùng app ít nhất một lần trong ngày"}
+      - {abbr: CCU, full: "concurrent users", vi: "số user đang dùng cùng một lúc"}
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: TPS, full: "transactions per second", vi: "số giao dịch nghiệp vụ mỗi giây"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: Mbit/s, full: "megabits per second", vi: "đơn vị băng thông; 1 byte = 8 bit"}
+      - {abbr: S3, full: "Amazon Simple Storage Service", vi: "object storage của AWS: ảnh, video, file"}
+      - {abbr: URL, full: "uniform resource locator", vi: "địa chỉ web; 'pre-signed URL' là link có chữ ký, hết hạn"}
+      - {abbr: LSM, full: "log-structured merge-tree", vi: "cấu trúc lưu trữ ghi tuần tự, ghi rất nhanh"}
+      - {abbr: AWS, full: "Amazon Web Services", vi: "nhà cung cấp cloud"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý"}
+    lines:
+      - tom: "DAU, CCU and RPS: daily active users, concurrent users, requests per second. TPS is transactions per second, and DB is the database."
+        focus: 4
+      - tom: "Megabits per second measures bandwidth. S3 is Amazon's object storage, part of AWS, Amazon Web Services. A URL is a web address; a pre-signed URL is a signed link that expires."
+        say: "Megabits per second measures bandwidth. S3 is Amazon's object storage, part of AWS, Amazon Web Services. A URL is a web address; a pre-signed URL is a signed link that expires."
+        focus: 7
+      - tom: "LSM means log-structured merge-tree, a storage engine built for heavy writes; we'll meet it again in week 3. And as before, API is an application programming interface, and CPU is the processor."
+        focus: 10
+
+  - kind: flow
+    chapter: "The format"
+    heading: "Lab 1A: one format for every estimate"
+    sub: "Write it in my-work/w1-uoc-luong.md"
+    points: [lab1a-format]
+    items:
+      - {t: "Assumptions", s: "write every one down; mark which ones are guesses"}
+      - {t: "Steps 1–4", s: "users → DAU → CCU → RPS, then writes per second, 5-year storage, bandwidth"}
+      - {t: "So what?", s: "which number changes the design, and how — in 1 to 3 lines"}
+    note: "Pass: each estimate takes ≤ 10 minutes, every number traces back to an assumption, and the last line is there."
+    lines:
+      - tom: "Lab 1A uses one format for every estimate. First, the assumptions. Write all of them, and mark which ones are guesses."
+        focus: 0
+      - tom: "Then the four steps, plus writes per second, storage for five years, and bandwidth."
+        focus: 1
+      - tom: "And always finish with one line: which number changes the design, and how. You pass when each estimate takes ten minutes or less, and every number traces back to an assumption."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 1.1: a bank"
+    n: "1.1"
+    q: "A banking app with 5 million users. Estimate peak CCU and RPS (normal day and salary day), writes per second, 5-year ledger storage, and peak outbound bandwidth."
+    items:
+      - {t: "Profile A: 30% daily active, 8 minutes a day, 10% in the peak hour, 0.17 requests per second per active user, salary day × 3"}
+      - {t: "1 transfer per DAU per day, 6 DB writes per transfer, 600 B per transfer including indexes"}
+      - {t: "Average response size 2 KB"}
+    lines:
+      - tom: "Exercise 1.1. A banking app with five million users. Estimate concurrent users and requests per second, on a normal day and on salary day, plus writes per second, five years of ledger storage, and outbound bandwidth."
+        say: "Exercise one point one. A banking app with five million users. Estimate concurrent users and requests per second, on a normal day and on salary day, plus writes per second, five years of ledger storage, and outbound bandwidth."
+      - wait: 5
+        note: "Use the format: assumptions, 4 steps, then the design-changing number."
+
+  - kind: table
+    heading: "Answer 1.1 — the numbers"
+    columns: ["", "Working", "Result"]
+    widths: [1.1, 2.8, 2.7]
+    mono: [1]
+    accent: [2]
+    build: true
+    points: [ex11-numbers]
+    rows:
+      - ["DAU", "5,000,000 × 0.30", "1,500,000"]
+      - ["Peak CCU", "1,500,000 × 8 × 0.10 ÷ 60", "20,000 (salary day 60,000)"]
+      - ["Peak RPS", "20,000 × 0.17", "≈ 3,400 (salary day ≈ 10,200)"]
+      - ["Transfers", "1.5 million a day; peak hour 150,000 ÷ 3,600", "≈ 42 TPS (salary day ≈ 125)"]
+      - ["DB writes", "125 × 6", "≈ 750 per second at peak"]
+      - ["Storage", "1.5M × 600 B = 0.9 GB a day ≈ 330 GB a year", "≈ 1.6 TB in 5 years (3.3 TB with 1 replica)"]
+      - ["Outbound bandwidth", "10,200 × 2 KB ≈ 20 MB/s", "≈ 160 Mbit/s at peak"]
+    lines:
+      - tom: "Daily active users: 30% of 5 million is 1.5 million."
+        say: "Daily active users: thirty percent of five million is one point five million."
+        focus: 0
+      - tom: "Peak concurrent users: 1.5 million times 8 minutes times 0.1, divided by 60, is 20,000. On salary day, 60,000."
+        say: "Peak concurrent users: one point five million times eight minutes times zero point one, divided by sixty, is twenty thousand. On salary day, sixty thousand."
+        focus: 1
+      - tom: "Requests per second: 20,000 times 0.17 is about 3,400, and about 10,200 on salary day."
+        say: "Requests per second: twenty thousand times zero point one seven is about three thousand four hundred, and about ten thousand two hundred on salary day."
+        focus: 2
+      - tom: "Transfers: 1.5 million a day. In the peak hour, 150,000 in 3,600 seconds is about 42 per second, and about 125 on salary day."
+        say: "Transfers: one point five million a day. In the peak hour, one hundred fifty thousand in three thousand six hundred seconds is about forty-two per second, and about one hundred twenty-five on salary day."
+        focus: 3
+      - tom: "Six writes per transfer gives about 750 database writes per second at peak."
+        focus: 4
+      - tom: "Storage: 600 bytes times 1.5 million is 0.9 gigabytes a day, about 330 gigabytes a year, 1.6 terabytes in five years, or 3.3 with one replica."
+        say: "Storage: six hundred bytes times one point five million is zero point nine gigabytes a day, about three hundred thirty gigabytes a year, one point six terabytes in five years, or three point three with one replica."
+        focus: 5
+      - tom: "Bandwidth: 10,200 requests times 2 kilobytes is about 20 megabytes per second, about 160 megabits per second."
+        focus: 6
+
+  - kind: compare
+    heading: "Answer 1.1 — which numbers change the design"
+    points: [ex11-design]
+    items:
+      - {title: "10k read RPS", lines: ["Reads are the pressure", "→ cache + read replicas", "That is level L2"]}
+      - {title: "750 writes per second", tone: ok, lines: ["Still fits one Postgres primary", "→ no sharding yet", "Say why you are NOT sharding"]}
+      - {title: "1.6 TB in 5 years", lines: ["Big tables get slow to maintain", "→ partition by month", "VACUUM and deleting old data stay cheap"]}
+    lines:
+      - tom: "Now the important part: which numbers change the design? Ten thousand reads per second on salary day means you need a cache and read replicas. That's level L2."
+        say: "Now the important part: which numbers change the design? Ten thousand reads per second on salary day means you need a cache and read replicas. That's level L two."
+        focus: 0
+      - tom: "750 writes per second still fit one Postgres primary. So no sharding yet, and saying why you don't shard is a senior signal."
+        focus: 1
+      - tom: "And 1.6 terabytes in five years means monthly partitions, so that vacuuming and deleting old data stay cheap."
+        say: "And one point six terabytes in five years means monthly partitions, so that vacuuming and deleting old data stay cheap."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 1.2: a test platform"
+    n: "1.2"
+    q: "A platform runs 1 million automated tests a day (capstone B). Estimate how many tests run at the same time at peak, and the storage you need."
+    items:
+      - {t: "Each test runs 2 minutes on average"}
+      - {t: "Output per test: 1 KB result, 50 KB log, 3 screenshots of 200 KB; 10% of tests also record a 5 MB video"}
+      - {t: "70% of the tests run during 8 working hours; when the nightly run starts, the rate jumps × 5"}
+    lines:
+      - tom: "Exercise 1.2. A testing platform runs one million tests a day. Each runs two minutes and produces a result, a log, three screenshots, and sometimes a video. 70% run in working hours, and the nightly run multiplies the rate by five."
+        say: "Exercise one point two. A testing platform runs one million tests a day. Each runs two minutes and produces a result, a log, three screenshots, and sometimes a video. Seventy percent run in working hours, and the nightly run multiplies the rate by five."
+      - tom: "How many tests run at the same time at peak, and how much storage do you need?"
+      - wait: 5
+        note: "Hint: Little's Law from episode one."
+
+  - kind: table
+    heading: "Answer 1.2 — the numbers"
+    columns: ["", "Working", "Result"]
+    widths: [1.1, 2.8, 2.7]
+    mono: [1]
+    accent: [2]
+    build: true
+    points: [ex12-numbers]
+    rows:
+      - ["Arrival rate", "700,000 ÷ 28,800 s", "≈ 24 tests/s (nightly ≈ 120/s)"]
+      - ["Concurrency", "Little's Law: L = λ × W = 24 × 120 s", "≈ 2,900 tests at once"]
+      - ["Nightly burst", "120 × 120 s", "≈ 14,400 → queue it, don't buy machines for it"]
+      - ["Runner nodes", "4 browsers per node", "~720 nodes in working hours; autoscale on queue length"]
+      - ["Storage per day", "1 GB + 50 GB + 600 GB + 500 GB", "≈ 1.15 TB a day ≈ 420 TB a year"]
+      - ["Kept 90 days", "hot 30 days → cold → delete at day 90", "≈ 104 TB steady state"]
+      - ["Writes to S3", "1.15 TB ÷ 86,400 s", "≈ 13 MB/s average, ~40 MB/s at peak"]
+    lines:
+      - tom: "Arrival rate: 700,000 tests in 28,800 seconds of working hours is about 24 tests per second. The nightly burst is about 120."
+        focus: 0
+      - tom: "Concurrency is Little's Law: 24 per second times 120 seconds each is about 2,900 tests running at once."
+        focus: 1
+      - tom: "During the nightly burst it would be 14,400. Don't provision machines for that; queue the tests."
+        focus: 2
+      - tom: "At four browsers per node, that's about 720 nodes in working hours, autoscaled on the length of the queue."
+        focus: 3
+      - tom: "Storage per day: 1 gigabyte of results, 50 of logs, 600 of screenshots, 500 of video: about 1.15 terabytes a day, 420 a year."
+        say: "Storage per day: one gigabyte of results, fifty of logs, six hundred of screenshots, five hundred of video: about one point one five terabytes a day, four hundred twenty a year."
+        focus: 4
+      - tom: "Keep 90 days, hot for 30 then cold, and the steady state is about 104 terabytes. The upload rate to S3 is about 13 megabytes per second on average."
+        focus: 6
+
+  - kind: compare
+    heading: "Answer 1.2 — which numbers change the design"
+    points: [ex12-design]
+    items:
+      - {title: "2,900 tests at once", lines: ["This is scheduling a finite resource (problem family B)", "Not a throughput problem", "Queues, priorities, fairness between customers"]}
+      - {title: "95% of the bytes are images and video", tone: ok, lines: ["Object storage, not the database", "Workers upload straight to storage with a pre-signed URL — not through the API", "The DB keeps metadata only: ~1 GB a day"]}
+    lines:
+      - tom: "The design-changing numbers. 2,900 tests at once makes this a problem of scheduling a finite resource, not a throughput problem. That's problem family B in the system design notes."
+        focus: 0
+      - tom: "And screenshots plus video are 95% of the storage. So they go to object storage, uploaded straight from the workers with a pre-signed URL, never through the API. The database keeps only metadata, about one gigabyte a day."
+        focus: 1
+
+  - kind: exercise
+    chapter: "Exercise 1.3: a chat app"
+    n: "1.3"
+    q: "A chat app with 10 million users (profile B). Estimate concurrent connections, messages per second at peak, and storage for 5 years."
+    items:
+      - {t: "Profile B: 50% daily active, 60 minutes a day, 10% in the peak hour"}
+      - {t: "40 messages per DAU per day, 200 B per message, 2 recipients per message on average"}
+    lines:
+      - tom: "Exercise 1.3. A chat app with ten million users, profile B: 50% daily active, an hour a day, 40 messages per active user per day, 200 bytes each, two recipients on average."
+        say: "Exercise one point three. A chat app with ten million users, profile B: fifty percent daily active, an hour a day, forty messages per active user per day, two hundred bytes each, two recipients on average."
+      - tom: "Estimate concurrent connections, messages per second at peak, and five years of storage."
+      - wait: 5
+        note: "Don't forget the connections that stay open."
+
+  - kind: table
+    heading: "Answer 1.3 — the numbers"
+    columns: ["", "Working", "Result"]
+    widths: [1.1, 2.8, 2.7]
+    mono: [1]
+    accent: [2]
+    build: true
+    points: [ex13-numbers]
+    rows:
+      - ["DAU", "10M × 50%", "5,000,000"]
+      - ["Peak CCU", "5,000,000 × 60 × 0.10 ÷ 60", "500,000 WebSocket connections held"]
+      - ["Messages", "200M a day", "≈ 2,300/s average, ≈ 5,600/s in the peak hour"]
+      - ["Deliveries", "5,600 × 2 recipients", "≈ 11,000 pushes/s"]
+      - ["Heartbeats", "500,000 ÷ 30 s", "≈ 16,700 pings/s — more than the messages"]
+      - ["Storage", "200M × 200 B = 40 GB a day ≈ 15 TB a year", "≈ 73 TB in 5 years (≈ 220 TB with 3 copies)"]
+      - ["Gateways", "~50,000 connections per node", "10 nodes + spare ≈ 15"]
+    lines:
+      - tom: "Daily active users: 5 million. Peak concurrent users: 5 million times 60 times 0.1, divided by 60: half a million WebSocket connections held at once."
+        say: "Daily active users: five million. Peak concurrent users: five million times sixty times zero point one, divided by sixty: half a million WebSocket connections held at once."
+        focus: 1
+      - tom: "Messages: 200 million a day, about 2,300 per second on average and 5,600 in the peak hour. With two recipients each, about 11,000 pushes per second."
+        focus: 3
+      - tom: "Now a surprise: if each connection sends a heartbeat every 30 seconds, that's about 16,700 pings per second. More than all the chat messages."
+        focus: 4
+      - tom: "Storage: 40 gigabytes a day, about 15 terabytes a year, 73 terabytes in five years, or 220 with three copies. And at about 50,000 connections per gateway node, you need 10 nodes plus spares, around 15."
+        focus: 6
+
+  - kind: compare
+    heading: "Answer 1.3 — which numbers change the design"
+    points: [ex13-design]
+    items:
+      - {title: "500k open connections", lines: ["A stateful gateway layer", "A registry: which user is on which node (Redis or pub/sub)"]}
+      - {title: "Heartbeats > messages", tone: warn, lines: ["The heartbeat interval is a cost knob", "Tune it like any other capacity setting"]}
+      - {title: "73 TB, sequential writes, read by conversation", tone: ok, lines: ["An LSM-tree store: Cassandra or ScyllaDB", "Partition key = conversation_id", "Exactly the Discord article of this week"]}
+    lines:
+      - tom: "What changes the design? Half a million open connections need a stateful gateway layer, plus a registry of which user is connected to which node, in Redis or through pub-sub."
+        focus: 0
+      - tom: "Heartbeats outnumber messages, so the heartbeat interval becomes a cost knob."
+        focus: 1
+      - tom: "And 73 terabytes, written sequentially and read by conversation, points to an LSM-tree database like Cassandra or ScyllaDB, partitioned by conversation id. That's exactly the Discord story you read on Wednesday."
+        say: "And seventy-three terabytes, written sequentially and read by conversation, points to an L S M tree database like Cassandra or Scylla D B, partitioned by conversation I D. That's exactly the Discord story you read on Wednesday."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Your 2-minute talk"
+    n: "talk"
+    heading: "Sunday: your 2-minute talk"
+    q: "“Walk me through how you'd estimate the load for a banking app with 5 million users.”"
+    items:
+      - {t: "Record yourself, then listen back"}
+      - {t: "Write 3 places where you stumbled into my-work/recordings.md"}
+      - {t: "Then compare with the model answer — take its structure, don't memorise it"}
+    points: [talk-w1]
+    lines:
+      - tom: "Sunday's 2-minute talk: walk me through how you'd estimate the load for a banking app with five million users."
+      - tom: "Record yourself, listen back, and write three places where you stumbled into your recordings file. Pause now and record your answer before you hear mine."
+      - wait: 5
+        note: "Record your own answer first."
+
+  - kind: speech
+    heading: "Model answer — take the structure, not the words"
+    items:
+      - {t: "I'd go in four steps and say every assumption out loud."}
+      - {t: "Five million registered users, maybe 30% active daily, so 1.5 million DAU.", say: "Five million registered users, maybe thirty percent active daily, so one point five million DAU."}
+      - {t: "A banking session is short, two sessions of about four minutes a day."}
+      - {t: "If the peak hour carries 10% of daily traffic, that's about 20,000 concurrent users, and on salary day maybe three times that.", say: "If the peak hour carries ten percent of daily traffic, that's about twenty thousand concurrent users, and on salary day maybe three times that."}
+      - {t: "Each active user triggers roughly one API call every six seconds, so around 3,400 requests per second at a normal peak and 10,000 on salary day.", say: "Each active user triggers roughly one API call every six seconds, so around three thousand four hundred requests per second at a normal peak and ten thousand on salary day."}
+      - {t: "Writes are much smaller: about 125 transfers per second at peak, roughly 750 database writes.", say: "Writes are much smaller: about one hundred twenty-five transfers per second at peak, roughly seven hundred fifty database writes."}
+      - {t: "So reads drive the caching and replica decisions, while the write path still fits one well-sized primary."}
+    lines:
+      - read: tom
+        focus: 0
+      - read: tom
+        focus: 1
+      - read: tom
+        focus: 2
+      - read: tom
+        focus: 3
+      - read: tom
+        focus: 4
+      - read: tom
+        focus: 5
+      - read: tom
+        focus: 6
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap and honest limits"
+    style: dot
+    items:
+      - {t: "Always: assumptions → 4 steps → the number that changes the design"}
+      - {t: "Bank: reads drive the design (cache, replicas); writes fit one primary"}
+      - {t: "Test platform: Little's Law gives concurrency; it's a scheduling problem"}
+      - {t: "Chat: open connections and heartbeats dominate; storage goes to an LSM-tree store"}
+      - {t: "Honest limit: 40 messages a day, 600 B per transfer… are reasonable guesses, not data from a real product"}
+    lines:
+      - tom: "Recap. Every estimate ends with the number that changes the design. For the bank it's the reads. For the test platform, concurrency from Little's Law. For chat, open connections and heartbeats."
+        focus: 3
+      - tom: "One honest limit: the assumptions here, like 40 messages a day or 600 bytes per transfer, are reasonable guesses, not data from a real product. Next, episode four: Java code that wastes CPU on every request."
+        focus: 4

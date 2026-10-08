@@ -51,6 +51,10 @@ jobs:
           cp -R site/. _deploy/docs/
           (cd leetcode-38-bai-video && find . -path '*/nhom-*/bai-*/*' \( -name 'bai-*-full.mp4' -o -name 'bai-*.gif' \) \
             -exec cp --parents {} ../_deploy/media/ \;)
+          # video bài giảng Java System Design (tab Video của app): web/build.py trỏ vào media/jsd/
+          mkdir -p _deploy/media/jsd
+          find java-system-design/video-gd1/lessons -maxdepth 1 \( -name 'ep*.mp4' -o -name 'ep*.jpg' \) \
+            -exec cp {} _deploy/media/jsd/ \;
           echo "— media —"
           find _deploy/media -type f | sort
           touch _deploy/.nojekyll
@@ -65,6 +69,17 @@ jobs:
           grep -q 'Algorithms Learning' _deploy/index.html || { echo "app không có nội dung"; exit 1; }
           grep -q 'MEDIA_BASE = "media/"' _deploy/index.html || { echo "index.html chưa trỏ media/"; exit 1; }
           test -n "$(find _deploy/media -name '*.mp4')" || { echo "không có video trong _deploy/media"; exit 1; }
+          # mọi video trong lessons.json phải có file đi kèm, nếu không tab Video hiện ô lỗi
+          python3 - <<'PY'
+          import json, pathlib, sys
+          m = pathlib.Path("java-system-design/video-gd1/lessons/lessons.json")
+          if not m.exists():
+              sys.exit(0)
+          need = [f for x in json.loads(m.read_text())["lessons"] for f in (x["file"], x.get("poster")) if f]
+          miss = [f for f in need if not pathlib.Path("_deploy/media/jsd", f).exists()]
+          print(f"video bài giảng: {len(need) - len(miss)}/{len(need)} file có trong _deploy/media/jsd")
+          sys.exit(f"thiếu: {miss}" if miss else 0)
+          PY
 
       - uses: actions/upload-pages-artifact@v3
         with:

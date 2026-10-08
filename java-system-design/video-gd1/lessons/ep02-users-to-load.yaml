@@ -1,0 +1,328 @@
+id: ep02-users-to-load
+ep: 2
+week: 1
+title: "From N users to CCU and RPS"
+subtitle: "The four-step formula, two load profiles, and going backwards from CCU"
+covers:
+  - 02-ve-he-thong-100k-1m-10m.md#0-đọc-file-này-trong-60-giây
+  - 02-ve-he-thong-100k-1m-10m.md#1-từ-n-users-ra-ccu-và-rps--công-thức-4-bước
+  - 02-ve-he-thong-100k-1m-10m.md#11-bảng-tính-sẵn--hồ-sơ-a-ngân-hàng-đúng-capstone-a
+  - 02-ve-he-thong-100k-1m-10m.md#12-bảng-tính-sẵn--hồ-sơ-b-chat-để-thấy-ccu-thay-đổi-thế-nào
+  - 02-ve-he-thong-100k-1m-10m.md#13-khi-đề-cho-thẳng-ccu--đi-ngược-lại
+  - 02-ve-he-thong-100k-1m-10m.md#14-từ-rps-ra-số-máy--ba-con-số-nhẩm
+  - 10-implement-gd1-nen-tang.md#bài-tập-tuần-1
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 02 §0, §1–1.4 (Track S formula, profile tables, going backwards, three quick numbers) · 10 exercises 1.4 and 1.8"}
+      - {t: "Week 1 · Friday reading + Sunday drawing prep"}
+    lines:
+      - tom: "Episode two. An interviewer says: design it for ten million users. That number alone tells you almost nothing."
+      - tom: "In this video you'll turn users into concurrent users and requests per second, with a four-step formula, two ready-made profiles, and two exercises."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DAU, full: "daily active users", vi: "số user dùng app ít nhất một lần trong ngày"}
+      - {abbr: CCU, full: "concurrent users", vi: "số user đang dùng cùng một lúc"}
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: TPS, full: "transactions per second", vi: "số giao dịch nghiệp vụ mỗi giây"}
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý"}
+      - {abbr: vCPU, full: "virtual CPU", vi: "một luồng phần cứng trên cloud; 'pod 2 vCPU'"}
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu của REST API"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+    lines:
+      - tom: "DAU means daily active users. CCU, concurrent users. RPS, requests per second. And TPS, transactions per second: business operations, like transfers."
+        focus: 3
+      - tom: "CPU is the processor, and a vCPU is one virtual CPU in the cloud. DB means database. JSON is the text format most APIs speak, and an API is an application programming interface."
+        focus: 8
+
+  - kind: bullets
+    chapter: "Five ideas first"
+    heading: "“N users” is not a unit of load"
+    sub: "02 §0 — read this in 60 seconds"
+    points: [ts-not-load, ts-session, ts-100k-availability, ts-10m-ledger, ts-bad-code]
+    items:
+      - {t: "Convert in 4 steps: registered → DAU → peak CCU → peak RPS", s: "skip a step and you are off by an order of magnitude"}
+      - {t: "CCU depends on session length more than on users", s: "same 1M registered: a bank has ~4,000 peak CCU, a chat app ~50,000 — 12 times more"}
+      - {t: "100k users is an availability problem, not a load problem", s: "~200 RPS at peak; you still run 2 instances because one dying is an outage"}
+      - {t: "10M bank users: the ledger writes still fit one strong Postgres primary", s: "what doesn't fit: the reads, the number of teams, and the blast radius of a failure"}
+      - {t: "Bad code multiplies with machines", s: "+2 ms of CPU per request costs ~33 more pods at 10M users"}
+    lines:
+      - tom: "Five ideas before any formula. One: N users is not a unit of load. You convert it in four steps, and if you skip one, you're off by an order of magnitude."
+        focus: 0
+      - tom: "Two: concurrent users depend on how long a session lasts. With the same one million users, a bank has about 4,000 at peak, and a chat app about 50,000. Twelve times more."
+        focus: 1
+      - tom: "Three: 100k users is an availability problem, not a load problem. About 200 requests per second. You run two instances because one dying is an outage, not because one is too slow."
+        focus: 2
+      - tom: "Four: even at 10 million bank users, the ledger writes still fit one strong Postgres primary. What doesn't fit is the reads, the number of teams, and the blast radius of a failure."
+        focus: 3
+      - tom: "Five: bad code multiplies with machines. Two extra milliseconds of CPU per request costs about 33 more pods at 10 million users."
+        focus: 4
+
+  - kind: flow
+    chapter: "The formula"
+    heading: "Four steps from users to load"
+    build: true
+    points: [ts-formula]
+    items:
+      - {t: "DAU", s: "registered users × daily active ratio", f: "N × 30%"}
+      - {t: "Peak CCU", s: "DAU × minutes per day × peak-hour share ÷ 60", f: "DAU × 8 × 0.10 ÷ 60"}
+      - {t: "Peak RPS", s: "peak CCU × requests per second of one active user", f: "CCU × 0.17"}
+      - {t: "Special days", s: "salary day, flash sale, Tết: × 3 to × 10 the normal peak", f: "RPS × 3"}
+    lines:
+      - tom: "Step one: daily active users are registered users times the daily active ratio."
+        focus: 0
+      - tom: "Step two: peak concurrent users are daily active users, times minutes per day, times the share of traffic in the peak hour, divided by 60."
+        focus: 1
+      - tom: "Step three: peak requests per second are peak concurrent users times how many requests one active user sends per second."
+        focus: 2
+      - tom: "Step four: special days. Salary day, a flash sale or Tết can be 3 to 10 times the normal peak."
+        say: "Step four: special days. Salary day, a flash sale or Tet can be three to ten times the normal peak."
+        focus: 3
+
+  - kind: bullets
+    heading: "Why step 2 works"
+    style: dot
+    points: [ts-why-step2]
+    items:
+      - {t: "DAU × minutes per day = user-minutes in one day"}
+      - {t: "The peak hour carries ~10% of the day's traffic (about 2.4 × the hourly average)"}
+      - {t: "User-minutes in that hour ÷ 60 minutes = people online at the same moment"}
+    lines:
+      - tom: "Why step two works. Daily active users times minutes per day gives the user-minutes in a day."
+        focus: 0
+      - tom: "The peak hour carries about ten percent of them. Divide that hour's user-minutes by 60, and you get how many people are online at the same moment."
+        focus: 2
+
+  - kind: table
+    heading: "Default assumptions — say them out loud"
+    sub: "If the problem doesn't give them, state these on the board"
+    columns: ["Parameter", "Profile A: bank or wallet", "Profile B: chat or social"]
+    widths: [2.2, 2.2, 2.2]
+    points: [ts-defaults]
+    rows:
+      - ["Daily active ratio", "30%", "50%"]
+      - ["Minutes per day", "2 sessions × 4 min = 8", "60"]
+      - ["Peak-hour share", "10%", "10%"]
+      - ["Requests per second per active user", "0.17 (one request every 6 s)", "0.05, but holds 1 WebSocket for the whole session"]
+      - ["Special-day multiplier", "× 3 (salary day)", "× 2 (events)"]
+    lines:
+      - tom: "When the problem doesn't give you the numbers, use these defaults and say them out loud."
+      - tom: "Profile A is a bank or a wallet: 30% of users active daily, two sessions of four minutes, so 8 minutes a day, and 10% of traffic in the peak hour."
+        focus: 1
+      - tom: "An active banking user sends about 0.17 requests per second: one every six seconds, because each screen calls three to five APIs and people change screens every 25 seconds or so."
+        say: "An active banking user sends about zero point one seven requests per second: one every six seconds, because each screen calls three to five APIs and people change screens every twenty-five seconds or so."
+        focus: 3
+      - tom: "Profile B is a chat app: 50% daily active, 60 minutes a day, 0.05 requests per second, but each user keeps one WebSocket open. Salary day is times three for the bank; events are times two for chat."
+        focus: 4
+
+  - kind: table
+    chapter: "Profile A: a bank"
+    heading: "Profile A (bank) — load"
+    columns: ["", "100k registered", "1M registered", "10M registered"]
+    widths: [2.2, 1.3, 1.3, 1.3]
+    accent: [3]
+    points: [tA-table]
+    rows:
+      - ["DAU", "30,000", "300,000", "3,000,000"]
+      - ["Peak CCU (normal peak hour)", "400", "4,000", "40,000"]
+      - ["CCU on salary day (× 3)", "1,200", "12,000", "120,000"]
+      - ["Peak RPS (normal peak hour)", "~70", "~670", "~6,700"]
+      - ["RPS on salary day", "~200", "~2,000", "~20,000"]
+      - ["Average RPS over the day", "~28", "~280", "~2,800"]
+    lines:
+      - tom: "Here is profile A worked out for 100k, 1 million and 10 million registered users. Daily active users are 30%: 30,000, 300,000 and 3 million."
+        focus: 0
+      - tom: "Peak concurrent users: 400, 4,000 and 40,000. On salary day, three times that: 1,200, 12,000 and 120,000."
+        focus: 2
+      - tom: "Peak requests per second: about 70, 670 and 6,700. On salary day: about 200, 2,000 and 20,000."
+        focus: 4
+      - tom: "And the average over the whole day is much lower, about 28, 280 and 2,800. Never size a system on the average."
+        focus: 5
+
+  - kind: table
+    heading: "Profile A (bank) — writes and storage"
+    columns: ["", "100k", "1M", "10M"]
+    widths: [2.4, 1.1, 1.1, 1.1]
+    accent: [3]
+    points: [tA-writes]
+    rows:
+      - ["Transfers per day (1 per DAU)", "30k", "300k", "3M"]
+      - ["Transfer TPS on salary day", "~2.5", "~25", "~250"]
+      - ["DB writes per second on salary day (~6 per transfer)", "~15", "~150", "~1,500"]
+      - ["New ledger data per year (~600 B per transfer, with indexes)", "~6.5 GB", "~65 GB", "~650 GB"]
+    note: "6 writes per transfer: 2 ledger entries (double entry), the transfer row, an outbox row, an idempotency key, an audit row."
+    lines:
+      - tom: "Now the write side. Assume one transfer per active user per day: 3 million transfers a day at 10 million users."
+        focus: 0
+      - tom: "That is about 250 transfers per second on salary day. Each transfer writes about six rows: two ledger entries, the transfer, an outbox row, an idempotency key and an audit row."
+        say: "That is about two hundred fifty transfers per second on salary day. Each transfer writes about six rows: two ledger entries, the transfer, an outbox row, an idem-potency key and an audit row."
+        focus: 1
+      - tom: "So about 1,500 database writes per second, and about 650 gigabytes of new ledger data a year. One well-sized Postgres primary handles that."
+        focus: 3
+
+  - kind: table
+    heading: "Check one cell yourself"
+    columns: ["Step", "Calculation (10M users)"]
+    widths: [1.2, 4]
+    mono: [1]
+    build: true
+    points: [tA-worked]
+    rows:
+      - ["Peak CCU", "3,000,000 × 8 × 0.10 ÷ 60 = 40,000"]
+      - ["Peak RPS", "40,000 × 0.17 ≈ 6,800 → the table rounds to ~6,700"]
+    lines:
+      - tom: "Check one cell yourself. 3 million daily users, times 8 minutes, times 0.1, divided by 60, gives 40,000."
+        say: "Check one cell yourself. Three million daily users, times eight minutes, times zero point one, divided by sixty, gives forty thousand."
+        focus: 0
+      - tom: "Times 0.17 gives about 6,800 requests per second, which the table rounds to 6,700."
+        say: "Times zero point one seven gives about six thousand eight hundred requests per second, which the table rounds to six thousand seven hundred."
+        focus: 1
+
+  - kind: table
+    chapter: "Profile B: chat"
+    heading: "Profile B (chat) — same users, very different load"
+    columns: ["", "100k", "1M", "10M"]
+    widths: [2.2, 1.2, 1.2, 1.2]
+    accent: [3]
+    points: [tB-table]
+    rows:
+      - ["DAU", "50,000", "500,000", "5,000,000"]
+      - ["Peak CCU", "5,000", "50,000", "500,000"]
+      - ["Peak RPS", "~250", "~2,500", "~25,000"]
+      - ["WebSocket connections held at once", "5,000", "50,000", "500,000"]
+    note: "First question on hearing “N users”: how long is a session, and does it hold a connection?"
+    lines:
+      - tom: "Profile B, chat. With the same 10 million users, peak concurrent users reach 500,000, twelve times the bank."
+        focus: 1
+      - tom: "And each of them holds a WebSocket open, so you keep half a million connections alive at once."
+        focus: 3
+      - tom: "That's why the first question when you hear N users is: how long is a session, and does it hold a connection? Not: how many servers?"
+
+  - kind: table
+    chapter: "Going backwards"
+    heading: "When the problem gives you CCU: go backwards"
+    columns: ["The problem says", "Working", "Registered users"]
+    widths: [1.6, 3.2, 1.3]
+    mono: [1]
+    points: [reverse-ccu]
+    rows:
+      - ["100k CCU, profile A, normal peak", "DAU = 100,000 × 60 ÷ (8 × 0.10) = 7.5 million", "~25 million"]
+      - ["100k CCU, profile A, salary-day peak", "divide the normal-peak answer by 3", "~8 million"]
+      - ["100k CCU, profile B", "DAU = 100,000 × 60 ÷ (60 × 0.10) = 1 million", "~2 million"]
+    note: "So when you hear “CCU”, ask: the normal daily peak, or the event peak?"
+    lines:
+      - tom: "Sometimes the problem gives you concurrent users directly. 100k CCU is big. Go backwards: for profile A at a normal peak, daily users are 100,000 times 60, divided by 8 times 0.1. That's 7.5 million."
+        say: "Sometimes the problem gives you concurrent users directly. One hundred thousand C C U is big. Go backwards: for profile A at a normal peak, daily users are one hundred thousand times sixty, divided by eight times zero point one. That's seven point five million."
+        focus: 0
+      - tom: "So about 25 million registered users. If that 100k is the salary-day peak, it's about 8 million. For a chat app it's only about 2 million."
+        focus: 2
+      - tom: "So when you hear CCU, ask: is that the normal daily peak, or the peak of an event?"
+
+  - kind: table
+    chapter: "From RPS to machines"
+    heading: "From RPS to machines: three quick numbers"
+    sub: "For decisions on the whiteboard — a design doc uses numbers measured on your own code"
+    columns: ["Component", "Quick number", "Where it comes from"]
+    widths: [1.6, 3, 2.4]
+    points: [three-numbers]
+    rows:
+      - ["Spring Boot pod, 2 vCPU", "JSON request + 1–2 queries ≈ 4–5 ms of CPU → ~400 RPS at 100% CPU → ~250 RPS at 60%, leaving room for peaks", "Reasoned from CPU per request; re-measure with a load test in week 12"]
+      - ["Postgres primary, 8–16 vCPU", "A few thousand simple indexed writes per second; 10–20k primary-key reads per second", "General experience; depends heavily on the schema"]
+      - ["Redis, one node", "~100k simple operations per second", "Redis runs commands on one thread: this is one core's ceiling"]
+    lines:
+      - tom: "To turn requests per second into machines, three quick numbers. A Spring Boot pod with 2 vCPU spends about 4 to 5 milliseconds of CPU per request: about 250 requests per second at 60% CPU."
+        focus: 0
+      - tom: "A Postgres primary with 8 to 16 vCPU does a few thousand simple writes per second, and 10 to 20 thousand primary-key reads."
+        focus: 1
+      - tom: "And one Redis node does about 100k simple operations per second. Use these on the whiteboard. In a design doc, use numbers measured on your own code."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Exercise 1.4"
+    n: "1.4"
+    q: "Recompute the 100k column of profile A without looking. Then change one assumption: a session lasts 15 minutes instead of 4. Which numbers change, and by how much?"
+    items:
+      - {t: "Profile A: 30% daily active, 2 sessions a day, 10% in the peak hour, 0.17 requests per second, salary day × 3"}
+      - {t: "One transfer per active user per day, ~6 writes per transfer"}
+    lines:
+      - tom: "Exercise 1.4. Recompute the 100k column without looking. Then change one assumption: a session lasts 15 minutes instead of 4. Which numbers change, and by how much?"
+        say: "Exercise one point four. Recompute the one hundred thousand column without looking. Then change one assumption: a session lasts fifteen minutes instead of four. Which numbers change, and by how much?"
+      - wait: 5
+        note: "Write the old and new value of every row."
+
+  - kind: table
+    heading: "Answer 1.4"
+    columns: ["", "4-minute sessions", "15-minute sessions"]
+    widths: [2.2, 1.5, 1.5]
+    accent: [2]
+    build: true
+    points: [ex14]
+    rows:
+      - ["Minutes per day", "8", "30 (× 3.75)"]
+      - ["Peak CCU", "400", "1,500"]
+      - ["Peak RPS", "~70", "~255"]
+      - ["RPS on salary day", "~200", "~760"]
+      - ["Transfers, DB writes, storage", "—", "unchanged"]
+    note: "Read load follows sessions; write load follows business events. They scale with different variables."
+    lines:
+      - tom: "Minutes per day go from 8 to 30, times 3.75."
+        say: "Minutes per day go from eight to thirty, times three point seven five."
+        focus: 0
+      - tom: "So concurrent users and requests per second also grow 3.75 times: 1,500 concurrent users, about 255 requests per second, about 760 on salary day."
+        say: "So concurrent users and requests per second also grow three point seven five times: one thousand five hundred concurrent users, about two hundred fifty-five requests per second, about seven hundred sixty on salary day."
+        focus: 3
+      - tom: "But transfers, writes and storage don't change at all. They depend on how many transfers people make, not on how long they sit in the app."
+        focus: 4
+      - tom: "That's the lesson: separate read load, which follows sessions, from write load, which follows business events."
+
+  - kind: exercise
+    chapter: "Exercise 1.8"
+    n: "1.8"
+    q: "A ticketing system peaks at 50k CCU when sales open. With profile A but 10-minute sessions, how many registered users is that? Why is the answer almost meaningless here, and what should you ask instead?"
+    items:
+      - {t: "Profile A: 30% daily active, 10% of traffic in the peak hour"}
+      - {t: "Sessions of 10 minutes (one booking)"}
+    lines:
+      - tom: "Exercise 1.8. A ticketing system peaks at 50k concurrent users when sales open. With profile A but 10-minute sessions, how many registered users is that? And why is that answer almost meaningless?"
+        say: "Exercise one point eight. A ticketing system peaks at fifty thousand concurrent users when sales open. With profile A but ten-minute sessions, how many registered users is that? And why is that answer almost meaningless?"
+      - wait: 5
+        note: "Compute it, then think about when people arrive."
+
+  - kind: table
+    heading: "Answer 1.8"
+    widths: [1.3, 4]
+    build: true
+    points: [ex18]
+    rows:
+      - ["Mechanically", "DAU = 50,000 × 60 ÷ (10 × 0.10) = 3 million → ~10 million registered"]
+      - ["Why it's meaningless", "There is no 10% peak hour: all 50k arrive in the first minutes after sales open"]
+      - ["Ask instead", "“How many people arrive in the first 60 seconds, and how many tickets are there?”"]
+      - ["Problem family", "Contention for a finite resource (the tickets) + absorbing a burst: virtual queue, waiting room"]
+    lines:
+      - tom: "Mechanically: daily users are 50,000 times 60, divided by 10 times 0.1. That's 3 million, so about 10 million registered."
+        say: "Mechanically: daily users are fifty thousand times sixty, divided by ten times zero point one. That's three million, so about ten million registered."
+        focus: 0
+      - tom: "But it's almost meaningless. Ticket sales have no 10% peak hour: everybody arrives in the first minutes."
+        focus: 1
+      - tom: "Ask instead: how many people arrive in the first 60 seconds, and how many tickets are there?"
+        focus: 2
+      - tom: "This is a different family of problem: contention for a finite resource, plus absorbing a burst, with a virtual queue or a waiting room."
+        focus: 3
+
+  - kind: speech
+    chapter: "Interview line"
+    heading: "Interview line — say it out loud"
+    items:
+      - {t: "Before I size anything, two questions: how long is a typical session, and does the client hold a connection open?"}
+      - {t: "With a banking profile, ten million users is about forty thousand concurrent users and seven thousand requests per second at a normal peak, and three times that on salary day."}
+    lines:
+      - read: tom
+        focus: 0
+      - read: tom
+        focus: 1
+      - tom: "Next, episode three: we use this formula on three full estimation exercises."

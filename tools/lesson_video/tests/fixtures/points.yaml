@@ -1,0 +1,10 @@
+sections:
+  - src: src.md#1-quy-đổi
+    title: "1. Quy đổi"
+    points:
+      - {id: day, text: "1 ngày ≈ 10^5 giây", expect: ["86,400"]}
+  - src: src.md#2-littles-law
+    title: "2. Little's Law"
+    points:
+      - {id: little, text: "L = λ × W", expect: ["λ"]}
+      - {id: unused, text: "ý chưa có video"}

@@ -1,0 +1,346 @@
+id: ep06-tracks-v1-v2
+ep: 6
+week: 1
+title: "Track S: drawing V1 and V2"
+subtitle: "The scale ladder, one machine and its SPOFs, and an L1 design for 100k users"
+covers:
+  - 10-implement-gd1-nen-tang.md#track-s-tuần-1--v1-và-v2-chủ-nhật-45-phút
+  - 02-ve-he-thong-100k-1m-10m.md#2-thang-5-bậc--tóm-tắt-trên-một-trang
+  - 02-ve-he-thong-100k-1m-10m.md#31-l0--một-máy-điểm-xuất-phát-vẽ-trong-5-phút
+  - 02-ve-he-thong-100k-1m-10m.md#32-l1--100k-users-sẵn-sàng-trước-tải-sau
+  - 02-ve-he-thong-100k-1m-10m.md#4-lộ-trình-vẽ--10-bản-vẽ-từ-cơ-bản-tới-microservices
+  - 02-ve-he-thong-100k-1m-10m.md#41-quy-ước-vẽ--để-người-khác-đọc-được
+  - 02-ve-he-thong-100k-1m-10m.md#42-tự-chấm-một-bản-vẽ--6-câu
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: 10 · Track S week 1 · 02 §2 (the ladder), §3.1–3.2 (L0 and L1), §4 (ten drawings), §4.1 (conventions), §4.2 (six self-check questions)"}
+      - {t: "Week 1 · Sunday session (45 minutes of drawing)"}
+    lines:
+      - tom: "Episode six, the last of week one. Track S: drawing systems. This Sunday you draw V1 and V2."
+      - tom: "We'll go through the scale ladder, draw one machine and list what can kill it, then build the 100k-user design box by box."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video (1/2)"
+    items:
+      - {abbr: SPOF, full: "single point of failure", vi: "điểm chết đơn"}
+      - {abbr: VM, full: "virtual machine", vi: "máy ảo"}
+      - {abbr: MVP, full: "minimum viable product", vi: "bản sản phẩm nhỏ nhất dùng được"}
+      - {abbr: "CCU · RPS", full: "concurrent users · requests per second", vi: "số user cùng lúc · số request mỗi giây"}
+      - {abbr: "DB · CPU", full: "database · central processing unit", vi: "cơ sở dữ liệu · bộ xử lý"}
+      - {abbr: LB, full: "load balancer", vi: "bộ chia tải tới nhiều instance"}
+      - {abbr: "L4 · L7", full: "network layer 4 (transport) · layer 7 (application)", vi: "LB chỉ nhìn IP/port, hay đọc được URL, header"}
+      - {abbr: CDN, full: "content delivery network", vi: "máy chủ đặt gần user, giữ bản sao file tĩnh"}
+      - {abbr: AZ, full: "availability zone", vi: "một trung tâm dữ liệu độc lập trong region"}
+    lines:
+      - tom: "SPOF is a single point of failure. A VM is a virtual machine, and an MVP is a minimum viable product. CCU and RPS: concurrent users and requests per second. DB, database, and CPU, the processor."
+        say: "SPOF is a single point of failure. A VM is a virtual machine, and an M V P is a minimum viable product. CCU and RPS: concurrent users and requests per second. D B, database, and CPU, the processor."
+        focus: 4
+      - tom: "LB is a load balancer. Here, L4 and L7 mean network layers four and seven, not scale levels. CDN is a content delivery network, and AZ an availability zone."
+        say: "L B is a load balancer. Here, L four and L seven mean network layers four and seven, not scale levels. CDN is a content delivery network, and AZ an availability zone."
+        focus: 8
+  - kind: acronyms
+    heading: "Acronyms in this video (2/2)"
+    items:
+      - {abbr: TLS, full: "Transport Layer Security", vi: "mã hoá kết nối (HTTPS)"}
+      - {abbr: JWT, full: "JSON Web Token", vi: "token có chữ ký chứa thông tin đăng nhập"}
+      - {abbr: PDF, full: "portable document format", vi: "file sao kê"}
+      - {abbr: OOM, full: "out of memory", vi: "JVM hết heap, process chết"}
+      - {abbr: SMS, full: "short message service", vi: "tin nhắn điện thoại"}
+      - {abbr: API, full: "application programming interface", vi: "giao diện để chương trình khác gọi vào"}
+      - {abbr: C4, full: "the C4 model (4 zoom levels)", vi: "cách vẽ kiến trúc theo 4 mức zoom"}
+      - {abbr: "HTTP · gRPC", full: "web protocol · Google's RPC framework", vi: "hai kiểu gọi đồng bộ giữa service"}
+      - {abbr: CDC, full: "change data capture", vi: "đọc log thay đổi của DB để phát sự kiện"}
+      - {abbr: AWS, full: "Amazon Web Services", vi: "nhà cung cấp cloud"}
+      - {abbr: "URL · ID", full: "web address · identifier", vi: "địa chỉ web · mã định danh"}
+    lines:
+      - tom: "TLS encrypts connections. A JWT is a signed JSON web token. PDF is the statement file format, OOM means out of memory, and SMS is a text message."
+        say: "TLS encrypts connections. A JWT is a signed JSON web token. P D F is the statement file format, O O M means out of memory, and S M S is a text message."
+        focus: 4
+      - tom: "API is an application programming interface. C4 is a way to draw architecture at four zoom levels. HTTP and gRPC are synchronous calls, CDC is change data capture, and AWS is Amazon Web Services. URL and ID: a web address and an identifier."
+        say: "API is an application programming interface. C four is a way to draw architecture at four zoom levels. HTTP and g R P C are synchronous calls, C D C is change data capture, and AWS is Amazon Web Services. URL and I D: a web address and an identifier."
+        focus: 10
+
+  - kind: bullets
+    chapter: "This Sunday's task"
+    heading: "This Sunday: V1 and V2 (45 minutes)"
+    points: [v1v2-task]
+    items:
+      - {t: "V1 · 10 minutes: Mini Core Transfer at level L0", s: "list every SPOF, one line each: “if it dies, what happens?”"}
+      - {t: "V2 · 20 minutes: the same system at L1, 100k users", s: "write the estimate table from exercise 1.4 on the diagram itself"}
+      - {t: "Every box you add must remove one SPOF from V1", s: "write next to the box which one it removes"}
+      - {t: "Then compare with 02 §3.1–3.2 and self-grade with the 6 questions", s: "the questions are at the end of this video"}
+    lines:
+      - tom: "Your task this Sunday. V1, in 10 minutes: the Mini Core Transfer system at level L0, with every single point of failure, one line each: if it dies, what happens?"
+        say: "Your task this Sunday. V1, in ten minutes: the Mini Core Transfer system at level L zero, with every single point of failure, one line each: if it dies, what happens?"
+        focus: 0
+      - tom: "V2, in 20 minutes: the same system at level L1 for 100k users, with the estimate table written on the diagram itself."
+        say: "V2, in twenty minutes: the same system at level L one for one hundred thousand users, with the estimate table written on the diagram itself."
+        focus: 1
+      - tom: "The rule: every box you add must remove one single point of failure from V1, and you write which one. Then compare with the model diagrams and grade yourself."
+        focus: 3
+
+  - kind: table
+    chapter: "The scale ladder"
+    heading: "The scale ladder: five levels (profile A, bank)"
+    columns: ["Level", "Scale", "Peak CCU / RPS", "Architecture", "What forces the next level"]
+    widths: [0.6, 1.4, 1.2, 3.4, 2.6]
+    points: [ladder]
+    rows:
+      - ["L0", "≤ 10k users, internal, MVP", "< 50 / < 20", "1 VM: Spring Boot + Postgres on the same machine", "One machine dies → everything is lost, data included"]
+      - ["L1", "100k users", "400–1,200 / 70–200", "Modular monolith × 2 behind a load balancer, Postgres Multi-AZ, Redis, object storage + CDN, simple job queue", "Availability, deploys without downtime"]
+      - ["L2", "1M users", "4k–12k / 670–2,000", "Autoscaling 3–10 pods, read replicas, cache-aside, outbox → Kafka, async workers, API gateway, 2–3 services split for a reason", "Reads load the DB, slow work blocks requests, 3–5 teams"]
+      - ["L3", "10M users", "40k–120k / 6.7k–20k", "Microservices by bounded context, a DB per service, Kafka backbone, CDC, multi-AZ everywhere, a disaster-recovery region", "Blast radius, number of teams, the reads, × 3 peaks"]
+      - ["L4", "50M+ or several countries", "500k+ / 100k+", "Cell-based (each cell serves a slice of users), multi-region active-active", "One region is a single point of failure; data-residency laws"]
+    lines:
+      - tom: "First, the ladder. L0 is up to 10k users, an internal tool or an MVP: one VM running Spring Boot and Postgres together. If that machine dies, everything is lost, data included."
+        say: "First, the ladder. L zero is up to ten thousand users, an internal tool or an M V P: one V M running Spring Boot and Postgres together. If that machine dies, everything is lost, data included."
+        focus: 0
+      - tom: "L1 is 100k users: a modular monolith on two instances behind a load balancer, Postgres with a standby in another zone, Redis, a CDN. The driver is availability, not load."
+        say: "L one is one hundred thousand users: a modular monolith on two instances behind a load balancer, Postgres with a standby in another zone, Redis, a CDN. The driver is availability, not load."
+        focus: 1
+      - tom: "L2 is a million users: autoscaling, read replicas, a cache, an outbox feeding Kafka, async workers. The drivers: reads hitting the database, slow work blocking requests, and three to five teams."
+        say: "L two is a million users: autoscaling, read replicas, a cache, an outbox feeding Kafka, async workers. The drivers: reads hitting the database, slow work blocking requests, and three to five teams."
+        focus: 2
+      - tom: "L3 is 10 million: microservices by bounded context, each with its own database, Kafka as the backbone. The drivers: blast radius, the number of teams, and the reads."
+        say: "L three is ten million: microservices by bounded context, each with its own database, Kafka as the backbone. The drivers: blast radius, the number of teams, and the reads."
+        focus: 3
+      - tom: "L4, beyond 50 million or across countries, is cell-based and multi-region. You only need to talk about it, not draw it in detail."
+        say: "L four, beyond fifty million or across countries, is cell-based and multi-region. You only need to talk about it, not draw it in detail."
+        focus: 4
+
+  - kind: bullets
+    heading: "The rule of the ladder"
+    style: dot
+    points: [ladder-rule]
+    items:
+      - {t: "Move up a level only when something specific is breaking, or about to — and name it"}
+      - {t: "Drawing L3 for a 100k-user problem is over-engineering"}
+      - {t: "The original roadmap's warning: “Kafka and sharding for a system at 50 requests per second”"}
+    lines:
+      - tom: "The rule of the ladder: you move up a level only when something specific is breaking, and you can name it."
+        focus: 0
+      - tom: "Drawing microservices for 100k users is over-engineering. The classic mistake: Kafka and sharding for a system at 50 requests per second."
+        focus: 2
+
+  - kind: diagram
+    chapter: "V1: one machine"
+    heading: "V1 · Level L0: one machine"
+    sub: "Draw it in 5 minutes — its job is to show every single point of failure"
+    points: [l0-spof]
+    nodes:
+      - {id: u, label: "Mobile / Web", sub: "peak CCU < 50", x: 150, y: 195, w: 220, h: 96, shape: user}
+      - {id: vm, label: "One VM", sub: "Spring Boot + PostgreSQL on the same machine", x: 560, y: 195, w: 330, h: 140}
+      - {id: s1, label: "SPOF: the machine", x: 990, y: 50, w: 290, h: 58, tone: bad, at: 1}
+      - {id: s2, label: "SPOF: the disk", x: 990, y: 145, w: 290, h: 58, tone: bad, at: 2}
+      - {id: s3, label: "SPOF: the process", x: 990, y: 240, w: 290, h: 58, tone: bad, at: 3}
+      - {id: s4, label: "SPOF: every deploy", x: 990, y: 335, w: 290, h: 58, tone: bad, at: 4}
+    edges:
+      - {a: u, b: vm, label: "requests"}
+      - {a: vm, b: s1, dashed: true, at: 1}
+      - {a: vm, b: s2, dashed: true, at: 2}
+      - {a: vm, b: s3, dashed: true, at: 3}
+      - {a: vm, b: s4, dashed: true, at: 4}
+    lines:
+      - tom: "V1 is level L0: users on mobile and web talk to one VM that runs both the application and the database."
+        say: "V1 is level L zero: users on mobile and web talk to one V M that runs both the application and the database."
+        focus: 0
+      - tom: "You don't draw it to use it. You draw it to list the single points of failure. The machine."
+        focus: 1
+      - tom: "The disk."
+        focus: 2
+      - tom: "The process."
+        focus: 3
+      - tom: "And every deploy, because a restart is downtime. Each level after this is an answer to one item on this list."
+        focus: 4
+
+  - kind: table
+    heading: "V1 · the SPOF list: “if it dies, what happens?”"
+    columns: ["Single point of failure", "If it dies…", "Removed in V2 by…"]
+    widths: [1.4, 3, 2.4]
+    build: true
+    points: [l0-spof]
+    rows:
+      - ["The machine", "The app and the database disappear together", "a second app instance + a database standby"]
+      - ["The disk", "Committed data is gone: there is no other copy", "a synchronous standby in another AZ"]
+      - ["The process", "Everything is down until someone restarts it", "two instances behind a load balancer with health checks"]
+      - ["Every deploy", "A release means a restart, and a restart means downtime", "rolling deploys across two instances"]
+    lines:
+      - tom: "Write each one as a line. If the machine dies, the app and the database disappear together."
+        focus: 0
+      - tom: "If the disk dies, committed data is gone, because there is no other copy."
+        focus: 1
+      - tom: "If the process dies, everything is down until someone restarts it. And every release needs a restart, so every deploy is downtime."
+        focus: 3
+      - tom: "The third column is what V2 must answer, box by box."
+
+  - kind: diagram
+    chapter: "V2: 100k users"
+    heading: "V2 · Level L1: 100k users — availability first, load later"
+    points: [l1-diagram]
+    nodes:
+      - {id: u, label: "Mobile / Web", sub: "peak CCU 400–1,200", x: 95, y: 195, w: 180, h: 90, shape: user}
+      - {id: lb, label: "Load balancer (L7)", sub: "TLS, health checks", x: 315, y: 195, w: 190, h: 80}
+      - {id: a1, label: "App 1", sub: "Spring Boot modular monolith", x: 555, y: 105, w: 200, h: 80}
+      - {id: pg, label: "PostgreSQL primary", sub: "ledger, transfers", x: 800, y: 195, w: 200, h: 90, shape: db}
+      - {id: a2, label: "App 2", sub: "same image, other AZ", x: 555, y: 300, w: 200, h: 80, at: 1}
+      - {id: pg2, label: "Standby", sub: "synchronous, other AZ", x: 800, y: 335, w: 200, h: 80, shape: db, at: 2}
+      - {id: r, label: "Redis", sub: "sessions, rate limits, hot cache", x: 800, y: 50, w: 200, h: 80, shape: db, at: 3}
+      - {id: cdn, label: "CDN", sub: "static files, images, statements", x: 315, y: 50, w: 190, h: 80, at: 4}
+      - {id: j, label: "Job queue", sub: "jobs table + SKIP LOCKED", x: 1050, y: 335, w: 200, h: 74, shape: queue, at: 4}
+      - {id: w, label: "Worker (same app)", sub: "send email, export statements", x: 1050, y: 195, w: 200, h: 80, at: 4}
+      - {id: s3, label: "Object storage", sub: "statement PDFs", x: 1050, y: 50, w: 200, h: 80, shape: db, at: 4}
+    edges:
+      - {a: u, b: lb}
+      - {a: lb, b: a1}
+      - {a: a1, b: pg}
+      - {a: lb, b: a2, at: 1}
+      - {a: a2, b: pg, at: 1}
+      - {a: pg, b: pg2, dashed: true, label: "sync replication", at: 2}
+      - {a: a1, b: r, at: 3}
+      - {a: u, b: cdn, at: 4}
+      - {a: pg, b: j, dashed: true, label: "same transaction", at: 4}
+      - {a: j, b: w, dashed: true, at: 4}
+      - {a: w, b: s3, at: 4}
+    lines:
+      - tom: "Now V2, level L1, for 100k users. Start with the request path: users, a layer-seven load balancer that ends TLS and runs health checks, one app, and the Postgres primary."
+        say: "Now V2, level L one, for one hundred thousand users. Start with the request path: users, a layer-seven load balancer that ends TLS and runs health checks, one app, and the Postgres primary."
+        focus: 0
+      - tom: "Add a second app instance in another availability zone. That removes the machine and the process from the SPOF list, and it lets you deploy one instance at a time."
+        focus: 1
+      - tom: "Add a synchronous standby for Postgres in the other zone. That removes the disk: a committed transfer survives losing a whole zone."
+        focus: 2
+      - tom: "Add Redis for sessions, rate limits and hot data, so the apps stay stateless and the load balancer can send any request to any instance."
+        focus: 3
+      - tom: "Finally, move slow work off the request path: a CDN for static files, a job queue that is simply a table in Postgres read with SKIP LOCKED, a worker inside the same app, and object storage for statement PDFs."
+        focus: 4
+
+  - kind: table
+    heading: "V2 · five decisions and their trade-offs"
+    columns: ["Decision", "Why", "The trade-off is…"]
+    widths: [1.8, 3.4, 2.6]
+    points: [l1-decisions]
+    rows:
+      - ["Modular monolith, not microservices", "200 RPS and one team. Keep module boundaries (account, transfer, notification) enforced with ArchUnit, so splitting later is cheap", "one OOM bug takes down every feature at once"]
+      - ["2 instances, though 1 has enough CPU", "If one dies or is being deployed, the other still serves", "double the app cost, in exchange for zero-downtime deploys"]
+      - ["Stateless app: session in Redis or a JWT", "The load balancer can send any request to any instance", "one more dependency to monitor"]
+      - ["Postgres Multi-AZ (synchronous standby)", "Losing one AZ loses no committed data", "every commit waits one extra cross-AZ round trip, ~1–2 ms"]
+      - ["Job queue = a table + SKIP LOCKED", "No Kafka yet; the job and the transfer commit in the same transaction", "no replay, no fan-out to several consumers"]
+    lines:
+      - tom: "Five decisions, each with its trade-off. A modular monolith, because it's 200 requests per second and one team. Enforce module boundaries with ArchUnit so you can split later. The trade-off: one out-of-memory bug takes down every feature."
+        focus: 0
+      - tom: "Two instances even though one has enough CPU. You pay double for the app, and you buy deploys without downtime."
+        focus: 1
+      - tom: "A stateless app with sessions in Redis or a JWT: any request can go anywhere, at the price of one more dependency."
+        say: "A stateless app with sessions in Redis or a J W T: any request can go anywhere, at the price of one more dependency."
+        focus: 2
+      - tom: "Postgres Multi-AZ: no committed data lost with a zone, but every commit waits an extra one to two milliseconds."
+        focus: 3
+      - tom: "And the job queue as a table: no Kafka yet, and the job commits with the transfer. The trade-off: no replay and no fan-out."
+        focus: 4
+
+  - kind: bullets
+    heading: "What breaks first on the way to 1M users (× 10)"
+    points: [l1-breaks]
+    items:
+      - {t: "Reads of history and balances all land on the primary"}
+      - {t: "Connections: 10 pods × 10 connections = 100 = Postgres's default max_connections"}
+      - {t: "Slow work like sending an SMS inside the request makes p99 jump"}
+      - {t: "A 15-person team deploying one artifact"}
+    lines:
+      - tom: "And the question every drawing must answer: what breaks first when load grows ten times? Here: all the reads of history and balances land on the primary."
+        focus: 0
+      - tom: "Connections: ten pods with ten connections each is 100, exactly Postgres's default max connections."
+        say: "Connections: ten pods with ten connections each is one hundred, exactly Postgres's default max connections."
+        focus: 1
+      - tom: "Slow work, like sending an SMS inside the request, makes the p99 jump. And a 15-person team ends up deploying one artifact. Each of these pushes you to level L2."
+        say: "Slow work, like sending an S M S inside the request, makes the p99 jump. And a fifteen-person team ends up deploying one artifact. Each of these pushes you to level L two."
+        focus: 3
+
+  - kind: table
+    chapter: "Ten drawings"
+    heading: "Ten drawings, from one machine to microservices"
+    columns: ["#", "Week", "Draw", "Level", "Time"]
+    widths: [0.6, 0.7, 4.6, 0.9, 0.6]
+    points: [drawings-roadmap]
+    rows:
+      - ["V1", "1", "The banking app at L0 + its SPOF list", "L0", "10'"]
+      - ["V2", "1", "The same app at L1 + the 100k-user estimate on the diagram", "L1", "20'"]
+      - ["V3", "2", "Where the rate limiter sits, and how it uses Redis", "L1", "20'"]
+      - ["V4", "3", "URL shortener + unique ID generator", "L1→L2", "30'"]
+      - ["V5", "4", "Notification system: queues, retries, idempotency, dead letters, per channel", "L2", "30'"]
+      - ["V6", "6", "Mini Core Transfer at L2 (1M users)", "L2", "30'"]
+      - ["V7", "8–9", "Payment / wallet with Kafka + saga", "L2", "40'"]
+      - ["V8", "11", "Split V6 into services: a C4 container diagram", "L2→L3", "40'"]
+      - ["V9", "13–14", "Observability + security on top of V8", "L3", "30'"]
+      - ["V10", "15–16", "Mini Core Transfer at L3 (10M) on AWS, multi-AZ + disaster recovery", "L3", "45'"]
+      - ["Drill", "17–24", "One system, three scales: redraw V2 → V6 → V10 in 45 minutes", "L1→L3", "45'"]
+    lines:
+      - tom: "V1 and V2 start a series of ten drawings. Each one has a time limit, and you draw it yourself before looking at the model."
+      - tom: "Phase one draws V1 to V5: the rate limiter in week two, the URL shortener in week three, the notification system in week four."
+        focus: 4
+      - tom: "Later come the bank at one million users, a payment saga, splitting services, and finally the bank at ten million users on AWS, V10."
+        say: "Later come the bank at one million users, a payment saga, splitting services, and finally the bank at ten million users on AWS, V10."
+        focus: 9
+      - tom: "And from week 17, the drill: one system, three scales. You redraw V2, V6 and V10 in 45 minutes and explain every change."
+        focus: 10
+
+  - kind: bullets
+    chapter: "How to draw"
+    heading: "Drawing conventions — so others can read your diagram"
+    points: [draw-conventions]
+    items:
+      - {t: "C4 has three levels: Context, Container, Component — interviews need the Container level"}
+      - {t: "Solid arrow = synchronous (HTTP, gRPC) · dashed arrow = asynchronous (queue, CDC, replication)"}
+      - {t: "Numbers on arrows: “2k RPS”, “p99 50 ms” — an arrow without a number is decoration"}
+      - {t: "AZs and regions are enclosing boxes: anything inside only one AZ is a SPOF"}
+      - {t: "A cylinder holds state; any other box must be stateless, or say where its state lives"}
+      - {t: "Tools: Excalidraw to practise, mermaid in the repo, draw.io at work"}
+    lines:
+      - tom: "Conventions, so other people can read your drawing. Use the container level of the C4 model: apps, databases, brokers."
+        say: "Conventions, so other people can read your drawing. Use the container level of the C four model: apps, databases, brokers."
+        focus: 0
+      - tom: "A solid arrow is a synchronous call. A dashed arrow is asynchronous: a queue, change data capture, replication. And put a number on every arrow; an arrow without a number is decoration."
+        focus: 2
+      - tom: "Draw availability zones and regions as boxes around things, so a single point of failure jumps out. Use a cylinder for anything that holds state."
+        focus: 4
+      - tom: "Practise in Excalidraw, like a whiteboard. Keep mermaid in the repo, and use draw.io at work."
+        focus: 5
+
+  - kind: bullets
+    heading: "Grade your drawing: six questions"
+    points: [self-grade]
+    items:
+      - {t: "Does it show CCU, RPS and writes per second — and from which assumptions?"}
+      - {t: "Does everything that holds state have a copy in another AZ?"}
+      - {t: "Can you point to the first bottleneck when load grows × 10?"}
+      - {t: "Which boxes does the money flow through — and which box could duplicate or lose it?"}
+      - {t: "Is there a box you can't justify with “because X is breaking”? Delete it"}
+      - {t: "Did you write “the trade-off is…” for at least 3 decisions?"}
+    lines:
+      - tom: "Finally, grade every drawing with six questions. One: does it show concurrent users, requests and writes per second, and the assumptions behind them?"
+        focus: 0
+      - tom: "Two: does everything that holds state have a copy in another zone? Three: can you point to the first bottleneck at ten times the load?"
+        focus: 2
+      - tom: "Four: which boxes does the money flow through, and which one could duplicate or lose it? Five: is there a box you can't justify? Delete it."
+        focus: 4
+      - tom: "Six: did you write the trade-off is, for at least three decisions?"
+        focus: 5
+
+  - kind: bullets
+    chapter: "Week 1 wrap-up"
+    heading: "End of week 1: check your deliverables"
+    style: check
+    items:
+      - {t: "Estimates for the bank, the test platform and the chat app (Ep02–Ep03)"}
+      - {t: "Benchmark numbers from your machine + one benchmark of your own code (Ep04–Ep05)"}
+      - {t: "V1 with its SPOF list and V2 with numbers, self-graded (Ep06)"}
+      - {t: "The latency table and the conversions, memorised (Ep01)"}
+      - {t: "Your recorded 2-minute talk, with 3 stumbles noted (Ep03)"}
+    lines:
+      - tom: "That's week one. Before you move on, check your deliverables: the three estimates, your benchmark numbers, V1 and V2, the latency table, and your recorded talk."
+        reveal: [0, 1, 2, 3, 4]
+        focus: 4
+      - tom: "Next week: networking, APIs, idempotency, and a rate limiter on Redis. See you in episode seven."
