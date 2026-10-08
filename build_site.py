@@ -111,7 +111,7 @@ def section_for(rel: str) -> tuple[str, int]:
 def collect() -> list[Page]:
     pages: list[Page] = []
     for p in sorted(ROOT.rglob("*.md")):
-        if any(part in SKIP_DIRS for part in p.relative_to(ROOT).parts):
+        if any(part in SKIP_DIRS or part.startswith(".") for part in p.relative_to(ROOT).parts):
             continue
         rel = p.relative_to(ROOT).as_posix()
         raw = p.read_text(encoding="utf-8", errors="ignore")

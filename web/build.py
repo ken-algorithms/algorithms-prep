@@ -112,7 +112,8 @@ def to_doc_refs(md_text: str, page_dir: Path, known: set[str]) -> str:
 def collect_docs() -> dict[str, dict]:
     paths = []
     for p in sorted(ROOT.rglob("*.md")):
-        if any(part in SKIP for part in p.relative_to(ROOT).parts):
+        # thư mục ẩn (.pytest_cache, .claude…) không phải tài liệu, kể cả khi chỉ có ở máy đang build
+        if any(part in SKIP or part.startswith(".") for part in p.relative_to(ROOT).parts):
             continue
         paths.append(p)
     known = {p.relative_to(ROOT).as_posix() for p in paths}
