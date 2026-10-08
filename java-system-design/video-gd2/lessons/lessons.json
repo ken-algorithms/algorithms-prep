@@ -1445,6 +1445,7 @@
   {
    "id": "ep15-lab8-consumer-tests",
    "ep": 15,
+   "code": "Ep15",
    "week": 8,
    "title": "Lab 8, part 2: the idempotent consumer, and seven tests that prove it",
    "subtitle": "Dedup in the same transaction, retry and a dead-letter topic, the measured duplicates, and how two relays break the order",
@@ -1452,7 +1453,7 @@
    "poster": "ep15-lab8-consumer-tests.jpg",
    "source": "ep15-lab8-consumer-tests.yaml",
    "duration": 367.5,
-   "bytes": 5606840,
+   "bytes": 5604552,
    "engine": "kokoro",
    "voices": [
     "Emma (narrator) — Kokoro af_heart"
