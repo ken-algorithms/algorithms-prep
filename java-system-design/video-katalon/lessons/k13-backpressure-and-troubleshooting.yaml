@@ -1,0 +1,230 @@
+id: k13-backpressure-and-troubleshooting
+ep: 13
+week: 11
+tag: "K13 · TRIAGE & DRILL"
+title: "Backpressure, buffer limits, and live debugging drills"
+subtitle: "Prevent BufferExhaustedException with token buckets, and a 4-step production triage drill"
+covers:
+  - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 09 · ProducerRateLimiter"}
+      - {t: "Backpressure and live production triage drill"}
+    lines:
+      - tom: "Episode K13. Traffic surges ten times above normal. The Kafka producer runs out of buffer memory. How do you protect the system, and how do you triage live lag?"
+      - emma: "In our final episode, we examine producer buffer exhaustion, enforce backpressure with token buckets, and walk through a four-step production debugging drill."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: API, full: "application programming interface", vi: "giao diện lập trình ứng dụng"}
+      - {abbr: CPU, full: "Central Processing Unit", vi: "bộ vi xử lý trung tâm"}
+      - {abbr: DLT, full: "Dead Letter Topic", vi: "topic lưu trữ message lỗi để kiểm tra sau"}
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức truyền tải siêu văn bản"}
+      - {abbr: JMX, full: "Java Management Extensions", vi: "chuẩn theo dõi chỉ số ứng dụng Java"}
+      - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo Java thực thi bytecode"}
+      - {abbr: OOM, full: "Out Of Memory", vi: "lỗi cạn kiệt bộ nhớ heap"}
+      - {abbr: RAM, full: "Random-Access Memory", vi: "bộ nhớ truy xuất ngẫu nhiên"}
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: SDK, full: "Software Development Kit", vi: "bộ công cụ phát triển phần mềm cho client"}
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn cơ sở dữ liệu"}
+    lines:
+      - emma: "An API is our service endpoint, HTTP is the transport protocol, and CPU is the processor core."
+        focus: 1
+      - emma: "DLT is Dead Letter Topic, RAM is system memory, and JVM is the Java Virtual Machine. OOM represents an out of memory crash, and JMX exposes real-time broker metrics."
+        focus: 6
+      - emma: "RPS measures requests per second, an SDK is the client library, and SQL is Structured Query Language."
+        focus: 10
+
+  - kind: exercise
+    chapter: "The live drill"
+    label: "Buffer Exhaustion Scenario"
+    q: "A marketing burst sends 500,000 req/s to an Ingestion API sized for 50,000 req/s. What crashes first?"
+    items:
+      - {t: "Producer buffer.memory = 32 MB"}
+      - {t: "max.block.ms = 60,000 ms"}
+      - {t: "Web server has 200 HTTP worker threads"}
+    lines:
+      - tom: "Traffic surges tenfold during a flash sale. The producer's thirty-two megabyte memory buffer fills up completely. What crashes first?"
+      - emma: "When the producer buffer fills, producer dot send blocks the calling HTTP thread for up to sixty seconds. All two hundred web server threads freeze within five hundred milliseconds."
+      - wait: 7
+        note: "Blocked threads cannot answer health checks. Kubernetes restarts the container, causing cascading downtime!"
+
+  - kind: bullets
+    chapter: "Buffer exhaustion"
+    heading: "The cascade of unconstrained buffers"
+    items:
+      - {t: "Buffer fills to limit", s: "Records arrive faster than Kafka brokers can write to disk"}
+      - {t: "Thread pool exhaustion", s: "Every incoming HTTP request thread blocks waiting for buffer space"}
+      - {t: "Health check timeouts", s: "Server stops responding to health checks on actuator endpoints"}
+      - {t: "Cascading restart crash", s: "Orchestrator kills container, shifting load to remaining pods and knocking them down too"}
+    lines:
+      - emma: "This is a classic cascading failure. When the buffer is exhausted, threads block waiting for buffer memory. Within a second, all worker threads are paralyzed."
+        focus: 1
+      - tom: "And because all threads are blocked, the application cannot respond to orchestrator liveness probes."
+        focus: 2
+      - emma: "The cluster restarts the pod, dropping all in-flight connections and dumping even more traffic onto the surviving pods, cascading into total failure."
+        focus: 3
+
+  - kind: code
+    chapter: "Token bucket defense"
+    heading: "ProducerRateLimiter: Ingestion gateway defense"
+    code: |
+      @Component
+      public class ProducerRateLimiter {
+        private final AtomicInteger availableTokens;
+        private final int maxBurst;
+        public boolean tryAcquire() {
+          // NON-BLOCKING: Returns immediately without stalling threads
+          int current = availableTokens.get();
+          if (current > 0 && availableTokens.compareAndSet(current, current - 1)) {
+            return true;
+          }
+          return false; // Shed excess load!
+        }
+      }
+    items:
+      - {lines: [1, 4], t: "Lock-free Token Bucket rate limiter guarding Kafka producer buffer"}
+      - {lines: [6, 10], t: "Non-blocking check: immediately sheds traffic when buffer is at risk"}
+    lines:
+      - tom: "How does ProducerRateLimiter stop the cascade before it begins?"
+        focus: 0
+      - emma: "The limiter implements a lock-free Token Bucket algorithm. When burst traffic exceeds safe producer capacity, tryAcquire returns false immediately without blocking any threads."
+        focus: 1
+      - emma: "This protects the internal producer buffer memory from ever exceeding safe thresholds."
+        focus: 1
+
+  - kind: code
+    chapter: "Fast failure response"
+    heading: "EventIngestionController: HTTP 429 response"
+    code: |
+      if (!rateLimiter.tryAcquire()) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+            .header("Retry-After", "1")
+            .body(Map.of(
+                "error", "Producer buffer protection triggered",
+                "status", "SHED_LOAD"));
+      }
+      producer.sendBatch(batchId, request);
+      return ResponseEntity.accepted().body(...);
+    items:
+      - {lines: [1, 6], t: "Returns HTTP 429 Too Many Requests with Retry-After header"}
+      - {lines: [7, 8], t: "Only admitted batches enter Kafka producer queue"}
+    points: [k-backpressure-drill]
+    lines:
+      - emma: "In our controller, a Token Bucket rate limiter returns HTTP 429 when burst traffic threatens to exhaust the Kafka buffer, while operators monitor JMX metrics and consumer lag."
+        focus: 0
+      - tom: "Returning HTTP 429 takes less than one millisecond, keeping the web server responsive and healthy."
+        focus: 1
+      - emma: "Client libraries read the Retry-After header and back off gracefully, instead of tearing down connection pools."
+
+  - kind: table
+    chapter: "Production triage drill"
+    heading: "The 4-step production triage drill"
+    columns: ["Step", "Action", "Key telemetry metric", "Resolution"]
+    rows:
+      - ["1. Detect & Isolate", "Check consumer group lag", "records-lag-max > 50,000", "Identify stalled consumer group"]
+      - ["2. Check Hotspots", "Inspect partition byte rates", "BytesInPerSec standard dev > 25%", "Check for partition skew (K09)"]
+      - ["3. Inspect Dead Letters", "Check error logs and DLT", "Messages accumulating in .DLT", "Catch poison pills and desyncs (K11)"]
+      - ["4. Shed Load & Scale", "Activate token bucket", "HTTP 429 rate and CPU %", "Scale workers up to partition count"]
+    note: "Follow these four steps systematically during any streaming production incident"
+    lines:
+      - tom: "When an on-call engineer receives an alert for growing consumer lag, what is the exact four-step triage procedure?"
+      - emma: "Step one: query consumer lag via JMX to isolate which group is stalled. Step two: verify whether lag is uniform across all partitions or concentrated on one single hotspot partition."
+        focus: 1
+      - emma: "Step three: check the dead letter topic and error logs for poison pills. Step four: activate rate limiting to protect producer buffers while scaling consumer pods up to the partition count."
+        focus: 3
+
+  - kind: compare
+    chapter: "Backpressure options"
+    heading: "Comparing backpressure mechanisms"
+    items:
+      - title: "Unbounded Queue"
+        lines:
+          - "Accepts all requests into RAM"
+          - "Memory grows without limit"
+          - "Guaranteed JVM OOM crash"
+        tone: bad
+      - title: "Blocking Producer"
+        lines:
+          - "Blocks HTTP thread on send()"
+          - "Thread pool starves in 500 ms"
+          - "Health check timeout and restart"
+        tone: bad
+      - title: "Token Bucket + 429 (Recommended)"
+        lines:
+          - "Rejects excess load in 0.1 ms"
+          - "Zero blocked threads or buffer risk"
+          - "Preserves service availability"
+        tone: good
+    lines:
+      - tom: "Why is rejecting requests with 429 superior to queueing them in memory?"
+      - emma: "An unbounded memory queue always leads to an Out Of Memory crash. Blocking threads leads to thread starvation. Failing fast with HTTP 429 maintains platform stability."
+      - tom: "It is better to reject ten percent of requests cleanly than to crash one hundred percent of the platform for all users."
+
+  - kind: stats
+    chapter: "Test verification"
+    heading: "Results from ProducerRateLimitingTest"
+    sub: "1,000 rapid burst requests against 100-token capacity"
+    items:
+      - {v: "100", l: "Admitted requests", s: "Dispatched to Kafka safely", tone: good}
+      - {v: "900", l: "Shed requests (429)", s: "Rejected immediately without blocking", tone: warn}
+      - {v: "0 ms", l: "Thread wait time", s: "Zero threads blocked on full buffer", tone: good}
+      - {v: "0", l: "Buffer overflow crashes", s: "Producer memory remained safe", tone: good}
+    lines:
+      - emma: "In our integration test, we blasted one thousand concurrent requests into a limiter calibrated for one hundred tokens."
+        focus: 1
+      - emma: "Exactly one hundred requests entered Kafka. Nine hundred requests received instant 429 status codes. The producer buffer remained completely healthy."
+        focus: 2
+      - tom: "And not a single worker thread was blocked for even one millisecond."
+
+  - kind: pattern
+    chapter: "Terminal diagnostic drill"
+    heading: "Essential Kafka operator commands"
+    bad: |
+      // ANTI-PATTERN: Guessing root causes without telemetry
+      // Restarting random consumer pods blindly
+      // Hope is not an engineering strategy!
+    good: |
+      # STEP 1: Inspect consumer lag per partition
+      kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
+        --describe --group event-counting-group
+
+      # STEP 2: Inspect dead letter topic volume
+      kafka-run-class.sh kafka.tools.GetOffsetShell \
+        --bootstrap-server localhost:9092 --topic events.ingest.DLT
+    lines:
+      - tom: "What terminal commands should every backend engineer know by heart for debugging Kafka?"
+        focus: 0
+      - emma: "Always know kafka-consumer-groups dot sh to inspect current offset, log end offset, and lag per partition."
+        focus: 1
+      - emma: "And use GetOffsetShell to inspect the dead letter topic and measure error ingestion rates instantly."
+
+  - kind: bullets
+    chapter: "How to run the test"
+    heading: "Verifying backpressure locally"
+    items:
+      - {t: "Run test suite", s: "mvn test -Dtest=ProducerRateLimitingTest"}
+      - {t: "Simulates burst overload", s: "Sends 10x traffic to trigger rate limiter"}
+      - {t: "Asserts HTTP 429 status", s: "Confirms that excess load is shed without thread stalls"}
+    lines:
+      - tom: "How can engineers run this drill on their own laptops?"
+      - emma: "Run ProducerRateLimitingTest in module zero nine. It verifies thread safety and load shedding under heavy burst traffic."
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Chen ngang Katalon series complete recap"
+    items:
+      - {t: "K08: Producer tuning", s: "KRaft, batching, and snappy compression for fifty thousand RPS"}
+      - {t: "K09: Partition balance", s: "Batch identifier keys eliminate celebrity tenant hotspots"}
+      - {t: "K10: Batch consumers", s: "Batch listener saves ten thousand milliseconds per poll"}
+      - {t: "K11: Poison pill isolation", s: "ErrorHandlingDeserializer and DLT stop head-of-line blocking"}
+      - {t: "K12: Idempotent sinks", s: "processed_batch and SQL GREATEST guarantee exact counts"}
+      - {t: "K13: Backpressure defense", s: "Token bucket load shedding prevents producer buffer exhaustion"}
+    lines:
+      - tom: "This concludes the entire Chen ngang Katalon series, from whiteboard system design all the way to runnable Java code and production incident troubleshooting."
+      - emma: "You now have the complete blueprint: high-throughput KRaft ingestion, hotspot mitigation, batch consumer tuning, poison pill isolation, idempotent deduplication, and backpressure triage."

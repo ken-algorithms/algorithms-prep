@@ -25,6 +25,7 @@
         <module>06-distributed-resilience</module>
         <module>07-dsa-drill</module>
         <module>08-system-design</module>
+        <module>09-kafka-pipeline</module>
     </modules>
 
     <properties>

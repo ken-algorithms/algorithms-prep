@@ -15,3 +15,4 @@
 |---|---|---|---|---|
 | **PII** | Personally Identifiable Information | Dữ liệu định danh cá nhân (email, tên, số điện thoại). Bẫy của họ C: dữ liệu này rời client trước khi được redact | ✓ | K00 |
 | **SDK** | Software Development Kit | Thư viện phía client gửi sự kiện: gom lô, sinh `batch_id`, retry có backoff + jitter, buffer có giới hạn | ✓ | K03 |
+| **JMX** | Java Management Extensions | Chuẩn giám sát metric thời gian thực của JVM và Kafka (vd consumer lag, thread, memory) | ✓ | K13 |

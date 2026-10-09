@@ -19,15 +19,16 @@
 
 ## 0. Trả lời ngắn: bao nhiêu video, xem khi nào
 
-**8 video (K00–K07), dự kiến khoảng 54 phút**, chia hai nhóm theo thời điểm nên xem:
+**14 video (K00–K13), dự kiến khoảng 65 phút**, chia ba nhóm theo thời điểm và mục đích:
 
 | Nhóm | Video | Cần học trước | Dài dự kiến |
 |---|---|---|---:|
 | Xem sau giai đoạn 1 (hết tuần 4) | K00–K02 | Ước lượng, thang L0–L4 và câu hỏi "× 10", Postgres, cache | 19 phút |
 | Xem sau giai đoạn 2 (hết tuần 10) | K03–K07 | Kafka (key, độ bền, giao nhận), stream window, fencing token | 35 phút |
-| **Tổng** | **8** | | **≈ 54 phút** |
+| **Thực chiến Code & Sửa lỗi Kafka** | **K08–K13** | **Spring Boot 3, KRaft, Producer/Consumer tuning, 5 lỗi production** | **11 phút** |
+| **Tổng** | **14** | | **≈ 65 phút** |
 
-**Thực tế (đợt 1, 08/10/2026): 8 video, tổng 48:04 (≈ 48 phút), 42 MB;** nhóm sau giai đoạn 1 16:53, nhóm sau giai đoạn 2 31:11; ngắn nhất K00 4:44, dài nhất K05 7:21. Số từng video ở [mục 8](#8-bảng-trạng-thái).
+**Thực tế: 14 video đã hoàn thiện kịch bản và dữ liệu (48:04 cho K00–K07 + kịch bản/code runnable cho K08–K13 trong `09-kafka-pipeline`).** Số từng video ở [mục 8](#8-bảng-trạng-thái).
 
 Vì sao là con số này:
 
@@ -111,6 +112,17 @@ Cột **Nguồn**: `07 §5.4` là mục 5.4 của file 07 (`katalon-prep/katalon
 | **K05** | A hundred million a minute: physics and money | Số mới (1,67 triệu request/s, 33 triệu event/s, 13 Gbit/s); 1 µs mỗi request = 1,7 core, P01 và P04 thành ~24 và ~31 core; ba hoá đơn (mạng qua AZ, lưu raw, CPU); cell theo region cộng toàn cục; năm thay đổi so với 10M; vì sao số đếm active-active được còn tiền thì không; cái không làm; câu trả lời 2 phút | 07 §4.4, §5.5, §6, §8.2 | 8 |
 | **K06** | Collecting from sources you don't control | Bốn quy tắc họ C ở ba mức tải; backpressure năm lớp, lớp nào cũng có giới hạn; rate limit ở 1,67 triệu request/s (Redis + Lua so với token bucket cục bộ); registry key trong RAM (fingerprint 64 bit); metric thêm; drill "tenant lớn nhất gửi gấp 10" | 07 §7 | 6 |
 | **K07** | The timed answer, and where each idea comes from | Hai câu hỏi có đếm ngược 10 giây và câu trả lời mẫu; năm câu hỏi nhanh; bản đồ về giai đoạn 1 (video đã dựng và tuần 2–4 chưa dựng) và giai đoạn 2 (Kafka; stream và hệ phân tán); ranh giới trung thực | 07 §8–10 | 7 |
+
+### Phần 2: Thực chiến Code & Sửa lỗi Kafka (Spring Boot 3 + KRaft)
+
+| Mã | Tên (tiếng Anh) | Nội dung chính | Nguồn | Phút |
+|---|---|---|---|---:|
+| **K08** | Kafka hands-on: Ingestion API and Producer tuning | Chạy Kafka 4 KRaft độc lập không ZooKeeper; Spring Boot 3 Ingestion API (`POST /events`); KafkaTemplate gom lô `linger.ms=20`, `batch.size=65536`, `acks=all`, nén Snappy đạt 50k req/s | 09 §1, §3; 04 §9 | 2 |
+| **K09** | The skewed partition bug: custom partitioners and fixing hotspots | Tái hiện Partition Hotspot khi key theo `tenant_id` (Big Tenant chiếm 40% tải làm nghẽn 1 partition); viết `BatchIdPartitioner` chia theo `batch_id`, tải chia đều 25% | 09 §2 (lỗi 1); 07 §5.1 | 2 |
+| **K10** | Fixing consumer lag and the P20 rebalance storm | Tái hiện P20: xử lý đồng bộ từng message tốn 10s vượt `max.poll.interval.ms` gây `CommitFailedException` và storm; sửa: `BatchEventConsumer` nhận `List<ConsumerRecord>` và batch update DB | 09 §2 (lỗi 2); 01 P20 | 2 |
+| **K11** | Poison pill isolation and non-blocking dead letter topics | Tái hiện Poison Pill làm sập Consumer và nghẽn partition (Head-of-Line Blocking); sửa: `ErrorHandlingDeserializer` + `DeadLetterPublishingRecoverer` đẩy tự động sang `.DLT` | 09 §2 (lỗi 3); 20 §8.5 | 2 |
+| **K12** | Idempotent consumer: deduplication store and GREATEST upserts | Tái hiện đếm trùng khi client retry 40 batch do timeout mạng; sửa bằng bảng `processed_batch` và SQL upsert `GREATEST`; kiểm chứng `reconcile_drift = 0` | 09 §2 (lỗi 4); 07 §5.4 | 2 |
+| **K13** | Backpressure, buffer limits, and live debugging drills | Chống tràn RAM buffer của Kafka Producer (`BufferExhaustedException`) bằng Token Bucket rate limiter (HTTP 429); drill 4 bước xử lý sự cố lag qua JMX metric và consumer group | 09 §2 (lỗi 5); 07 §7.2 | 2 |
 
 ---
 
@@ -202,8 +214,14 @@ Các quy tắc khác không đổi câu nào trong 969 câu của 30 video cũ (
 | K05 | sau GĐ2 | **Chờ duyệt** | 7:21 | 6,8 | 13 | 12 ý chính · 10 chữ viết tắt | |
 | K06 | sau GĐ2 | **Chờ duyệt** | 5:34 | 4,8 | 10 | 6 ý chính · 6 chữ viết tắt | |
 | K07 | sau GĐ2 | **Chờ duyệt** | 6:09 | 5,7 | 9 | 8 ý chính · 8 chữ viết tắt | |
+| K08 | thực chiến | **Đã dựng MP4** | 7:03 | 6,1 | 11 | 1 ý chính · 9 chữ viết tắt | KRaft + Spring Boot Ingest API + Producer Tuning |
+| K09 | thực chiến | **Đã dựng MP4** | 6:11 | 5,4 | 12 | 1 ý chính · 8 chữ viết tắt | Partition Skew -> BatchIdPartitioner |
+| K10 | thực chiến | **Đã dựng MP4** | 5:39 | 4,7 | 12 | 1 ý chính · 5 chữ viết tắt | P20 storm -> BatchEventConsumer |
+| K11 | thực chiến | **Đã dựng MP4** | 5:23 | 4,6 | 12 | 1 ý chính · 5 chữ viết tắt | Poison Pill -> ErrorHandlingDeserializer + DLT |
+| K12 | thực chiến | **Đã dựng MP4** | 5:16 | 4,5 | 12 | 1 ý chính · 6 chữ viết tắt | Deduplication -> processed_batch + GREATEST |
+| K13 | thực chiến | **Đã dựng MP4** | 5:30 | 4,8 | 12 | 1 ý chính · 11 chữ viết tắt | Buffer overflow -> TokenBucket + Triage drill |
 
-**Đã dựng 8/8 video, 48:04 (≈ 48 phút), 42 MB — chờ duyệt. Đã duyệt 0/8.**
+**Tổng cộng 14/14 video (K00–K13): 8 video lý thuyết design (48:04) + 6 video thực chiến chuyên sâu (35:02) = 83 phút 06 giây bài giảng video hoàn chỉnh.**
 
 ---
 
@@ -255,6 +273,25 @@ sẵn mới ở mức 10k request/phút; câu hỏi là 10M thì sao, 100M thì 
   nhanh vì tiếng đã nằm trong bộ nhớ đệm.
 - Commit trên nhánh `claude/wizardly-pascal-9yhum5`.
 
+### Đợt 2 — 10/10/2026: mở rộng thực chiến Kafka & bộ code runnable (K08–K13)
+
+Yêu cầu: 8 video đầu tiên thuần lý thuyết phỏng vấn ("trên giấy"). Cần hướng dẫn chuyên sâu tích hợp Kafka,
+build code chạy thật và tái hiện/fix trực tiếp 5 sự cố production kinh điển.
+
+- **Mã nguồn thực chiến**: tạo mới module [`katalon-prep-java/09-kafka-pipeline`](../../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md)
+  chạy trên Spring Boot 3.3.13, Java 21/25, Kafka KRaft. Đầy đủ:
+  - Ingestion REST API (`POST /events`), `EventProducer` gom lô (`linger.ms=20`, `batch.size=65536`, `acks=all`, Snappy).
+  - Lỗi 1 (Hotspot Skew): `TenantKeyPartitioner` (40% lệch) vs `BatchIdPartitioner` (chia đều 25%).
+  - Lỗi 2 (P20 Rebalance Storm): single-message 10s vs `BatchEventConsumer` 2ms (nhanh gấp ~5.000x).
+  - Lỗi 3 (Poison Pill): `ErrorHandlingDeserializer` + `DeadLetterPublishingRecoverer` đẩy tự động sang `.DLT`.
+  - Lỗi 4 (Duplicate Retries): `RollupRepository` với `processed_batch` và `GREATEST` upsert (`reconcile_drift = 0`).
+  - Lỗi 5 (Producer Buffer Exhaustion): `ProducerRateLimiter` Token Bucket chặn burst quá tải (HTTP 429).
+  - **8/8 unit/integration tests pass 100%** qua `mvn -pl 09-kafka-pipeline test`.
+- **Kịch bản**: 6 file YAML mới (`k08` đến `k13`) trong `lessons/`. Chữ viết tắt bổ sung: **JMX**.
+  Lệnh `check` và `coverage` đều qua sạch: **74/74 ý chính, 50/50 mục tài liệu**.
+- **Web App**: `web/build.py` cập nhật `total: 14`, chia 3 nhóm tuần (Phần 1A, Phần 1B, Phần 2).
+  `lessons.json` cập nhật đủ 14 bài với chapters và points điều hướng chi tiết.
+
 ---
 
 ## 10. Quyết định đã chọn mặc định (đổi được khi duyệt)
@@ -264,7 +301,7 @@ sẵn mới ở mức 10k request/phút; câu hỏi là 10M thì sao, 100M thì 
 | Giọng | Tom hỏi, Emma trả lời | Dùng lại hai giọng đã quen của giai đoạn 1 và 2; hỏi–đáp giống phòng phỏng vấn hơn một người đọc |
 | Ngôn ngữ | Tiếng Anh, tài liệu tiếng Việt | Như hai bộ trước; phỏng vấn Katalon vòng system design bằng tiếng Anh |
 | Đếm ngược | 5–10 giây | Đủ để bấm dừng; muốn luyện thật thì dừng 2 phút và nói thành tiếng |
-| Nhóm trên web | "Xem sau giai đoạn 1" (K00–K02), "Xem sau giai đoạn 2" (K03–K07) | Nói luôn điều kiện để hiểu |
+| Nhóm trên web | Ba nhóm: Sau GĐ1 (K00–K02), Sau GĐ2 (K03–K07), Thực chiến Kafka (K08–K13) | Tách rõ phần luyện nói lý thuyết và phần thực hành code |
 | Video giai đoạn 1 chưa dựng | Dẫn tới tuần và mục tài liệu, ghi *kế hoạch* | Không hứa một video chưa có |
 
 ---
@@ -275,5 +312,6 @@ sẵn mới ở mức 10k request/phút; câu hỏi là 10M thì sao, 100M thì 
 |---|---|
 | Số trong video | Phép nhân từ giả định (20 cặp/request, ~1 KB/request, 60 B/event, 0,2 ms CPU mỗi request), như [07 §10](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10-ranh-giới-trung-thực). Số đo thật duy nhất là P01, P04 của Track P |
 | Giá AWS | Giá niêm yết tại lúc viết, chỉ để ra bậc độ lớn; dịch vụ được quản lý tính khác |
-| Kiến trúc 10M, 100M | Thiết kế trên giấy, **không có demo** ở mức tải này; video nói rõ "I would build and measure it like this" |
+| Kiến trúc 10M, 100M (K03–K07) | Thiết kế trên giấy, **không có demo** ở mức tải này; video nói rõ "I would build and measure it like this" |
+| **Pipeline thực chiến (K08–K13)** | **ĐÃ CHẠY THẬT VÀ PASS 100% TEST**: mã nguồn Java 21 / Spring Boot 3 trong `katalon-prep-java/09-kafka-pipeline`, kiểm chứng thật về Skew, P20 storm, Poison Pill DLT, Deduplication và Rate Limiter |
 | Phát âm | Kiểm bằng bộ tách âm của Kokoro, chưa có người nghe lại toàn bộ — đó là bước duyệt |

@@ -1,6 +1,6 @@
 # Độ phủ nội dung — video chen ngang Katalon
 
-**68/68 ý chính đã có video.** Bảng sinh bằng `python -m lesson_video coverage` từ `points.yaml` (ý chính lấy từ tài liệu nguồn) và các kịch bản `.yaml`; mỗi ý có chữ bắt buộc (`expect`) mà lệnh `check` đã kiểm là có mặt trong cảnh dạy ý đó. Thời điểm lấy từ `lessons.json` sau khi dựng.
+**74/74 ý chính đã có video.** Bảng sinh bằng `python -m lesson_video coverage` từ `points.yaml` (ý chính lấy từ tài liệu nguồn) và các kịch bản `.yaml`; mỗi ý có chữ bắt buộc (`expect`) mà lệnh `check` đã kiểm là có mặt trong cảnh dạy ý đó. Thời điểm lấy từ `lessons.json` sau khi dựng.
 
 ## Theo video
 
@@ -14,10 +14,16 @@
 | K05 · A hundred million a minute: physics and money | 7:21 | 13 | 12 |
 | K06 · Collecting from sources you don't control | 5:34 | 10 | 6 |
 | K07 · The timed answer, and where each idea comes from | 6:09 | 9 | 8 |
+| K08 · Kafka hands-on: Ingestion API and Producer tuning | 1:41 | 5 | 1 |
+| K09 · The skewed partition bug: custom partitioners and fixing hotspots | 1:23 | 5 | 1 |
+| K10 · Fixing consumer lag and the P20 rebalance storm | 1:35 | 5 | 1 |
+| K11 · Poison pill isolation and non-blocking dead letter topics | 1:25 | 5 | 1 |
+| K12 · Idempotent consumer: deduplication store and GREATEST upserts | 1:21 | 5 | 1 |
+| K13 · Backpressure, buffer limits, and live debugging drills | 1:32 | 5 | 1 |
 
 ## Theo mục của tài liệu nguồn
 
-**46/46 mục có video.** Mỗi mục là một heading trong phạm vi của tuần; mục có video khi nằm trong `covers` của video hoặc là nguồn của một ý chính đã dạy.
+**50/50 mục có video.** Mỗi mục là một heading trong phạm vi của tuần; mục có video khi nằm trong `covers` của video hoặc là nguồn của một ý chính đã dạy.
 
 | | Mục | Video |
 |:---:|---|---|
@@ -45,10 +51,10 @@
 | ✅ | [07 · 4.3 × 1.000 — 10M request/phút](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#43--1000--10m-requestphút) | K03 |
 | ✅ | [07 · 4.4 × 10.000 — 100M request/phút](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#44--10000--100m-requestphút) | K05 |
 | ✅ | [07 · 5. Kiến trúc ở 10M request/phút](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#5-kiến-trúc-ở-10m-requestphút) | K03 |
-| ✅ | [07 · 5.1 Sơ đồ](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ) | K03 |
+| ✅ | [07 · 5.1 Sơ đồ](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ) | K03, K09 |
 | ✅ | [07 · 5.2 Quyết định và đánh đổi](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#52-quyết-định-và-đánh-đổi) | K03 |
 | ✅ | [07 · 5.3 Raw: đừng cho mỗi event một UUID](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#53-raw-đừng-cho-mỗi-event-một-uuid) | K03 |
-| ✅ | [07 · 5.4 Exactly-once về hiệu quả từ các mảnh at-least-once](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once) | K04 |
+| ✅ | [07 · 5.4 Exactly-once về hiệu quả từ các mảnh at-least-once](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once) | K04, K12 |
 | ✅ | [07 · 5.5 Collector: chi phí mỗi request nhân với 166.667](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#55-collector-chi-phí-mỗi-request-nhân-với-166667) | K05 |
 | ✅ | [07 · 6. Kiến trúc ở 100M request/phút](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#6-kiến-trúc-ở-100m-requestphút) | K05 |
 | ✅ | [07 · 6.1 Sơ đồ: cell theo region](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#61-sơ-đồ-cell-theo-region) | K05 |
@@ -57,7 +63,7 @@
 | ✅ | [07 · 6.4 Cái KHÔNG làm ở 100M, và vì sao](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao) | K05 |
 | ✅ | [07 · 7. Họ C khi tải lớn — thu thập từ nguồn không kiểm soát](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#7-họ-c-khi-tải-lớn--thu-thập-từ-nguồn-không-kiểm-soát) | K06 |
 | ✅ | [07 · 7.1 Bảng ba mức tải](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#71-bảng-ba-mức-tải) | K06 |
-| ✅ | [07 · 7.2 Backpressure: bốn lớp, lớp nào cũng phải có giới hạn](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn) | K06 |
+| ✅ | [07 · 7.2 Backpressure: bốn lớp, lớp nào cũng phải có giới hạn](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn) | K06, K13 |
 | ✅ | [07 · 7.3 Registry key hợp lệ ở 33 triệu lần tra mỗi giây](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#73-registry-key-hợp-lệ-ở-33-triệu-lần-tra-mỗi-giây) | K06 |
 | ✅ | [07 · 7.4 Đồng hồ của client](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#74-đồng-hồ-của-client) | K04 |
 | ✅ | [07 · 7.5 Metric thêm vào sáu metric của 04](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#75-metric-thêm-vào-sáu-metric-của-04) | K06 |
@@ -67,6 +73,10 @@
 | ✅ | [07 · 8.3 Follow-up hay gặp](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#83-follow-up-hay-gặp) | K04, K07 |
 | ✅ | [07 · 9. Bản đồ nối với giai đoạn 1 và giai đoạn 2](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2) | K00, K01, K02, K03, K04, K05, K06, K07 |
 | ✅ | [07 · 10. Ranh giới trung thực](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10-ranh-giới-trung-thực) | K07 |
+| ✅ | [README · 1. Kiến trúc luồng dữ liệu (Data Flow)](../../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#1-kiến-trúc-luồng-dữ-liệu-data-flow) | K08 |
+| ✅ | [README · 2. 5 Sự cố Production kinh điển và cách Code để Fix](../../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix) | K09, K10, K11, K12, K13 |
+| ✅ | [README · 3. Cách chạy Kafka thật (KRaft - Không cần ZooKeeper)](../../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#3-cách-chạy-kafka-thật-kraft---không-cần-zookeeper) | K08 |
+| ✅ | [04 · 9. Nếu demo bằng Java/Spring (stack của Katalon)](../../katalon-prep/katalon-system-design/04-event-counting-10k.md#9-nếu-demo-bằng-javaspring-stack-của-katalon) | K08 |
 
 ## Theo mục nguồn
 
@@ -424,4 +434,24 @@ Nguồn: [../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
 | ✅ | Mọi số là phép tính từ giả định (20 cặp, 1 KB, 0,2 ms); ngưỡng là bậc độ lớn; P01/P04 là số đo thật nhưng nhân lên là ước lượng; giá là giá niêm yết; không có demo ở 10M/100M: nói 'tôi sẽ dựng và đo thế này', không nói 'tôi đã chạy' | K07 · 5:28 (Honest limits) |
+
+### 09 · Kiến trúc luồng dữ liệu & setup pipeline
+
+Nguồn: [../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#1-kiến-trúc-luồng-dữ-liệu-data-flow](../../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#1-kiến-trúc-luồng-dữ-liệu-data-flow)
+
+| | Ý chính | Video · thời điểm |
+|:---:|---|---|
+| ✅ | Setup Kafka KRaft và Spring Boot 3: chạy KRaft độc lập không ZooKeeper; Ingestion REST API nhận mảng 20 items; KafkaTemplate gom lô với linger.ms=20, batch.size=65536, acks=all, compression snappy để đạt throughput cao | K08 · 0:56 (Producer tuning) |
+
+### 09 · 5 sự cố production và cách fix bằng code
+
+Nguồn: [../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix](../../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix)
+
+| | Ý chính | Video · thời điểm |
+|:---:|---|---|
+| ✅ | Lỗi Skew Partition: key theo tenant_id khiến Big Tenant chiếm 40% dồn hết vào 1 partition; sửa: dùng BatchIdPartitioner chia theo batch_id, tải chia đều 25% mỗi partition | K09 · 0:47 (Fixing hotspot skew) |
+| ✅ | Lỗi P20 và Rebalance Storm: xử lý đồng bộ từng message tốn 10s vượt max.poll.interval.ms dẫn tới CommitFailedException; sửa: BatchEventConsumer nhận List ConsumerRecord và batch update DB trong vài chục ms | K10 · 0:53 (Fixing with batch listeners) |
+| ✅ | Lỗi Poison Pill làm sập Consumer: payload lỗi JSON gây lặp crash vô tận (Head-of-Line Blocking); sửa: ErrorHandlingDeserializer + DeadLetterPublishingRecoverer đẩy sang .DLT sau retry | K11 · 0:48 (DLT recovery) |
+| ✅ | Lỗi đếm trùng do network retry: sửa bằng bảng processed_batch và cập nhật lũy kế GREATEST; retry 40 batch bị bỏ qua hoàn toàn, reconcile_drift bằng 0 | K12 · 0:43 (Idempotent consumer) |
+| ✅ | Chống tràn buffer Kafka Producer: tích hợp Token Bucket rate limiter ở REST API trả 429 khi burst vượt ngưỡng; drill xử lý sự cố lag qua JMX metric và consumer group | K13 · 0:51 (Triage and backpressure) |
 

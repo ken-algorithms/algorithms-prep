@@ -1,0 +1,218 @@
+id: k12-idempotent-sink-greatest
+ep: 12
+week: 11
+tag: "K12 · IDEMPOTENT SINK"
+title: "Idempotent consumer: deduplication store and GREATEST upserts"
+subtitle: "Survive network retries without double counts: commit offsets after DB transactions"
+covers:
+  - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 09 · IdempotentDeduplicationTest"}
+      - {t: "RollupRepository: processed_batch and GREATEST upserts"}
+    lines:
+      - tom: "Episode K12. At-least-once delivery means retries are guaranteed. How do you prevent network retries from double-counting events in your database?"
+      - emma: "In distributed streaming, true exactly-once requires idempotent sinks. We build a two-tier defense with a processed_batch store and SQL GREATEST upserts."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DB, full: "database", vi: "cơ sở dữ liệu"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: JDBC, full: "Java Database Connectivity", vi: "chuẩn kết nối cơ sở dữ liệu của Java"}
+      - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo Java thực thi bytecode"}
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn cơ sở dữ liệu"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã định danh duy nhất 128 bit"}
+    lines:
+      - emma: "An ID is an identifier, and a UUID is a universally unique identifier used as our request batch key."
+        focus: 5
+      - emma: "SQL is Structured Query Language, a DB is a database store, JDBC connects Java to the database, and JVM is the virtual machine."
+        focus: 3
+
+  - kind: exercise
+    chapter: "The failure mode"
+    label: "At-Least-Once Replay Trap"
+    q: "A database transaction commits, but a network blip kills the connection before Kafka offset commit. What happens on restart?"
+    items:
+      - {t: "Batch of 100 events incremented counter in Postgres"}
+      - {t: "Kafka offset commit fails with NetworkException"}
+      - {t: "Consumer restarts and re-reads the uncommitted batch"}
+    lines:
+      - tom: "A worker writes batch fifty to Postgres, but the network drops before it can commit the Kafka offset. What happens next?"
+      - emma: "When the consumer reconnects or rebalances, Kafka delivers batch fifty a second time. If your database update is not idempotent, you increment the counter twice."
+      - wait: 7
+        note: "Naive counters double-count retried events. 100 events get recorded as 200!"
+
+  - kind: bullets
+    chapter: "The duplicate trap"
+    heading: "Why naive updates corrupt counts"
+    items:
+      - {t: "At-least-once guarantee", s: "Kafka guarantees no lost messages, but allows duplicates upon network retries"}
+      - {t: "Non-idempotent arithmetic", s: "UPDATE rollup SET total = total + 100 is non-idempotent"}
+      - {t: "Rebalance offset re-delivery", s: "Any rebalance causes consumers to re-read from the last committed offset"}
+      - {t: "Silent data drift", s: "Counters slowly inflate over time, causing discrepancies in analytics"}
+    lines:
+      - emma: "This is the classic double count disaster. Because addition is not idempotent, executing total equals total plus one hundred twice records two hundred instead of one hundred."
+        focus: 1
+      - tom: "Why cannot we rely on Kafka's transactional producer alone?"
+      - emma: "Kafka transactions only span Kafka topics. Once data crosses the boundary into an external SQL database, you need database-level idempotency."
+        focus: 3
+
+  - kind: code
+    chapter: "Deduplication store"
+    heading: "Tier 1: processed_batch deduplication table"
+    code: |
+      // Step 1: Record batch idempotency key inside the same DB transaction
+      String sql = """
+          INSERT INTO processed_batch (batch_id, processed_at)
+          VALUES (?, NOW())
+          ON CONFLICT (batch_id) DO NOTHING
+          """;
+      int inserted = jdbcTemplate.update(sql, batchId);
+      if (inserted == 0) {
+        log.info("Batch {} already processed, skipping duplicate!", batchId);
+        return; // DUPLICATE DETECTED: Early exit!
+      }
+    items:
+      - {lines: [2, 5], t: "Atomic insertion with ON CONFLICT (batch_id) DO NOTHING"}
+      - {lines: [6, 10], t: "If rows affected is 0, skips downstream counters immediately"}
+    lines:
+      - tom: "How does Tier 1 protect against duplicate network retries?"
+        focus: 0
+      - emma: "We insert the UUID batch identifier into a dedicated processed_batch table with on conflict do nothing inside the database transaction."
+        focus: 1
+      - emma: "If the batch identifier already exists, the insert affects zero rows. The consumer skips the rollup update immediately, preventing duplicate arithmetic."
+        focus: 1
+
+  - kind: code
+    chapter: "GREATEST upsert"
+    heading: "Tier 2: Monotonic counters with GREATEST"
+    code: |
+      String upsert = """
+          INSERT INTO minute_rollup (tenant_id, minute_ts, total_events, high_watermark)
+          VALUES (?, ?, ?, ?)
+          ON CONFLICT (tenant_id, minute_ts) DO UPDATE SET
+            total_events = minute_rollup.total_events + EXCLUDED.total_events,
+            high_watermark = GREATEST(minute_rollup.high_watermark, EXCLUDED.high_watermark)
+          """;
+      jdbcTemplate.update(upsert, tenantId, minuteTs, count, watermark);
+    items:
+      - {lines: [1, 3], t: "Bulk rollup table tracking aggregated events and watermark"}
+      - {lines: [4, 7], t: "GREATEST guarantees monotonically advancing watermark even if out of order"}
+    points: [k-idempotent-greatest]
+    lines:
+      - emma: "In our RollupRepository, we record each processed_batch and update counters. Using SQL GREATEST for watermarks ensures reconcile_drift = 0 even when network retries replay 40 batches."
+        focus: 1
+      - tom: "Why do we use SQL GREATEST for the high watermark column?"
+        focus: 0
+      - emma: "Because in distributed networks, packets can arrive out of order. GREATEST ensures that a late-arriving older batch never rolls back our highest observed event timestamp."
+        focus: 1
+
+  - kind: table
+    chapter: "Arithmetic comparison"
+    heading: "Idempotent vs non-idempotent arithmetic"
+    columns: ["Operation", "First attempt", "Retry attempt", "Result state", "Idempotent?"]
+    rows:
+      - ["SET total = total + 10", "total: 10", "total: 20", "Corrupted (+100% drift)", "No"]
+      - ["processed_batch check", "saved (1 row)", "skipped (0 rows)", "Exact count (10)", "Yes"]
+      - ["GREATEST(val, incoming)", "watermark: 50", "watermark: 50", "Exact watermark (50)", "Yes"]
+    note: "Idempotent operations yield the exact same state regardless of whether called once or ten times"
+    lines:
+      - emma: "Compare these operations. Unconditional additions corrupt data on every retry, whereas primary key deduplication and GREATEST functions produce identical results under infinite replays."
+        focus: 1
+      - tom: "That means the pipeline is completely immune to network re-transmissions and pod restarts."
+
+  - kind: compare
+    chapter: "Commit strategies"
+    heading: "Offset commit timing"
+    items:
+      - title: "Auto-Commit (enable.auto.commit)"
+        lines:
+          - "Commits every 5 seconds on a timer"
+          - "Uncorrelated with DB transactions"
+          - "High risk of both data loss and duplicates"
+        tone: bad
+      - title: "Manual Commit After DB (Recommended)"
+        lines:
+          - "AckMode.MANUAL_IMMEDIATE"
+          - "Commits offset strictly after DB commit"
+          - "Guarantees at-least-once with zero loss"
+        tone: good
+      - title: "Transactional Outbox"
+        lines:
+          - "Writes event to outbox table in DB"
+          - "Debezium tailing forwards to Kafka"
+          - "Heaviest architecture, reserved for microservices"
+        tone: neutral
+    lines:
+      - tom: "When should the consumer commit its Kafka offset?"
+      - emma: "Always commit the offset strictly after the database transaction successfully commits. If the database rolls back, do not acknowledge the message so Kafka redelivers it."
+      - tom: "And never use auto-commit, because it commits on a wall-clock timer regardless of whether your business logic succeeded or failed."
+      - emma: "Manual acknowledgment guarantees that no uncommitted database state can ever be marked as complete in Kafka."
+
+  - kind: stats
+    chapter: "Verified test results"
+    heading: "Results from IdempotentDeduplicationTest"
+    sub: "100 unique batches plus 40 duplicated retries"
+    items:
+      - {v: "100", l: "Applied batches", s: "Processed on first arrival", tone: good}
+      - {v: "40", l: "Duplicate batches", s: "Detected and skipped by processed_batch", tone: warn}
+      - {v: "0", l: "Reconcile drift", s: "Expected 100, exactly 100 in database", tone: good}
+      - {v: "100%", l: "Data accuracy", s: "Zero duplicate counts under heavy replay", tone: good}
+    lines:
+      - emma: "Here are the metrics from our automated integration test. We sent one hundred unique batches, and then deliberately re-sent forty duplicate batches over the wire."
+        focus: 1
+      - emma: "The deduplication store detected all forty duplicates and skipped them completely. Total reconcile drift was exactly zero."
+        focus: 2
+      - tom: "Even with forty percent packet retransmission, our analytical count matches ground truth perfectly."
+      - emma: "This gives business stakeholders absolute confidence that reported traffic metrics are mathematically exact."
+
+  - kind: pattern
+    chapter: "Transaction boundaries"
+    heading: "Atomic JDBC transaction boundary"
+    bad: |
+      // ANTI-PATTERN: Separate transactions!
+      processedBatchRepo.save(batchId); // Tx 1 commits
+      // If server crashes here, rollup never happens!
+      rollupRepo.updateRollup(tenantId, count); // Tx 2
+    good: |
+      // SAFE: Single atomic transaction
+      @Transactional
+      public void applyBatch(String batchId, EventBatch data) {
+        if (processedBatchRepo.insertIfNotExists(batchId) > 0) {
+          rollupRepo.updateRollup(data);
+        }
+      }
+    lines:
+      - tom: "Why must the processed_batch insertion and the rollup update share the exact same transaction?"
+        focus: 0
+      - emma: "If they run in separate transactions and the pod crashes between them, the batch is marked as processed but the counter was never incremented, causing silent data loss."
+        focus: 1
+      - emma: "A single Spring Transactional boundary guarantees both writes commit together or roll back together atomically."
+
+  - kind: bullets
+    chapter: "How to run the test"
+    heading: "Verifying idempotency locally"
+    items:
+      - {t: "Run test suite", s: "mvn test -Dtest=IdempotentDeduplicationTest"}
+      - {t: "Simulates duplicate re-delivery", s: "Injects 40 duplicate batches after initial ingest"}
+      - {t: "Asserts zero drift", s: "Verifies reconcile_drift == 0 between raw events and rollups"}
+    lines:
+      - tom: "How do we run this test in automated test pipelines?"
+      - emma: "Run IdempotentDeduplicationTest with maven test. It spins up an in-memory database and verifies complete idempotency in under four hundred milliseconds."
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Idempotent consumer recap"
+    items:
+      - {t: "At-least-once is standard", s: "Never assume messages will arrive only once"}
+      - {t: "processed_batch table", s: "Dedup store with primary key ON CONFLICT DO NOTHING"}
+      - {t: "SQL GREATEST", s: "Monotonic watermarks protect out-of-order updates"}
+      - {t: "Commit after DB", s: "Acknowledge Kafka offsets only after database transaction commits"}
+    lines:
+      - tom: "To recap episode K12: combine a processed_batch store with SQL GREATEST and manual offset commits to achieve bulletproof idempotency under retries."
+      - emma: "In episode K13, our final episode, we explore backpressure, producer memory buffers, and live production debugging drills."

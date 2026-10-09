@@ -1063,6 +1063,489 @@
      "section": "07 · Ranh giới trung thực"
     }
    ]
+  },
+  {
+   "id": "k08-kafka-ingest-setup",
+   "ep": 8,
+   "code": "K08",
+   "week": 11,
+   "title": "Kafka hands-on: Ingestion API and Producer tuning",
+   "subtitle": "Run Kafka with KRaft, build Spring Boot 3 pipeline, and tune producers for 50k requests a second",
+   "file": "k08-kafka-ingest-setup.mp4",
+   "poster": "k08-kafka-ingest-setup.jpg",
+   "source": "k08-kafka-ingest-setup.yaml",
+   "duration": 422.5,
+   "bytes": 6050809,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 26.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 55.7,
+     "title": "The challenge"
+    },
+    {
+     "t": 91.3,
+     "title": "KRaft architecture"
+    },
+    {
+     "t": 143.3,
+     "title": "Batching math"
+    },
+    {
+     "t": 189.9,
+     "title": "Producer properties"
+    },
+    {
+     "t": 240.5,
+     "title": "Ingestion API code"
+    },
+    {
+     "t": 286.9,
+     "title": "Compression choices"
+    },
+    {
+     "t": 327.5,
+     "title": "Callback vs blocking"
+    },
+    {
+     "t": 364.6,
+     "title": "How to run locally"
+    },
+    {
+     "t": 397.8,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#1-kiến-trúc-luồng-dữ-liệu-data-flow",
+    "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#3-cách-chạy-kafka-thật-kraft---không-cần-zookeeper",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ"
+   ],
+   "points": [
+    {
+     "id": "k-ingest-setup",
+     "t": 189.9,
+     "text": "Setup Kafka KRaft và Spring Boot 3: chạy KRaft độc lập không ZooKeeper; Ingestion REST API nhận mảng 20 items; KafkaTemplate gom lô với linger.ms=20, batch.size=65536, acks=all, compression snappy để đạt throughput cao",
+     "src": "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#1-kiến-trúc-luồng-dữ-liệu-data-flow",
+     "section": "09 · Kiến trúc luồng dữ liệu & setup pipeline"
+    }
+   ]
+  },
+  {
+   "id": "k09-fixing-partition-skew",
+   "ep": 9,
+   "code": "K09",
+   "week": 11,
+   "title": "The skewed partition bug: custom partitioners and fixing hotspots",
+   "subtitle": "How keying by tenant overloads a single partition, and how batch_id balances 100% of the load",
+   "file": "k09-fixing-partition-skew.mp4",
+   "poster": "k09-fixing-partition-skew.jpg",
+   "source": "k09-fixing-partition-skew.yaml",
+   "duration": 371.2,
+   "bytes": 5354705,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 22.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 48.4,
+     "title": "The failure mode"
+    },
+    {
+     "t": 75.6,
+     "title": "The skew numbers"
+    },
+    {
+     "t": 102.2,
+     "title": "Why tenant key breaks"
+    },
+    {
+     "t": 144.9,
+     "title": "Ordering requirements"
+    },
+    {
+     "t": 181.1,
+     "title": "The bad partitioner"
+    },
+    {
+     "t": 204.4,
+     "title": "Fixing hotspot skew"
+    },
+    {
+     "t": 244.9,
+     "title": "Salting vs batch id"
+    },
+    {
+     "t": 279.1,
+     "title": "Balanced results"
+    },
+    {
+     "t": 315.1,
+     "title": "Monitoring skew in production"
+    },
+    {
+     "t": 347.1,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ"
+   ],
+   "points": [
+    {
+     "id": "k-skew-fix",
+     "t": 204.4,
+     "text": "Lỗi Skew Partition: key theo tenant_id khiến Big Tenant chiếm 40% dồn hết vào 1 partition; sửa: dùng BatchIdPartitioner chia theo batch_id, tải chia đều 25% mỗi partition",
+     "src": "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+     "section": "09 · 5 sự cố production và cách fix bằng code"
+    }
+   ]
+  },
+  {
+   "id": "k10-fixing-rebalance-storm",
+   "ep": 10,
+   "code": "K10",
+   "week": 11,
+   "title": "Fixing consumer lag and the P20 rebalance storm",
+   "subtitle": "Why per-message processing triggers CommitFailedException, and how batch listeners fix it",
+   "file": "k10-fixing-rebalance-storm.mp4",
+   "poster": "k10-fixing-rebalance-storm.jpg",
+   "source": "k10-fixing-rebalance-storm.yaml",
+   "duration": 338.8,
+   "bytes": 4729913,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 22.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 40.8,
+     "title": "The failure mode"
+    },
+    {
+     "t": 70.5,
+     "title": "The timeout math"
+    },
+    {
+     "t": 118.0,
+     "title": "The infinite loop"
+    },
+    {
+     "t": 158.2,
+     "title": "The bad code"
+    },
+    {
+     "t": 179.8,
+     "title": "Batch listener fix"
+    },
+    {
+     "t": 211.2,
+     "title": "Performance comparison"
+    },
+    {
+     "t": 250.4,
+     "title": "Assignor strategies"
+    },
+    {
+     "t": 273.0,
+     "title": "Sizing guidelines"
+    },
+    {
+     "t": 297.4,
+     "title": "Automated verification"
+    },
+    {
+     "t": 314.2,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ"
+   ],
+   "points": [
+    {
+     "id": "k-rebalance-fix",
+     "t": 179.8,
+     "text": "Lỗi P20 và Rebalance Storm: xử lý đồng bộ từng message tốn 10s vượt max.poll.interval.ms dẫn tới CommitFailedException; sửa: BatchEventConsumer nhận List ConsumerRecord và batch update DB trong vài chục ms",
+     "src": "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+     "section": "09 · 5 sự cố production và cách fix bằng code"
+    }
+   ]
+  },
+  {
+   "id": "k11-poison-pill-and-dlt",
+   "ep": 11,
+   "code": "K11",
+   "week": 11,
+   "title": "Poison pill isolation and non-blocking dead letter topics",
+   "subtitle": "Stop malformed messages from blocking consumer groups with ErrorHandlingDeserializer and DLT",
+   "file": "k11-poison-pill-and-dlt.mp4",
+   "poster": "k11-poison-pill-and-dlt.jpg",
+   "source": "k11-poison-pill-and-dlt.yaml",
+   "duration": 323.1,
+   "bytes": 4568553,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 23.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 44.5,
+     "title": "The failure mode"
+    },
+    {
+     "t": 70.5,
+     "title": "Head-of-line blocking"
+    },
+    {
+     "t": 117.2,
+     "title": "ErrorHandlingDeserializer"
+    },
+    {
+     "t": 144.3,
+     "title": "DLT recovery"
+    },
+    {
+     "t": 178.7,
+     "title": "DLT headers"
+    },
+    {
+     "t": 205.9,
+     "title": "Handling alternatives"
+    },
+    {
+     "t": 232.8,
+     "title": "Verified test metrics"
+    },
+    {
+     "t": 256.1,
+     "title": "Re-drive tooling"
+    },
+    {
+     "t": 282.6,
+     "title": "How to run the test"
+    },
+    {
+     "t": 300.8,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ"
+   ],
+   "points": [
+    {
+     "id": "k-poison-pill-dlt",
+     "t": 144.3,
+     "text": "Lỗi Poison Pill làm sập Consumer: payload lỗi JSON gây lặp crash vô tận (Head-of-Line Blocking); sửa: ErrorHandlingDeserializer + DeadLetterPublishingRecoverer đẩy sang .DLT sau retry",
+     "src": "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+     "section": "09 · 5 sự cố production và cách fix bằng code"
+    }
+   ]
+  },
+  {
+   "id": "k12-idempotent-sink-greatest",
+   "ep": 12,
+   "code": "K12",
+   "week": 11,
+   "title": "Idempotent consumer: deduplication store and GREATEST upserts",
+   "subtitle": "Survive network retries without double counts: commit offsets after DB transactions",
+   "file": "k12-idempotent-sink-greatest.mp4",
+   "poster": "k12-idempotent-sink-greatest.jpg",
+   "source": "k12-idempotent-sink-greatest.yaml",
+   "duration": 316.4,
+   "bytes": 4535884,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 24.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 44.4,
+     "title": "The failure mode"
+    },
+    {
+     "t": 72.6,
+     "title": "The duplicate trap"
+    },
+    {
+     "t": 101.9,
+     "title": "Deduplication store"
+    },
+    {
+     "t": 128.2,
+     "title": "GREATEST upsert"
+    },
+    {
+     "t": 160.0,
+     "title": "Arithmetic comparison"
+    },
+    {
+     "t": 181.4,
+     "title": "Commit strategies"
+    },
+    {
+     "t": 214.8,
+     "title": "Verified test results"
+    },
+    {
+     "t": 250.2,
+     "title": "Transaction boundaries"
+    },
+    {
+     "t": 276.3,
+     "title": "How to run the test"
+    },
+    {
+     "t": 293.2,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ"
+   ],
+   "points": [
+    {
+     "id": "k-idempotent-greatest",
+     "t": 128.2,
+     "text": "Lỗi đếm trùng do network retry: sửa bằng bảng processed_batch và cập nhật lũy kế GREATEST; retry 40 batch bị bỏ qua hoàn toàn, reconcile_drift bằng 0",
+     "src": "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+     "section": "09 · 5 sự cố production và cách fix bằng code"
+    }
+   ]
+  },
+  {
+   "id": "k13-backpressure-and-troubleshooting",
+   "ep": 13,
+   "code": "K13",
+   "week": 11,
+   "title": "Backpressure, buffer limits, and live debugging drills",
+   "subtitle": "Prevent BufferExhaustedException with token buckets, and a 4-step production triage drill",
+   "file": "k13-backpressure-and-troubleshooting.mp4",
+   "poster": "k13-backpressure-and-troubleshooting.jpg",
+   "source": "k13-backpressure-and-troubleshooting.yaml",
+   "duration": 330.0,
+   "bytes": 4813385,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 25.5,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 57.5,
+     "title": "The live drill"
+    },
+    {
+     "t": 88.4,
+     "title": "Buffer exhaustion"
+    },
+    {
+     "t": 117.7,
+     "title": "Token bucket defense"
+    },
+    {
+     "t": 140.8,
+     "title": "Fast failure response"
+    },
+    {
+     "t": 173.6,
+     "title": "Production triage drill"
+    },
+    {
+     "t": 210.6,
+     "title": "Backpressure options"
+    },
+    {
+     "t": 240.8,
+     "title": "Test verification"
+    },
+    {
+     "t": 266.8,
+     "title": "Terminal diagnostic drill"
+    },
+    {
+     "t": 289.3,
+     "title": "How to run the test"
+    },
+    {
+     "t": 303.2,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn"
+   ],
+   "points": [
+    {
+     "id": "k-backpressure-drill",
+     "t": 140.8,
+     "text": "Chống tràn buffer Kafka Producer: tích hợp Token Bucket rate limiter ở REST API trả 429 khi burst vượt ngưỡng; drill xử lý sự cố lag qua JMX metric và consumer group",
+     "src": "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+     "section": "09 · 5 sự cố production và cách fix bằng code"
+    }
+   ]
   }
  ]
 }

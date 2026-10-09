@@ -1,0 +1,224 @@
+id: k08-kafka-ingest-setup
+ep: 8
+week: 11
+tag: "K08 · HANDS-ON KAFKA"
+title: "Kafka hands-on: Ingestion API and Producer tuning"
+subtitle: "Run Kafka with KRaft, build Spring Boot 3 pipeline, and tune producers for 50k requests a second"
+covers:
+  - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#1-kiến-trúc-luồng-dữ-liệu-data-flow
+  - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#3-cách-chạy-kafka-thật-kraft---không-cần-zookeeper
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 09 · data flow and KRaft setup"}
+      - {t: "Hands-on implementation · Part 2 of Katalon interlude"}
+    lines:
+      - tom: "Episode K08. Moving from theory to real code: how do you run Kafka locally without ZooKeeper, and build the ingestion API in Spring Boot?"
+      - emma: "In modern Kafka, KRaft replaces ZooKeeper entirely. We will build a high-throughput ingestion endpoint in Spring Boot 3 and configure KafkaTemplate for fifty thousand requests a second."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: API, full: "application programming interface", vi: "giao diện lập trình ứng dụng"}
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức truyền tải siêu văn bản"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu văn bản phổ biến"}
+      - {abbr: REST, full: "Representational State Transfer", vi: "kiến trúc dịch vụ web qua HTTP"}
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: TCP, full: "Transmission Control Protocol", vi: "giao thức truyền tải hướng kết nối"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã định danh duy nhất 128 bit"}
+      - {abbr: CPU, full: "Central Processing Unit", vi: "bộ vi xử lý trung tâm"}
+      - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo Java thực thi bytecode"}
+    lines:
+      - emma: "An API is the application programming interface, HTTP is the transfer protocol, and REST is our service architecture."
+        focus: 3
+      - emma: "JSON is the payload format. RPS measures requests per second, and TCP provides transport connections."
+        focus: 5
+      - emma: "UUID is the unique batch identifier. CPU is the processor, and JVM is the Java Virtual Machine executing Spring Boot."
+        focus: 8
+
+  - kind: exercise
+    chapter: "The challenge"
+    label: "Ingestion Challenge"
+    q: "How do you ingest 50,000 requests per second into Kafka without thread exhaustion or network saturation?"
+    items:
+      - {t: "Each request has 20 boolean event items (~1 KB JSON)"}
+      - {t: "50,000 req/s means 50 MB/s network ingress"}
+      - {t: "Single-record synchronous produce kills throughput"}
+    lines:
+      - tom: "Our target load is fifty thousand requests a second, each carrying twenty event items. How does synchronous sending break, and how do we size the producer?"
+      - emma: "Think about the physics. Fifty thousand requests a second with one kilobyte each equals fifty megabytes per second of raw payload. If each HTTP thread waits for a Kafka acknowledge, your web server runs out of threads in milliseconds."
+      - wait: 7
+        note: "50,000 requests/s × 1 KB = 50 MB/s. Never call future.get() on every send!"
+
+  - kind: bullets
+    chapter: "KRaft architecture"
+    heading: "KRaft: Kafka without ZooKeeper"
+    items:
+      - {t: "ZooKeeper metadata bottleneck removed", s: "In Kafka 3.3+, KRaft consensus runs directly inside broker processes"}
+      - {t: "Single metadata partition", s: "Cluster state stored in an internal log topic called @metadata"}
+      - {t: "Instant failover recovery", s: "Leader election in milliseconds rather than seconds"}
+      - {t: "Minimal local footprint", s: "One single process runs both controller and broker roles for development"}
+    lines:
+      - emma: "KRaft manages cluster metadata using the Raft consensus algorithm directly inside Kafka brokers. This eliminates external ZooKeeper processes, removes metadata synchronization bottlenecks, and enables near-instant leader election."
+        focus: 0
+      - tom: "How does this change our production and local development setups?"
+      - emma: "Historically, ZooKeeper had to maintain watch trees for every topic and partition. When thousands of partitions moved, ZooKeeper became the primary cluster bottleneck. With KRaft, metadata changes append to an internal replicated log, drastically reducing complexity and resource usage."
+        focus: 1
+      - tom: "That means local development and automated testing require only one single process or Docker container."
+        focus: 3
+
+  - kind: table
+    chapter: "Batching math"
+    heading: "The physics of producer batching"
+    columns: ["Metric", "Without batching", "With tuned batching"]
+    rows:
+      - ["Records per second", "50,000", "50,000"]
+      - ["Kafka batches per second", "50,000", "800"]
+      - ["Network packets per second", "50,000", "850"]
+      - ["Kernel syscall overhead", "Very high (CPU bound)", "Negligible (under 5% CPU)"]
+      - ["Effective throughput", "12,000 req/s (stalled)", "65,000+ req/s (line rate)"]
+    note: "Batching reduces packet headers and kernel interrupts by over sixty times"
+    lines:
+      - emma: "Look at the batching mathematics. Sending fifty thousand records individually produces fifty thousand TCP packets and fifty thousand kernel system calls, hitting a wall at twelve thousand requests a second."
+        focus: 1
+      - tom: "Why does sending single records create such high CPU pressure?"
+      - emma: "Every single socket send requires a context switch into kernel space, allocating socket buffers and appending packet headers. Network interface cards cannot process fifty thousand individual small packets efficiently."
+        focus: 3
+      - emma: "With a tuned batch size of sixty-four kilobytes and linger of ten milliseconds, Kafka bundles sixty records per batch, reducing network interrupts by sixty times."
+        focus: 4
+
+  - kind: code
+    chapter: "Producer properties"
+    heading: "KRaft and Spring Boot Ingestion configuration"
+    code: |
+      spring:
+        kafka:
+          producer:
+            acks: all
+            retries: 10
+            batch-size: 65536
+            properties:
+              linger.ms: 10
+              compression.type: snappy
+              max.in.flight.requests.per.connection: 5
+    items:
+      - {lines: [1, 3], t: "KRaft and Spring Boot Ingestion setup without ZooKeeper"}
+      - {lines: [4, 5], t: "Durability: acks=all waits for full in-sync replica commit"}
+      - {lines: [6, 8], t: "Throughput: batch.size 65536 bytes with 10 ms linger.ms"}
+      - {lines: [9, 10], t: "snappy compression with max 5 in-flight pipelined requests"}
+    points: [k-ingest-setup]
+    lines:
+      - emma: "Here is the production configuration for KRaft and Spring Boot Ingestion without ZooKeeper. Setting acks to all ensures zero message loss across brokers. We set batch.size to 65536 and linger.ms to 10."
+        focus: 0
+      - tom: "What does linger.ms do when the traffic rate is very high?"
+      - emma: "Linger specifies the maximum duration the producer will wait for more records before sending the buffer. If the sixty-four kilobyte buffer fills sooner, it dispatches immediately without waiting for the timer."
+        focus: 2
+      - emma: "We configure snappy compression to compress batches with minimal CPU overhead, and keep max.in.flight.requests.per.connection at 5 to preserve ordering while maximizing pipe utilization."
+        focus: 3
+
+  - kind: code
+    chapter: "Ingestion API code"
+    heading: "EventIngestionController.java"
+    code: |
+      @RestController
+      @RequestMapping("/events")
+      public class EventIngestionController {
+        private final EventProducer producer;
+        @PostMapping
+        public ResponseEntity<Map<String, Object>> ingest(
+            @RequestBody EventBatch request) {
+          String batchId = UUID.randomUUID().toString();
+          producer.sendBatch(batchId, request);
+          return ResponseEntity.accepted()
+              .body(Map.of("batch_id", batchId, "status", "QUEUED"));
+        }
+      }
+    items:
+      - {lines: [1, 3], t: "Spring Boot REST controller exposing POST /events"}
+      - {lines: [6, 8], t: "Assigns batchId UUID and dispatches asynchronously"}
+      - {lines: [9, 10], t: "Returns HTTP 202 Accepted immediately without blocking"}
+    lines:
+      - tom: "The ingestion endpoint assigns a unique UUID batch identifier to each incoming request, passes it to the producer, and returns HTTP 202 Accepted immediately."
+        focus: 1
+      - emma: "HTTP 202 Accepted tells the client that the payload is safely accepted for asynchronous processing. The web worker thread is freed in less than one millisecond."
+        focus: 2
+      - tom: "Should the HTTP response wait for the Kafka broker to acknowledge the write?"
+      - emma: "Never in high throughput streaming! Waiting for broker disk flush and replication latency binds server threads for twenty to fifty milliseconds, causing thread starvation."
+        focus: 2
+
+  - kind: compare
+    chapter: "Compression choices"
+    heading: "Compression codec comparison"
+    items:
+      - title: "None (Raw JSON)"
+        lines:
+          - "50 MB/s network bandwidth"
+          - "0% CPU overhead"
+          - "High network buffer pressure"
+        tone: neutral
+      - title: "Gzip"
+        lines:
+          - "15 MB/s network bandwidth"
+          - "Heavy CPU cost (30% core burn)"
+          - "Unsuitable for high RPS ingestion"
+        tone: bad
+      - title: "Snappy (Recommended)"
+        lines:
+          - "22 MB/s network bandwidth"
+          - "Light CPU cost (under 4% core burn)"
+          - "Optimal for streaming real-time pipelines"
+        tone: good
+    lines:
+      - tom: "Why choose Snappy compression over Gzip or uncompressed JSON?"
+      - emma: "Gzip achieves the highest compression ratio, but burns thirty percent of CPU cores compressing JSON strings. Snappy strikes the ideal balance: sixty percent bandwidth reduction with negligible CPU consumption."
+      - tom: "Does Snappy compress each message individually, or the entire batch?"
+      - emma: "Snappy compresses the batch payload as a single contiguous buffer. Because repeated JSON keys like tenant and timestamp recur dozens of times in a batch, compression efficiency multiplies."
+
+  - kind: pattern
+    chapter: "Callback vs blocking"
+    heading: "CompletableFuture: asynchronous send pattern"
+    bad: |
+      CompletableFuture<SendResult<String, EventBatch>> f =
+          kafkaTemplate.send("events.ingest", key, data);
+      f.get(5, TimeUnit.SECONDS); // KILLS THROUGHPUT!
+    good: |
+      kafkaTemplate.send("events.ingest", key, data)
+          .whenComplete((res, ex) -> {
+            if (ex != null) log.error("Send failed: {}", ex);
+          });
+    lines:
+      - tom: "The most common junior mistake is calling get() on the future returned by KafkaTemplate."
+        focus: 0
+      - emma: "Calling get() blocks the caller thread waiting for broker roundtrip acknowledgment, dropping throughput from sixty thousand down to two hundred requests per second. Always register non-blocking callbacks."
+        focus: 1
+      - tom: "What should you do inside whenComplete if a send error occurs?"
+      - emma: "Log the error with contextual tenant and batch metadata, increment an alert counter metric, and if necessary, route the failed batch to an emergency disk buffer."
+        focus: 1
+
+  - kind: bullets
+    chapter: "How to run locally"
+    heading: "Running and testing the pipeline"
+    items:
+      - {t: "Run with KRaft locally", s: "Start KRaft container with Docker Compose or standalone script in module 09"}
+      - {t: "Run automated test suite", s: "mvn test -pl 09-kafka-pipeline executes all producer and consumer suites"}
+      - {t: "Simulate 50k RPS load", s: "Execute IngestionController load test to inspect live batching in action"}
+    lines:
+      - tom: "How can someone run and verify this pipeline on their local laptop right now?"
+      - emma: "Everything is bundled in module zero nine. Run maven test on zero nine kafka pipeline to verify the producer and consumer tests in two seconds."
+      - tom: "And to run Kafka with KRaft without Docker?"
+      - emma: "Module zero nine contains a startup script that formats the storage directory with a cluster identifier and starts the broker with KRaft enabled in three seconds."
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Producer tuning recap"
+    items:
+      - {t: "KRaft consensus", s: "Modern Kafka without ZooKeeper dependency"}
+      - {t: "HTTP 202 Accepted", s: "Decouple HTTP request life cycle from broker commit latency"}
+      - {t: "Batching duo", s: "batch.size sixty-four kilobytes plus linger.ms ten milliseconds"}
+      - {t: "Snappy compression", s: "Cuts network payload by sixty percent with zero CPU throttling"}
+    lines:
+      - tom: "To recap episode K08: KRaft eliminates ZooKeeper, HTTP 202 decouples ingestion, and batching with Snappy unlocks fifty thousand requests per second on a single instance."
+      - emma: "In episode K09, we investigate what happens when traffic reaches Kafka: the dreaded partition skew bug."

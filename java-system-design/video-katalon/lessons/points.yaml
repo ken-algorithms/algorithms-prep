@@ -53,6 +53,11 @@ scope:
     - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#83-follow-up-hay-gặp
     - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2
     - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10-ranh-giới-trung-thực
+  11:
+    - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#1-kiến-trúc-luồng-dữ-liệu-data-flow
+    - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix
+    - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#3-cách-chạy-kafka-thật-kraft---không-cần-zookeeper
+    - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#9-nếu-demo-bằng-javaspring-stack-của-katalon
 
 sections:
   # ---------------------------------------------------------------- README của folder system design
@@ -249,3 +254,18 @@ sections:
     title: "07 · Ranh giới trung thực"
     points:
       - {id: t-honest, text: "Mọi số là phép tính từ giả định (20 cặp, 1 KB, 0,2 ms); ngưỡng là bậc độ lớn; P01/P04 là số đo thật nhưng nhân lên là ước lượng; giá là giá niêm yết; không có demo ở 10M/100M: nói 'tôi sẽ dựng và đo thế này', không nói 'tôi đã chạy'", expect: ["assumptions", "orders of magnitude", "real measurements", "list prices", "I would build", "I ran it"]}
+
+  # ---------------------------------------------------------------- Phần 2: Thực chiến Code & Sửa lỗi Kafka
+  - src: ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#1-kiến-trúc-luồng-dữ-liệu-data-flow
+    title: "09 · Kiến trúc luồng dữ liệu & setup pipeline"
+    points:
+      - {id: k-ingest-setup, text: "Setup Kafka KRaft và Spring Boot 3: chạy KRaft độc lập không ZooKeeper; Ingestion REST API nhận mảng 20 items; KafkaTemplate gom lô với linger.ms=20, batch.size=65536, acks=all, compression snappy để đạt throughput cao", expect: ["KRaft", "ZooKeeper", "Spring Boot", "Ingestion", "linger.ms", "batch.size", "acks=all", "snappy"]}
+
+  - src: ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix
+    title: "09 · 5 sự cố production và cách fix bằng code"
+    points:
+      - {id: k-skew-fix, text: "Lỗi Skew Partition: key theo tenant_id khiến Big Tenant chiếm 40% dồn hết vào 1 partition; sửa: dùng BatchIdPartitioner chia theo batch_id, tải chia đều 25% mỗi partition", expect: ["tenant_id", "40%", "one partition", "BatchIdPartitioner", "batch_id", "25%"]}
+      - {id: k-rebalance-fix, text: "Lỗi P20 và Rebalance Storm: xử lý đồng bộ từng message tốn 10s vượt max.poll.interval.ms dẫn tới CommitFailedException; sửa: BatchEventConsumer nhận List ConsumerRecord và batch update DB trong vài chục ms", expect: ["P20", "10s", "max.poll.interval.ms", "CommitFailedException", "BatchEventConsumer", "batch update"]}
+      - {id: k-poison-pill-dlt, text: "Lỗi Poison Pill làm sập Consumer: payload lỗi JSON gây lặp crash vô tận (Head-of-Line Blocking); sửa: ErrorHandlingDeserializer + DeadLetterPublishingRecoverer đẩy sang .DLT sau retry", expect: ["Poison Pill", "Head-of-Line Blocking", "ErrorHandlingDeserializer", "DeadLetterPublishingRecoverer", ".DLT"]}
+      - {id: k-idempotent-greatest, text: "Lỗi đếm trùng do network retry: sửa bằng bảng processed_batch và cập nhật lũy kế GREATEST; retry 40 batch bị bỏ qua hoàn toàn, reconcile_drift bằng 0", expect: ["processed_batch", "GREATEST", "reconcile_drift = 0"]}
+      - {id: k-backpressure-drill, text: "Chống tràn buffer Kafka Producer: tích hợp Token Bucket rate limiter ở REST API trả 429 khi burst vượt ngưỡng; drill xử lý sự cố lag qua JMX metric và consumer group", expect: ["Token Bucket", "429", "buffer", "JMX", "consumer lag"]}

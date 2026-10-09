@@ -10,7 +10,8 @@
 > thời gian bất kỳ, cần số **chính xác**.
 >
 > Video chen ngang dạy file này: [java-system-design/video-katalon](../../java-system-design/video-katalon/00-ke-hoach-va-lich-su.md)
-> (Tom hỏi, Emma trả lời). Nối với lộ trình: [§9](#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2).
+> (Tom hỏi, Emma trả lời, 14 video K00–K13). Nối với lộ trình: [§9](#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2).
+> Mã nguồn thực chiến & 5 bài toán fix bug: [katalon-prep-java/09-kafka-pipeline](../katalon-prep-java/09-kafka-pipeline/README.md) (Spring Boot 3 + KRaft, 8 test pass).
 
 ---
 

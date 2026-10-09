@@ -1,0 +1,212 @@
+id: k11-poison-pill-and-dlt
+ep: 11
+week: 11
+tag: "K11 · POISON PILL & DLT"
+title: "Poison pill isolation and non-blocking dead letter topics"
+subtitle: "Stop malformed messages from blocking consumer groups with ErrorHandlingDeserializer and DLT"
+covers:
+  - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 09 · PoisonPillDltTest & PoisonPillConfig"}
+      - {t: "Isolating corrupt payloads with Dead Letter Topics"}
+    lines:
+      - tom: "Episode K11. A malformed JSON message lands on a partition, crashing your consumer group over and over. How do you prevent head-of-line blocking?"
+      - emma: "This is the classic poison pill failure mode. We isolate bad payloads using Spring Kafka's ErrorHandlingDeserializer and Dead Letter Topics."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: DLT, full: "Dead Letter Topic", vi: "topic lưu trữ message lỗi để kiểm tra sau"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu văn bản phổ biến"}
+      - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo Java thực thi bytecode"}
+      - {abbr: OOM, full: "Out Of Memory", vi: "lỗi cạn kiệt bộ nhớ heap"}
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn cơ sở dữ liệu"}
+    lines:
+      - emma: "A DLT is a Dead Letter Topic where unprocessable messages are redirected for audit and replay."
+        focus: 0
+      - emma: "JSON is our serialization payload format, JVM is the runtime engine, OOM represents an out of memory failure, and SQL is Structured Query Language."
+        focus: 4
+
+  - kind: exercise
+    chapter: "The failure mode"
+    label: "Poison Pill Vulnerability"
+    q: "A producer sends truncated JSON to a topic. What happens to standard Kafka consumers, and how do you prevent pipeline freeze?"
+    items:
+      - {t: "Malformed record arrives at offset 42"}
+      - {t: "Standard Jackson deserializer throws SerializationException"}
+      - {t: "What happens on the very next poll() call?"}
+    lines:
+      - tom: "A buggy client sends truncated JSON to partition two. What happens when your consumer group reads that message?"
+      - emma: "Because deserialization happens inside the Kafka consumer poll method before reaching your listener code, the exception crashes the poll loop."
+      - wait: 7
+        note: "Offset 42 is never committed. The next poll reads offset 42 again: infinite crash loop!"
+
+  - kind: bullets
+    chapter: "Head-of-line blocking"
+    heading: "The anatomy of head-of-line blocking"
+    items:
+      - {t: "Deserialization crash", s: "Jackson throws SerializationException inside consumer.poll()"}
+      - {t: "Uncommitted offset", s: "Because the listener never executed, offset 42 is never committed"}
+      - {t: "Infinite crash loop", s: "Every subsequent poll fetches offset 42 again and crashes immediately"}
+      - {t: "Partition paralysis", s: "Fifty thousand valid records queued behind offset 42 are blocked forever"}
+    lines:
+      - emma: "This failure is called head-of-line blocking. Because offset forty-two cannot be deserialized, the consumer never commits past it."
+        focus: 1
+      - tom: "So even if the next fifty thousand messages in the partition are perfectly valid, none of them will ever be processed?"
+      - emma: "Exactly. One single malformed byte payload completely paralyzes processing for all tenants sharing that partition until a developer manually intervenes."
+        focus: 3
+      - tom: "And restarting the consumer container does not solve anything, because Kafka will just deliver offset forty-two again immediately after boot."
+      - emma: "That is why automatic poison pill routing is mandatory for mission-critical ingestion pipelines."
+        focus: 3
+
+  - kind: code
+    chapter: "ErrorHandlingDeserializer"
+    heading: "Safe deserialization configuration"
+    code: |
+      spring:
+        kafka:
+          consumer:
+            key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+            properties:
+              spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+    items:
+      - {lines: [4, 5], t: "Configures ErrorHandlingDeserializer as the outer wrapper"}
+      - {lines: [6, 7], t: "Delegates JSON parsing to inner JsonDeserializer"}
+    lines:
+      - tom: "How does ErrorHandlingDeserializer change this behavior?"
+        focus: 0
+      - emma: "ErrorHandlingDeserializer wraps the standard JSON deserializer. If parsing fails, instead of throwing an exception out of poll, it catches the error and attaches it to the record headers."
+        focus: 1
+      - emma: "This allows the poll method to complete successfully and passes the error context directly into Spring's error handler pipeline."
+
+  - kind: code
+    chapter: "DLT recovery"
+    heading: "DeadLetterPublishingRecoverer in PoisonPillConfig.java"
+    code: |
+      @Bean
+      public DefaultErrorHandler errorHandler(KafkaTemplate<Object, Object> template) {
+        DeadLetterPublishingRecoverer recoverer =
+            new DeadLetterPublishingRecoverer(template,
+                (rec, ex) -> new TopicPartition(rec.topic() + ".DLT", rec.partition()));
+        // Retry twice with 1s backoff, then publish to .DLT
+        return new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 2));
+      }
+    items:
+      - {lines: [3, 5], t: "DeadLetterPublishingRecoverer routes failed records to .DLT"}
+      - {lines: [6, 7], t: "Retries transient errors twice, then publishes poison pill to DLT"}
+    points: [k-poison-pill-dlt]
+    lines:
+      - emma: "In production, a Poison Pill causes Head-of-Line Blocking. We configure ErrorHandlingDeserializer and DeadLetterPublishingRecoverer to route corrupt payloads to .DLT after retries."
+        focus: 0
+      - tom: "Notice that the recoverer preserves the original partition number by routing to topic dot DLT on the matching partition index."
+        focus: 1
+      - emma: "Once published to the dead letter topic, Spring commits the main topic offset, allowing the consumer to advance immediately to valid messages."
+
+  - kind: table
+    chapter: "DLT headers"
+    heading: "Preserved forensic metadata in DLT"
+    columns: ["Header key", "Sample content", "Operational purpose"]
+    rows:
+      - ["kafka_dlt-original-topic", "events.ingest", "Identifies source topic for re-drive tools"]
+      - ["kafka_dlt-original-partition", "2", "Preserves partition alignment for ordering"]
+      - ["kafka_dlt-original-offset", "42", "Pinpoints exact offset where error occurred"]
+      - ["kafka_dlt-exception-fqcn", "MismatchedInputException", "Full exception class for automated alerting"]
+      - ["kafka_dlt-exception-message", "Unexpected character '{'...", "Exact parser error diagnostic"]
+    note: "The original raw byte payload is preserved completely untouched in the DLT value"
+    lines:
+      - emma: "When a message lands in the dead letter topic, Spring Kafka attaches extensive forensic headers."
+        focus: 0
+      - tom: "Engineers can see the exact exception class, error message, original partition, and original offset without needing to grep through gigabytes of application logs."
+        focus: 3
+      - emma: "And because the raw payload bytes are untouched, fixing the bug allows you to replay the exact message later."
+
+  - kind: compare
+    chapter: "Handling alternatives"
+    heading: "Poison pill handling strategies"
+    items:
+      - title: "Log and Drop"
+        lines:
+          - "Unblocks consumer partition"
+          - "Permanent silent data loss"
+          - "Impossible to audit or recover"
+        tone: bad
+      - title: "Infinite Retry"
+        lines:
+          - "Zero data loss"
+          - "Perpetual partition lockup"
+          - "Consumer lag climbs to infinity"
+        tone: bad
+      - title: "Dead Letter Topic (.DLT)"
+        lines:
+          - "Zero partition downtime"
+          - "Full forensic audit trail"
+          - "Automated alerting and replayable"
+        tone: good
+    lines:
+      - tom: "Why not simply catch the exception and log a warning in the consumer?"
+      - emma: "Dropping messages silently creates data loss that financial auditors and customers will eventually discover. Logging alone provides no mechanism to replay the lost records."
+      - emma: "A Dead Letter Topic keeps the main pipeline running at full speed while preserving every byte for analysis and remediation."
+
+  - kind: stats
+    chapter: "Verified test metrics"
+    heading: "Metrics from PoisonPillDltTest"
+    sub: "10 valid batches plus 1 poisoned payload"
+    items:
+      - {v: "11 / 11", l: "Main topic offset", s: "100% committed with zero lag", tone: good}
+      - {v: "10", l: "Valid batches saved", s: "Processed into database without delay", tone: good}
+      - {v: "1", l: "Poison records in DLT", s: "Diverted to events.ingest.DLT", tone: warn}
+      - {v: "0", l: "Head-of-line delays", s: "Valid messages processed immediately", tone: good}
+    lines:
+      - emma: "In our integration test suite, we sent ten valid batches and injected one corrupt payload in the middle."
+        focus: 1
+      - emma: "All eleven offsets committed cleanly. The ten valid batches saved to the database, and the single corrupt record routed to the dead letter topic."
+        focus: 2
+      - tom: "Total lag on the main topic remained at zero throughout the test."
+
+  - kind: pattern
+    chapter: "Re-drive tooling"
+    heading: "Production re-drive workflow"
+    bad: |
+      // ANTI-PATTERN: Ignoring DLT alerts until disk fills
+      // 100,000 corrupt messages accumulate silently
+      // Nobody inspects DLT topic for six months
+    good: |
+      // OPERATIONAL EXCELLENCE:
+      // 1. Alert when DLT rate > 0.01%
+      // 2. Fix producer schema bug or parser logic
+      // 3. Run replay batch consumer from .DLT back to main topic
+    lines:
+      - tom: "What is the biggest operational mistake teams make after setting up a dead letter topic?"
+        focus: 0
+      - emma: "Treating the dead letter topic as a garbage dump and ignoring it. Without monitoring, dead letter topics fill disk storage silently."
+        focus: 1
+      - emma: "Set a Prometheus alert on dead letter message rates, investigate errors promptly, and build an automated replay tool to re-drive fixed messages."
+
+  - kind: bullets
+    chapter: "How to run the test"
+    heading: "Verifying poison pill recovery"
+    items:
+      - {t: "Run test suite", s: "mvn test -Dtest=PoisonPillDltTest"}
+      - {t: "Simulates corrupt JSON", s: "Confirms that malformed bytes do not crash the consumer"}
+      - {t: "Asserts DLT arrival", s: "Validates that the poison pill arrives on the dead letter topic with error headers"}
+    lines:
+      - tom: "How can engineers test this isolation mechanism locally?"
+      - emma: "Run PoisonPillDltTest in module zero nine. It verifies that malformed records divert to the dead letter topic while valid records continue flowing seamlessly."
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Poison pill recap"
+    items:
+      - {t: "ErrorHandlingDeserializer", s: "Catches serialization failures before they crash the poll loop"}
+      - {t: "DeadLetterPublishingRecoverer", s: "Redirects corrupt payloads to topic.DLT with full error headers"}
+      - {t: "Zero head-of-line blocking", s: "Main consumer group continues committing valid records"}
+      - {t: "Alert and re-drive", s: "Monitor DLT traffic and replay records once the root cause is resolved"}
+    lines:
+      - tom: "To recap episode K11: use ErrorHandlingDeserializer and Dead Letter Topics to isolate bad records, preventing head-of-line blocking."
+      - emma: "In episode K12, we explore consumer retries, duplicate delivery, and achieving exact counts with SQL GREATEST upserts."

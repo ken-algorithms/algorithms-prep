@@ -1,0 +1,221 @@
+id: k09-fixing-partition-skew
+ep: 9
+week: 11
+tag: "K09 · FIXING SKEW"
+title: "The skewed partition bug: custom partitioners and fixing hotspots"
+subtitle: "How keying by tenant overloads a single partition, and how batch_id balances 100% of the load"
+covers:
+  - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 09 · PartitionSkewTest"}
+      - {t: "Reproducing and fixing partition skew"}
+    lines:
+      - tom: "Episode K09. In production, a large customer generates massive traffic. What happens if you partition by tenant, and how do you fix the hotspot?"
+      - emma: "Keying by tenant concentrates forty percent of traffic on one partition. We solve this by switching to a batch identifier partitioner."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: CPU, full: "Central Processing Unit", vi: "bộ vi xử lý trung tâm"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: JMX, full: "Java Management Extensions", vi: "chuẩn theo dõi chỉ số ứng dụng Java"}
+      - {abbr: JVM, full: "Java Virtual Machine", vi: "máy ảo Java thực thi bytecode"}
+      - {abbr: RAM, full: "Random-Access Memory", vi: "bộ nhớ truy xuất ngẫu nhiên"}
+      - {abbr: RPS, full: "requests per second", vi: "số request mỗi giây"}
+      - {abbr: SLO, full: "Service Level Objective", vi: "mục tiêu mức độ dịch vụ"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã định danh ngẫu nhiên 128 bit"}
+    lines:
+      - emma: "An ID is an identifier, and a UUID is a universally unique identifier used as our request batch key."
+        focus: 7
+      - emma: "CPU is the processor, RAM is memory, JVM is the virtual machine, and JMX provides real-time broker metrics."
+        focus: 3
+      - emma: "RPS measures requests per second, and an SLO is our internal service level objective."
+        focus: 6
+
+  - kind: exercise
+    chapter: "The failure mode"
+    label: "Partition Skew Problem"
+    q: "Why does partition key = tenant_id break under scale, and why is batch_id safe for event counting?"
+    items:
+      - {t: "Tenant A has 40% of all traffic"}
+      - {t: "Do we need total ordering across all batches of the same tenant?"}
+      - {t: "What happens to consumer thread lag on the overloaded partition?"}
+    lines:
+      - tom: "Why does tenant partitioning break down when one tenant generates forty percent of the load?"
+      - emma: "When one enterprise customer produces forty percent of the events, Kafka assigns all their records to a single partition. That partition becomes the bottleneck of the entire platform."
+      - wait: 7
+        note: "Does event counting require order per tenant? No, aggregation only counts totals."
+
+  - kind: stats
+    chapter: "The skew numbers"
+    heading: "Live metrics from PartitionSkewTest"
+    sub: "10,000 requests processed across 4 partitions with key = tenant_id"
+    items:
+      - {v: "1,560", l: "Partition 0", s: "15.6% of events (normal tenants)"}
+      - {v: "1,560", l: "Partition 1", s: "15.6% of events (normal tenants)"}
+      - {v: "1,440", l: "Partition 2", s: "14.4% of events (normal tenants)"}
+      - {v: "5,440", l: "Partition 3 (Hotspot)", s: "54.4% of events (Big Tenant)", tone: bad}
+    lines:
+      - emma: "Look at the real data captured in our unit test suite. Partitions zero, one, and two received about fifteen percent of the load each."
+        focus: 2
+      - emma: "Partition three received five thousand four hundred records, representing over fifty-four percent of the entire cluster workload."
+        focus: 3
+      - tom: "That means the consumer worker assigned to partition three is working four times harder than the other three workers."
+
+  - kind: bullets
+    chapter: "Why tenant key breaks"
+    heading: "The celebrity tenant problem"
+    items:
+      - {t: "Fixed hash assignment", s: "Default partitioner hashes tenant_id to one deterministic partition"}
+      - {t: "Consumer CPU saturation", s: "Worker handling the hotspot partition pegs at 100% CPU"}
+      - {t: "Cluster underutilization", s: "Three out of four workers sit idle waiting for records"}
+      - {t: "Lag avalanche", s: "Consumer lag on partition three climbs continuously until latency SLO breaches"}
+    lines:
+      - emma: "In production, this is called the celebrity tenant problem. Because Kafka hashes keys deterministically, all traffic for tenant A always lands on partition three."
+        focus: 0
+      - tom: "Can you simply add more partitions to fix this?"
+      - emma: "No! Adding more partitions does not help at all. Tenant A will still hash to exactly one partition, leaving the extra partitions completely empty."
+        focus: 1
+      - tom: "The bottleneck is not broker capacity, it is uneven key distribution."
+        focus: 3
+      - emma: "When partition three lags behind, customer dashboards display stale counts, and p99 latency degrades from twenty milliseconds to several minutes."
+
+  - kind: table
+    chapter: "Ordering requirements"
+    heading: "Do we need tenant-level ordering?"
+    columns: ["System requirement", "Strict ordering needed?", "Mathematical reason"]
+    rows:
+      - ["Financial ledger / balance transfer", "Yes", "Sequence matters: debit must precede credit"]
+      - ["Order state machine (Created -> Paid)", "Yes", "State transitions must execute sequentially"]
+      - ["Event counter (True / False / Fake)", "No", "Addition is commutative: A + B equals B + A"]
+      - ["Windowed rollups (minute / hour)", "No", "Aggregates merge independent totals per bucket"]
+    note: "For counting and analytics, requiring ordering per tenant is an expensive false requirement"
+    lines:
+      - tom: "Why did the original architect partition by tenant identifier in the first place?"
+      - emma: "Engineers often assume that events from the same tenant must stay in strict order. But for event counting and analytics, addition is commutative and associative."
+        focus: 2
+      - emma: "Whether batch A arrives before batch B or after batch B, the resulting sum in our minute bucket is identical. Strict ordering was never required."
+        focus: 3
+      - tom: "So ordering is only necessary when downstream state transitions are non-commutative."
+
+  - kind: code
+    chapter: "The bad partitioner"
+    heading: "TenantKeyPartitioner: the hotspot culprit"
+    code: |
+      public class TenantKeyPartitioner implements Partitioner {
+        @Override
+        public int partition(String topic, Object key, byte[] keyBytes,
+                             Object value, byte[] valueBytes, Cluster cluster) {
+          int numPartitions = cluster.partitionCountForTopic(topic);
+          String tenantId = (String) key;
+          // FLUID HOTSPOT: All batches of big tenant land on 1 partition!
+          return Math.abs(tenantId.hashCode()) % numPartitions;
+        }
+      }
+    items:
+      - {lines: [1, 4], t: "Custom partitioner reading tenantId string key"}
+      - {lines: [7, 8], t: "Deterministic hash locks every request of a tenant to one partition"}
+    lines:
+      - tom: "Here is the exact code from TenantKeyPartitioner that created the failure."
+        focus: 0
+      - emma: "By taking the hash code of the tenant identifier, any enterprise tenant with high volume saturates their assigned partition while other partitions starve."
+        focus: 1
+      - tom: "And because partition assignment is sticky to consumer threads, one core does all the work."
+
+  - kind: code
+    chapter: "Fixing hotspot skew"
+    heading: "BatchIdPartitioner: balanced distribution"
+    code: |
+      public class BatchIdPartitioner implements Partitioner {
+        @Override
+        public int partition(String topic, Object key, byte[] keyBytes,
+                             Object value, byte[] valueBytes, Cluster cluster) {
+          int numPartitions = cluster.partitionCountForTopic(topic);
+          EventBatch batch = (EventBatch) value;
+          // UNIFORM SPREAD: Unique UUID batch_id spreads load evenly
+          return Math.abs(batch.batchId().hashCode()) % numPartitions;
+        }
+      }
+    items:
+      - {lines: [1, 4], t: "Partitioner inspecting EventBatch payload"}
+      - {lines: [7, 8], t: "Hashes unique batchId UUID to distribute evenly across all partitions"}
+    points: [k-skew-fix]
+    lines:
+      - emma: "Here is the fix. In production, keying by tenant_id when Big Tenant has 40% traffic concentrates everything on one partition. With BatchIdPartitioner, partitioning on batch_id distributes the load evenly to 25% on each partition."
+        focus: 1
+      - tom: "Because every request receives a random UUID batch identifier, the hash spreads requests uniformly across the partition space."
+        focus: 0
+      - emma: "This guarantees that even if a single enterprise client generates ninety percent of global volume, their traffic divides equally across all consumer workers."
+
+  - kind: compare
+    chapter: "Salting vs batch id"
+    heading: "Architectural options for hot keys"
+    items:
+      - title: "Keep tenant_id (Unchanged)"
+        lines:
+          - "Strict order preserved per tenant"
+          - "Catastrophic partition hotspot (54% on 1 partition)"
+          - "Unusable above 10,000 RPS"
+        tone: bad
+      - title: "Key Salting (tenant_id + salt)"
+        lines:
+          - "Appends random salt (0 to N)"
+          - "Distributes tenant across N partitions"
+          - "Downstream consumer must merge N streams"
+        tone: neutral
+      - title: "Batch ID Partitioner (Recommended)"
+        lines:
+          - "Key is unique request batch UUID"
+          - "Perfect statistical balance (1.08x ratio)"
+          - "Zero downstream reassembly overhead"
+        tone: good
+    lines:
+      - tom: "How does batch identifier partitioning compare with key salting?"
+      - emma: "Key salting appends a random suffix like zero to three to the tenant identifier. That helps, but downstream consumers must know how to de-salt and merge partitions."
+      - emma: "Using the batch identifier directly is much simpler and achieves statistically perfect uniformity without any downstream overhead."
+      - tom: "And because each batch contains twenty event items from that tenant, batch efficiency remains intact."
+
+  - kind: stats
+    chapter: "Balanced results"
+    heading: "Verification in PartitionSkewTest"
+    sub: "10,000 requests processed with BatchIdPartitioner"
+    items:
+      - {v: "2,573", l: "Partition 0", s: "25.7% of total load", tone: good}
+      - {v: "2,387", l: "Partition 1", s: "23.9% of total load", tone: good}
+      - {v: "2,453", l: "Partition 2", s: "24.5% of total load", tone: good}
+      - {v: "2,587", l: "Partition 3", s: "25.9% of total load", tone: good}
+    lines:
+      - emma: "Look at the test output after switching to BatchIdPartitioner. Every partition handles almost exactly twenty-five hundred records, within one percent of the ideal mean."
+        focus: 1
+      - tom: "The maximum partition dropped from fifty-four percent down to twenty-five point nine percent. The skew ratio dropped from nearly four to one down to one point zero eight."
+      - emma: "All four consumer CPU cores now run at balanced sixty percent utilization instead of one core at one hundred percent and three cores idling."
+
+  - kind: bullets
+    chapter: "Monitoring skew in production"
+    heading: "JMX metrics for partition balance"
+    items:
+      - {t: "BytesInPerSec per partition", s: "Check kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec,partition=*"}
+      - {t: "Consumer lag delta", s: "Alert if max partition lag exceeds cluster average lag by 3x"}
+      - {t: "Automated alert threshold", s: "Trigger alert if standard deviation of partition rates exceeds 20%"}
+    lines:
+      - tom: "How should operations teams monitor for partition skew before it causes production incidents?"
+      - emma: "Query JMX broker metrics for bytes in per second per partition. If the standard deviation across partitions exceeds twenty percent, you have an active key hotspot."
+      - tom: "And on the consumer side?"
+      - emma: "Monitor records lag max per partition. If one partition shows growing lag while others remain at zero, partition skew is the culprit."
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Partition skew recap"
+    items:
+      - {t: "Question ordering assumptions", s: "Event counting does not require ordering per tenant"}
+      - {t: "Beware celebrity tenants", s: "Natural tenant distributions follow power law distributions"}
+      - {t: "Use batch identifier keys", s: "UUID batch keys eliminate hotspots completely"}
+      - {t: "Monitor with JMX", s: "Track byte rate per partition to catch skew early"}
+    lines:
+      - tom: "To recap episode K09: keying by tenant creates massive hotspots under celebrity tenants. Switching to batch identifier keys balances the load across all partitions."
+      - emma: "In episode K10, we examine consumer lag and how slow database writes trigger the destructive P20 rebalance storm."
