@@ -7,7 +7,8 @@
 > Liên quan: [03 — Real-time Analytics Dashboard](03-realtime-analytics-dashboard.md) — cùng **họ
 > bài toán**, phát biểu ở mức tổng quát; file này là bản đào sâu của đúng câu đã bị hỏi.
 > [05 — Hệ thống thật all-in-one trên AWS](05-he-thong-that-allinone-aws.md) — hạ tầng thật của bạn.
-> [README của folder](README.md) — bản đồ 6 họ bài system design.
+> [README của folder](README.md) — bản đồ 7 họ bài system design.
+> [07 — Event Counting 10M và 100M/phút](07-event-counting-10m-100m.md) — câu follow-up *"tải tăng 1.000 lần, 10.000 lần thì sao?"*.
 
 ---
 
@@ -1130,6 +1131,7 @@ thành bài take-home thì viết Java. Kiến trúc **không đổi**, chỉ đ
 > 330k event/s thì một node Postgres không đủ. Chuyển sang Kafka + stream processor + ClickHouse.
 > Nhưng kiến trúc logic **không đổi** — vẫn là ghi tách khỏi tính, vẫn bucket theo event time, vẫn
 > rollup nhiều tầng. Chỉ đổi công cụ hiện thực. Và tôi sẽ không làm việc đó ở tải 3.3k event/s.
+> *(10M và 100M request/phút — × 1.000 và × 10.000 — đi từng bước ở [07](07-event-counting-10m-100m.md#4-cái-gì-vỡ-trước--đi-từng-bước--10).)*
 
 **C2. "Vì sao không dùng Kafka ngay từ đầu?"**
 > Vì tải hiện tại là 167 request/giây. Kafka thêm ba thứ phải vận hành để đổi lấy công suất không

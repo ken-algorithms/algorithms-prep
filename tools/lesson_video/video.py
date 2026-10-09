@@ -34,7 +34,7 @@ def _meta(lesson: Lesson, tl: Timeline) -> str:
     def esc(s: str) -> str:
         return "".join("\\" + ch if ch in "=;#\\\n" else ch for ch in s)
 
-    out = [";FFMETADATA1", "title=" + esc(f"Ep{lesson.ep:02d} · {lesson.title}"),
+    out = [";FFMETADATA1", "title=" + esc(f"{lesson.code} · {lesson.title}"),
            "comment=" + esc(lesson.subtitle)]
     ends = [t for t, _ in tl.chapters[1:]] + [tl.total]
     for (t, name), end in zip(tl.chapters, ends):
@@ -111,6 +111,7 @@ def manifest_entry(lesson: Lesson, tl: Timeline, mp4: Path, yaml_name: str, voic
     return {
         "id": lesson.id,
         "ep": lesson.ep,
+        "code": lesson.code,
         "week": lesson.week,
         "title": lesson.title,
         "subtitle": lesson.subtitle,

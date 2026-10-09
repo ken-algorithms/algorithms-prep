@@ -54,7 +54,7 @@ Java `05`(postgres)→`02`(quarkus)→`03`(spring)→`06`(distributed) → drill
 - [**katalon-system-design/**](katalon-system-design/) ⭐ — **mọi bài system design gom về một
   folder, phân loại theo họ.** Bắt đầu bằng [README](katalon-system-design/README.md): **5 trục
   nhận diện** (ghi/đọc · điểm/khoảng · tài nguyên tranh nhau · tuyệt đối/xấp xỉ · đọc-tính-ghi) và
-  **7 họ bài** — thứ dùng được cho cả đề **chưa từng thấy**. Sáu file:
+  **7 họ bài** — thứ dùng được cho cả đề **chưa từng thấy**. Bảy file:
   [01 TrueTest journey mining](katalon-system-design/01-truetest-journey-mining.md) (bài on-domain
   quan trọng nhất) · [02 Distributed test execution](katalon-system-design/02-distributed-test-execution.md)
   (fairness, WFQ/DRR, LPT bin-packing, *"10.000 test cùng lúc"*) ·
@@ -68,7 +68,11 @@ Java `05`(postgres)→`02`(quarkus)→`03`(spring)→`06`(distributed) → drill
   (**lỗi thật trong `all-in-one-v2`** — batch tính lãi đua với thanh toán. *Phần I:* 7 phát hiện có
   file:line, thang 5 bậc giải pháp, balance real-time đúng, STAR 90 giây. *Phần II — thiết kế lại
   từ đầu:* đổi định nghĩa để race biến mất, batch chỉ phát lệnh chứ không tính, scale khi posting
-  tăng vô hạn, kiến trúc AWS 11 bước có Terraform).
+  tăng vô hạn, kiến trúc AWS 11 bước có Terraform) ·
+  [**07 Event counting 10M và 100M/phút**](katalon-system-design/07-event-counting-10m-100m.md) (câu follow-up
+  *"10M thì sao, 100M thì sao"*: thang × 10 tới × 10.000, cái gì vỡ trước, kiến trúc 10M và 100M, họ C khi tải lớn,
+  bản đồ nối với lộ trình Java System Design; có
+  [8 video chen ngang](../java-system-design/video-katalon/00-ke-hoach-va-lich-su.md), Tom hỏi, Emma trả lời).
 
 **Giai đoạn 3 — trước vòng cuối/mock** (chưa có ngày riêng trong lộ trình — tự thêm)
 

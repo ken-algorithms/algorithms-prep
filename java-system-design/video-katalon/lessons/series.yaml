@@ -1,0 +1,7 @@
+# Giá trị chung cho mọi kịch bản của bộ video chen ngang Katalon (tools/lesson_video gộp vào từng kịch bản).
+# Hai người nói: Tom (giọng của giai đoạn 1) đóng vai interviewer, Emma (giọng của giai đoạn 2) là ứng viên.
+series: "Java System Design · Katalon interlude"
+prefix: K
+speakers:
+  tom: {name: Tom, role: interviewer, color: "#1F5FAD", voice: {kokoro: am_michael}}
+  emma: {name: Emma, role: candidate, color: "#A23B72", voice: {kokoro: af_heart}}

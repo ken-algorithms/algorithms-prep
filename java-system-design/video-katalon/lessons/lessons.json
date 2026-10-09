@@ -1,0 +1,1068 @@
+{
+ "schema": "jsd-lessons/1",
+ "note": "Sinh bởi tools/lesson_video từ các file .yaml cùng thư mục — sửa kịch bản rồi chạy lại `python -m lesson_video build`, không sửa tay file này hay file .mp4.",
+ "lessons": [
+  {
+   "id": "k00-interlude-orientation",
+   "ep": 0,
+   "code": "K00",
+   "week": 4,
+   "title": "Katalon interlude: the question after 10k a minute",
+   "subtitle": "Families A and C, the follow-up “what if it's 10 million? 100 million?”, and how to practice",
+   "file": "k00-interlude-orientation.mp4",
+   "poster": "k00-interlude-orientation.jpg",
+   "source": "k00-interlude-orientation.yaml",
+   "duration": 284.1,
+   "bytes": 4051608,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 25.5,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 38.6,
+     "title": "The question"
+    },
+    {
+     "t": 81.5,
+     "title": "Five axes"
+    },
+    {
+     "t": 129.6,
+     "title": "Families A and C"
+    },
+    {
+     "t": 180.6,
+     "title": "Three loads"
+    },
+    {
+     "t": 209.1,
+     "title": "Eight videos"
+    },
+    {
+     "t": 231.8,
+     "title": "How to practice"
+    },
+    {
+     "t": 269.4,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/README.md#1-nhận-họ-bài-trong-30-giây--5-trục-phân-loại",
+    "../katalon-prep/katalon-system-design/README.md#2-bảy-họ-bài--chữ-ký-nhận-dạng-lõi-giải-pháp-bẫy-kinh-điển",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#0-đọc-trong-60-giây"
+   ],
+   "points": [
+    {
+     "id": "k-question",
+     "t": 38.6,
+     "text": "Đề hỏi thật ở vòng Principal: ~10.000 request/phút, mỗi request một list key-value true/false, có fake key; bất kỳ lúc nào hỏi được số true/false/fake trong 24 giờ hoặc khoảng bất kỳ. Câu trả lời tại chỗ (một counter, lock, đọc bản ghi cuối) bị bác; follow-up: 10M? 100M?",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#0-đề-bài-và-những-gì-đề-bài-không-nói",
+     "section": "04 · Đề bài"
+    },
+    {
+     "id": "k-axes",
+     "t": 81.5,
+     "text": "5 trục nhận họ bài chạy trên đề 10k/phút: ghi ≫ đọc (ghi bất đồng bộ, 202); đọc theo khoảng (bucket + rollup); không tranh tài nguyên; chính xác (raw, idempotent, đối soát); không đọc–tính–ghi (không khoá)",
+     "src": "../katalon-prep/katalon-system-design/README.md#1-nhận-họ-bài-trong-30-giây--5-trục-phân-loại",
+     "section": "README · 5 trục phân loại"
+    },
+    {
+     "id": "k-family-a",
+     "t": 129.6,
+     "text": "Họ A (đếm & tổng hợp theo thời gian): ghi nặng, đọc theo khoảng bất kỳ; bucket thời gian + rollup phút → giờ → ngày + phân rã khoảng; bẫy: cardinality explosion, lưu tỉ lệ, bucket theo ingest time",
+     "src": "../katalon-prep/katalon-system-design/README.md#2-bảy-họ-bài--chữ-ký-nhận-dạng-lõi-giải-pháp-bẫy-kinh-điển",
+     "section": "README · Bảy họ bài"
+    },
+    {
+     "id": "k-family-c",
+     "t": 129.6,
+     "text": "Họ C (thu thập luồng sự kiện): nguồn không kiểm soát; backpressure + at-least-once + sink idempotent + partition key giữ thứ tự đúng phạm vi; bẫy: hàng đợi vô hạn, partition nóng, PII rời client trước khi redact",
+     "src": "../katalon-prep/katalon-system-design/README.md#2-bảy-họ-bài--chữ-ký-nhận-dạng-lõi-giải-pháp-bẫy-kinh-điển",
+     "section": "README · Bảy họ bài"
+    },
+    {
+     "id": "k-ladder-preview",
+     "t": 180.6,
+     "text": "Cùng hợp đồng, ba mức tải (20 cặp/request): 10k/phút = 3.333 event/s; 10M/phút = 3,3 triệu event/s (× 1.000, 166.667 req/s); 100M/phút = 33 triệu event/s (× 10.000, 1,67 triệu req/s); bảng trả lời truy vấn không lớn thêm",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#0-đọc-trong-60-giây",
+     "section": "07 · Đọc trong 60 giây"
+    },
+    {
+     "id": "k-plan",
+     "t": 209.1,
+     "text": "Thứ tự xem: K00–K02 sau giai đoạn 1 (ước lượng, × 10, Postgres); K03–K07 sau giai đoạn 2 (Kafka, stream window, fencing)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "k-practice",
+     "t": 231.8,
+     "text": "Cách luyện: Tom hỏi thì dừng và trả lời thành tiếng 2 phút có số; nói giả định trước con số; trả lời × 10 bằng năm câu; gọi tên bài học gốc (slide Built on)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#0-đọc-trong-60-giây",
+     "section": "07 · Đọc trong 60 giây"
+    }
+   ]
+  },
+  {
+   "id": "k01-baseline-10k",
+   "ep": 1,
+   "code": "K01",
+   "week": 4,
+   "title": "The 10k baseline in three minutes",
+   "subtitle": "Problem 04 as a mock answer: clarify, estimate, three principles, and right-sizing",
+   "file": "k01-baseline-10k.mp4",
+   "poster": "k01-baseline-10k.jpg",
+   "source": "k01-baseline-10k.yaml",
+   "duration": 332.1,
+   "bytes": 4692352,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 14.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 24.7,
+     "title": "Clarify"
+    },
+    {
+     "t": 56.6,
+     "title": "Four holes"
+    },
+    {
+     "t": 91.2,
+     "title": "Estimate"
+    },
+    {
+     "t": 120.7,
+     "title": "Design"
+    },
+    {
+     "t": 152.6,
+     "title": "Three principles"
+    },
+    {
+     "t": 193.8,
+     "title": "Any range"
+    },
+    {
+     "t": 226.3,
+     "title": "Right-sizing"
+    },
+    {
+     "t": 269.1,
+     "title": "Four sentences"
+    },
+    {
+     "t": 293.4,
+     "title": "Built on"
+    },
+    {
+     "t": 320.4,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#0-đề-bài-và-những-gì-đề-bài-không-nói",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#1-vì-sao-câu-trả-lời-cũ-bị-bác--4-lỗ-hổng",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#2-trước-khi-vẽ-6-câu-hỏi-phải-hỏi-interviewer",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#3-ước-lượng-tải--con-số-quyết-định-kiến-trúc",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#65-late-arriving-data-và-watermark",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#7-chọn-tech-stack--3-phương-án-và-ngưỡng-chuyển",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút"
+   ],
+   "points": [
+    {
+     "id": "b-clarify",
+     "t": 24.7,
+     "text": "Hỏi trước khi vẽ: bao nhiêu cặp/request (10 → 1,7k event/s; 1.000 → 167k event/s); tổng hay theo từng key (cardinality explosion); dashboard hay billing (billing cần chính xác, raw, idempotent, đối soát)",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#2-trước-khi-vẽ-6-câu-hỏi-phải-hỏi-interviewer",
+     "section": "04 · Câu hỏi trước khi vẽ"
+    },
+    {
+     "id": "b-holes",
+     "t": 56.6,
+     "text": "4 lỗ hổng: counter lũy kế không trả lời được khoảng bất kỳ; lock ở write path serialize mọi ghi trên một hot row; counter là nguồn sự thật duy nhất nên retry đếm trùng, không backfill/đối soát; bucket theo thời điểm insert làm lệch khung giờ",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#1-vì-sao-câu-trả-lời-cũ-bị-bác--4-lỗ-hổng",
+     "section": "04 · 4 lỗ hổng"
+    },
+    {
+     "id": "b-estimate",
+     "t": 91.2,
+     "text": "167 req/s × 20 = 3.333 event/s; 288 triệu event/ngày, ~17 GB raw/ngày → không bao giờ quét raw; '24h qua' chỉ đọc 96 dòng (24 bucket giờ × 4 outcome)",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#3-ước-lượng-tải--con-số-quyết-định-kiến-trúc",
+     "section": "04 · Ước lượng tải"
+    },
+    {
+     "id": "b-design",
+     "t": 120.7,
+     "text": "Tầng 1: API validate, phân loại, append raw theo lô không lock, trả 202; raw_events là nguồn sự thật 7 ngày; rollup bất đồng bộ theo event time agg_1m → agg_1h → agg_1d; query phân rã khoảng, cộng bucket, không chạm raw",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng",
+     "section": "04 · Design tầng 1"
+    },
+    {
+     "id": "b-principles",
+     "t": 152.6,
+     "text": "Ba nguyên tắc: ghi tách khỏi tính; đếm theo bucket thời gian chứ không một counter tổng; raw là sự thật, rollup là dẫn xuất (tính lại, backfill, đối soát)",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng",
+     "section": "04 · Design tầng 1"
+    },
+    {
+     "id": "b-details",
+     "t": 152.6,
+     "text": "Chi tiết ghi điểm: event time + cửa sổ tính lại 30 phút cho event trễ; lưu count không lưu tỉ lệ; idempotency ở raw bằng event_id + ON CONFLICT DO NOTHING; job đối soát mỗi giờ so với COUNT(*) trên raw",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật",
+     "section": "04 · Idempotency ở tầng raw"
+    },
+    {
+     "id": "b-decompose",
+     "t": 193.8,
+     "text": "Phân rã tham lam (khối thô nhất còn vừa): 03:17:30 → 11:42:10 ba ngày sau = 2 lần đọc raw + 84 dòng phút + 31 dòng giờ + 2 dòng ngày ≈ 120 dòng, thay vì quét 864 triệu dòng raw; truy vấn 1 năm tối đa ~530 dòng, chi phí bị chặn",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ",
+     "section": "04 · Phân rã khoảng"
+    },
+    {
+     "id": "b-rightsize",
+     "t": 226.3,
+     "text": "3,3k event/s: một node Postgres + TimescaleDB đủ (~1/10 khả năng); không Kafka (gấp 4 hệ thống phải vận hành). Ngưỡng: cache khi p99 đọc 24h > 50 ms hoặc > 1.000 đọc/s; Kafka + stream + kho cột khi > 50k event/s, cardinality theo key > 10k, replay > 7 ngày, hoặc nhiều consumer",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#7-chọn-tech-stack--3-phương-án-và-ngưỡng-chuyển",
+     "section": "04 · Ngưỡng chuyển stack"
+    },
+    {
+     "id": "b-four",
+     "t": 269.1,
+     "text": "Bốn câu: ghi tách khỏi tính (append, 202, async); đếm theo bucket thời gian; raw là sự thật, rollup là dẫn xuất; tải này chưa cần Kafka và đây là ngưỡng chuyển",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút",
+     "section": "04 · Bốn câu nếu chỉ nhớ bốn câu"
+    },
+    {
+     "id": "b-built-on",
+     "t": 293.4,
+     "text": "K01 dựa trên giai đoạn 1: ước lượng (Ep01–Ep03), luật của thang (Ep06), quy tắc idempotency key (tuần 2), cache version-bump và single-flight (tuần 4)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  },
+  {
+   "id": "k02-ladder-x10-x100",
+   "ep": 2,
+   "code": "K02",
+   "week": 4,
+   "title": "Climbing the ladder: ten and a hundred times",
+   "subtitle": "Numbers for every rung, the read path that doesn't move, and the first two things that break",
+   "file": "k02-ladder-x10-x100.mp4",
+   "poster": "k02-ladder-x10-x100.jpg",
+   "source": "k02-ladder-x10-x100.yaml",
+   "duration": 397.0,
+   "bytes": 5739048,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 15.1,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 35.2,
+     "title": "Ask first"
+    },
+    {
+     "t": 71.2,
+     "title": "The ladder"
+    },
+    {
+     "t": 144.3,
+     "title": "What never changes"
+    },
+    {
+     "t": 175.6,
+     "title": "Cardinality, relatively"
+    },
+    {
+     "t": 213.3,
+     "title": "Five sentences"
+    },
+    {
+     "t": 230.9,
+     "title": "× 10: 100k a minute"
+    },
+    {
+     "t": 280.2,
+     "title": "× 100: 1 million a minute"
+    },
+    {
+     "t": 336.3,
+     "title": "The pattern"
+    },
+    {
+     "t": 360.3,
+     "title": "Built on"
+    },
+    {
+     "t": 381.1,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#1-đề-mở-rộng--hỏi-lại-gì-trước-khi-trả-lời",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#2-thang-ước-lượng-10k--100m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#3-điều-không-đổi-đường-đọc",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#4-cái-gì-vỡ-trước--đi-từng-bước--10"
+   ],
+   "points": [
+    {
+     "id": "l-ask",
+     "t": 35.2,
+     "text": "Chốt cách hiểu rồi hỏi: vẫn 20 item/request (20 → 3,3M; 200 → 33M event/s); bao nhiêu client, gửi dày hay thưa (gộp ở client được không); một region hay toàn cầu (cell, luật dữ liệu); dashboard hay billing (billing chỉ dùng số đã đối soát)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#1-đề-mở-rộng--hỏi-lại-gì-trước-khi-trả-lời",
+     "section": "07 · Hỏi lại gì ở 10M–100M"
+    },
+    {
+     "id": "l-ladder",
+     "t": 93.3,
+     "text": "Thang: 10k → 167 req/s, 3.333 event/s, 288 triệu/ngày, 17 GB; 100k → 33.333 event/s, 173 GB; 1M → 333.333 event/s, 1,7 TB; 10M → 166.667 req/s, 3,3 triệu event/s, 288 tỷ/ngày, 17 TB, ~1,3 Gbit/s; 100M → 1,67 triệu req/s, 33 triệu event/s, 2.880 tỷ/ngày, 173 TB, ~13 Gbit/s; đỉnh × 3",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#2-thang-ước-lượng-10k--100m-requestphút",
+     "section": "07 · Thang ước lượng"
+    },
+    {
+     "id": "l-read-constant",
+     "t": 144.3,
+     "text": "Số dòng rollup = tenant × outcome × bucket, không có event/s trong công thức: 1 tenant tầng phút 5.760 dòng/ngày ở mọi mức tải; 10.000 tenant 57,6 triệu; truy vấn 1 năm vẫn ~530 dòng — đường đọc không đổi, mọi thay đổi ở đường ghi",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#31-rollup-lớn-theo-số-nhóm-không-theo-số-event",
+     "section": "07 · Rollup lớn theo số nhóm"
+    },
+    {
+     "id": "l-cardinality",
+     "t": 175.6,
+     "text": "Hệ số gộp = event mỗi bucket ÷ số nhóm; 100.000 key × 4 outcome = 400.000 nhóm: ở 10k/phút ≤ 0,5 (vô ích), ở 10M/phút = 500 (đáng làm); nhưng 576 triệu dòng/ngày/tenant → việc của kho OLAP, không phải Postgres",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#32-cardinality-nổ-hay-không-là-tương-đối",
+     "section": "07 · Cardinality là tương đối"
+    },
+    {
+     "id": "l-five",
+     "t": 213.3,
+     "text": "Năm câu của câu hỏi × 10: số mới; vỡ trước (có số); sửa và đánh đổi; vỡ tiếp; chưa làm gì (và vì sao còn dư)",
+     "src": "02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời",
+     "section": "02 · Năm câu trả lời × 10 (giai đoạn 1)"
+    },
+    {
+     "id": "l-x10",
+     "t": 230.9,
+     "text": "× 10 (100k/phút, 33.333 event/s): vỡ trước là một Postgres primary (dòng + index unique + WAL mỗi event, ngưỡng ~30–50k dòng/s); sửa: gộp trong API, mỗi request một dòng có 4 bộ đếm, ghi giảm 20 lần; đánh đổi: khử trùng theo batch_id, breakdown theo key phải giải nén; chưa làm Kafka",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#41--10--100k-requestphút",
+     "section": "07 · × 10: 100k/phút"
+    },
+    {
+     "id": "l-x100",
+     "t": 280.2,
+     "text": "× 100 (1M/phút, 333.333 event/s): vỡ trước là API ghi DB đồng bộ (DB chậm/failover → giữ request, lỗi, bão retry); sửa: Kafka làm bộ đệm bền (acks=all, 3 bản, min.insync.replicas=2), 202 sau khi Kafka xác nhận, stream processor làm rollup, raw sang object storage; đánh đổi: thêm 2–3 hệ thống, số trễ vài giây; chưa cần kho cột",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#42--100--1m-requestphút",
+     "section": "07 · × 100: 1M/phút"
+    },
+    {
+     "id": "l-pattern",
+     "t": 336.3,
+     "text": "Mỗi × 10 đẩy chỗ gộp về gần nguồn: database (10k) → API (100k) → stream processor (1M) → collector và partition (10M) → region, đôi khi client (100M)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#4-cái-gì-vỡ-trước--đi-từng-bước--10",
+     "section": "07 · Quy luật của bốn bước"
+    },
+    {
+     "id": "l-built-on",
+     "t": 360.3,
+     "text": "K02 dựa trên giai đoạn 1: quy đổi (Ep01), thang L0–L4 và năm câu (Ep06), storage engine và index (tuần 3); xem trước giai đoạn 2: Kafka acks, bản sao (Ep12)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  },
+  {
+   "id": "k03-10m-pipeline",
+   "ep": 3,
+   "code": "K03",
+   "week": 10,
+   "title": "Ten million requests a minute: the pipeline",
+   "subtitle": "What breaks first, and a design that spreads the load: one record per request, Kafka keyed by batch_id",
+   "file": "k03-10m-pipeline.mp4",
+   "poster": "k03-10m-pipeline.jpg",
+   "source": "k03-10m-pipeline.yaml",
+   "duration": 379.0,
+   "bytes": 5618863,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 20.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 49.4,
+     "title": "The question"
+    },
+    {
+     "t": 69.1,
+     "title": "New numbers"
+    },
+    {
+     "t": 91.5,
+     "title": "Breaks first"
+    },
+    {
+     "t": 130.1,
+     "title": "The pipeline"
+    },
+    {
+     "t": 177.5,
+     "title": "Decisions"
+    },
+    {
+     "t": 261.7,
+     "title": "Packed raw"
+    },
+    {
+     "t": 295.4,
+     "title": "The 2-minute answer"
+    },
+    {
+     "t": 340.7,
+     "title": "Built on"
+    },
+    {
+     "t": 365.3,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#43--1000--10m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#5-kiến-trúc-ở-10m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#52-quyết-định-và-đánh-đổi",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#53-raw-đừng-cho-mỗi-event-một-uuid",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#81-nếu-là-10m-requestphút--2-phút"
+   ],
+   "points": [
+    {
+     "id": "m-numbers",
+     "t": 69.1,
+     "text": "10M/phút: 166.667 req/s, 3,3 triệu event/s, 288 tỷ/ngày, ~1,3 Gbit/s vào (1 KB JSON/request), raw 17 TB/ngày ở 60 B/event hoặc ~1,8 TB đóng gói; đỉnh × 3",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#43--1000--10m-requestphút",
+     "section": "07 · × 1.000: 10M/phút"
+    },
+    {
+     "id": "m-breaks",
+     "t": 91.5,
+     "text": "Vỡ trước ở 10M: key Kafka = tenant_id làm tenant lớn nhất (20% = 667k event/s) dồn vào một partition, lag tăng mãi; không còn bảng raw một dòng mỗi event có unique index; một message mỗi event là lãng phí",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#43--1000--10m-requestphút",
+     "section": "07 · × 1.000: 10M/phút"
+    },
+    {
+     "id": "m-pipeline",
+     "t": 130.1,
+     "text": "Pipeline 10M: SDK gửi batch_id, ts, 20 item, retry có jitter → edge quota theo tenant → collector phân loại, một bản ghi mỗi request, acks=all, 202 → Kafka key batch_id, 64–128 partition, 3 bản → stream processor khử trùng 15 phút, cửa sổ 1 phút theo event time → ghi đè rollup → query như 04; raw Parquet → đối soát mỗi giờ, sửa khi lệch",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ",
+     "section": "07 · Sơ đồ 10M"
+    },
+    {
+     "id": "m-key",
+     "t": 177.5,
+     "text": "Một bản ghi mỗi request (166.667/s thay vì 3,3M); key = batch_id: tải chia đều, retry cùng partition nên khử trùng là state cục bộ, mất thứ tự theo tenant (đếm không cần); số partition chọn dư từ đầu vì đổi số partition làm hash(key) mod P đổi và khử trùng hụt",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#52-quyết-định-và-đánh-đổi",
+     "section": "07 · Quyết định 10M"
+    },
+    {
+     "id": "m-aggregate",
+     "t": 224.5,
+     "text": "Gộp hai tầng (cục bộ trong task, rồi toàn cục theo tenant và phút) để tenant lớn không làm nóng một task; tumbling 1 phút theo event time, watermark 2 phút, nhận trễ 30 phút; Postgres cho tổng (5.760 dòng/ngày/tenant), kho cột chỉ khi breakdown theo key",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#52-quyết-định-và-đánh-đổi",
+     "section": "07 · Quyết định 10M"
+    },
+    {
+     "id": "m-raw",
+     "t": 261.7,
+     "text": "Đừng cho mỗi event một UUID 16 byte: event = (batch_id, vị trí), như demo 04 sinh uuid5(prefix:i); một request đóng gói 128 B = 6,4 B/event trước khi nén → ~1,8 TB/ngày thay vì 17 TB ở 10M; nén cột phải đo trên dữ liệu thật",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#53-raw-đừng-cho-mỗi-event-một-uuid",
+     "section": "07 · Raw đóng gói"
+    },
+    {
+     "id": "m-answer",
+     "t": 295.4,
+     "text": "Câu trả lời 10M: số mới; đường đọc không đổi; vỡ trước (key theo tenant, một dòng mỗi event); một bản ghi mỗi request, key batch_id, khử trùng 15 phút, cửa sổ hai tầng theo event time, ghi đè rollup, raw đóng gói + đối soát mỗi giờ; chưa làm region, gộp ở client, sketch",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#81-nếu-là-10m-requestphút--2-phút",
+     "section": "07 · Câu trả lời 10M trong 2 phút"
+    },
+    {
+     "id": "m-built-on",
+     "t": 340.7,
+     "text": "K03 dựa trên giai đoạn 2: partition nóng (Ep03), thứ tự chỉ trong partition và đổi số partition (Ep12), cửa sổ theo event time và đề ad click cùng họ A (Ep17); luật 'chưa làm' của thang (giai đoạn 1 Ep06)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  },
+  {
+   "id": "k04-exactly-once-counts",
+   "ep": 4,
+   "code": "K04",
+   "week": 10,
+   "title": "Counting exactly once with at-least-once parts",
+   "subtitle": "Dedup by batch_id, GREATEST as a fencing token, late events and client clocks, and the hourly reconcile",
+   "file": "k04-exactly-once-counts.mp4",
+   "poster": "k04-exactly-once-counts.jpg",
+   "source": "k04-exactly-once-counts.yaml",
+   "duration": 347.2,
+   "bytes": 4904615,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 20.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 37.5,
+     "title": "The question"
+    },
+    {
+     "t": 63.8,
+     "title": "Three parts"
+    },
+    {
+     "t": 110.7,
+     "title": "GREATEST"
+    },
+    {
+     "t": 128.1,
+     "title": "Why it holds"
+    },
+    {
+     "t": 171.5,
+     "title": "A fencing token"
+    },
+    {
+     "t": 194.5,
+     "title": "Late events and clocks"
+    },
+    {
+     "t": 230.7,
+     "title": "Reconcile"
+    },
+    {
+     "t": 265.0,
+     "title": "Follow-ups"
+    },
+    {
+     "t": 309.6,
+     "title": "Built on"
+    },
+    {
+     "t": 337.6,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#74-đồng-hồ-của-client",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#83-follow-up-hay-gặp"
+   ],
+   "points": [
+    {
+     "id": "x-three",
+     "t": 63.8,
+     "text": "Ba mảnh: client gửi lại cùng batch_id, bỏ cuộc sau 10 phút (cửa sổ retry < cửa sổ khử trùng); stream processor bỏ batch_id đã thấy trong 15 phút, state = 166.667/s × 900 s ≈ 150 triệu khoá ≈ 7–8 GB (Little's Law), hết hạn theo event time; sink ghi đè bằng giá trị lớn hơn",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-greatest",
+     "t": 110.7,
+     "text": "Upsert agg_1m (tenant, phút, outcome) với cnt = GREATEST(cnt cũ, cnt mới): mỗi dòng là cả số đếm, không phải +1; số cũ nhỏ hơn không thay được số mới lớn hơn",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-why",
+     "t": 128.1,
+     "text": "Vì sao GREATEST đúng: sau khử trùng số đếm chỉ tăng; khôi phục từ checkpoint phát số nhỏ hơn rồi tăng lại (bị bỏ qua); consumer xác sống sau GC pause cầm số cũ hơn (bị bỏ qua); event trễ trong 30 phút cho số lớn hơn (nhận); giới hạn: không hạ được số quá cao (retry sau khi khoá hết hạn) → batch đối soát",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-fencing",
+     "t": 171.5,
+     "text": "GREATEST là fencing token của lab 10A: client không tự biết mình đã pause quá TTL, chỉ nơi lưu trữ từ chối được người ghi cũ; ở đây con số đếm chính là token",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-late",
+     "t": 194.5,
+     "text": "Event trễ: trong 30 phút thì cửa sổ tính lại và phát số lớn hơn; trễ hơn thì đi topic late + bộ đếm events_late, raw vẫn có nên đối soát đếm đủ, không bỏ im lặng",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-clock",
+     "t": 194.5,
+     "text": "Event time là wall clock của client, có thể lệch, lùi: collector ghi thời điểm nhận; event ở tương lai hoặc cũ hơn retention raw thì gắn cờ, đếm vào events_clock_skew, không lặng lẽ đếm vào bucket sai",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#74-đồng-hồ-của-client",
+     "section": "07 · Đồng hồ của client"
+    },
+    {
+     "id": "x-reconcile",
+     "t": 230.7,
+     "text": "Đối soát mỗi giờ: đếm lại từ raw đóng gói, khử trùng batch_id cả giờ, so với rollup, reconcile_drift phải bằng 0; sửa vào final_cnt riêng, đọc COALESCE(final_cnt, cnt), đánh dấu is_final, billing chỉ đọc giờ đã chốt; hai đường dùng chung code phân loại",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07 · Exactly-once từ các mảnh at-least-once"
+    },
+    {
+     "id": "x-built-on",
+     "t": 309.6,
+     "text": "K04 dựa trên: idempotency key (giai đoạn 1 tuần 2) và ba tầng idempotency (Ep08); at-least-once + sink idempotent, transaction dừng ở Kafka (Ep13, Ep15); Little's Law (giai đoạn 1 Ep01); đồng hồ (Ep19); fencing token (Ep20)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  },
+  {
+   "id": "k05-100m-physics-money",
+   "ep": 5,
+   "code": "K05",
+   "week": 10,
+   "title": "A hundred million a minute: physics and money",
+   "subtitle": "CPU per request, bytes on the wire, dedup state, and one region as a blast radius — then cells",
+   "file": "k05-100m-physics-money.mp4",
+   "poster": "k05-100m-physics-money.jpg",
+   "source": "k05-100m-physics-money.yaml",
+   "duration": 440.6,
+   "bytes": 6803523,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 21.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 53.5,
+     "title": "The question"
+    },
+    {
+     "t": 70.1,
+     "title": "New numbers"
+    },
+    {
+     "t": 92.7,
+     "title": "CPU per request"
+    },
+    {
+     "t": 157.0,
+     "title": "Three bills"
+    },
+    {
+     "t": 203.3,
+     "title": "Cells"
+    },
+    {
+     "t": 232.3,
+     "title": "Five changes"
+    },
+    {
+     "t": 304.2,
+     "title": "Counts versus money"
+    },
+    {
+     "t": 338.2,
+     "title": "Not at 100M"
+    },
+    {
+     "t": 355.9,
+     "title": "The 2-minute answer"
+    },
+    {
+     "t": 407.9,
+     "title": "Built on"
+    },
+    {
+     "t": 430.2,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#44--10000--100m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#55-collector-chi-phí-mỗi-request-nhân-với-166667",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#6-kiến-trúc-ở-100m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#61-sơ-đồ-cell-theo-region",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#63-ba-thứ-phải-tính-tiền-ra-được",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#82-còn-100m--2-phút"
+   ],
+   "points": [
+    {
+     "id": "h-numbers",
+     "t": 70.1,
+     "text": "100M/phút: 1,67 triệu req/s, 33 triệu event/s, 2.880 tỷ/ngày, ~13 Gbit/s vào (đỉnh ~40), raw 173 TB/ngày ở 60 B/event hoặc ~18 TB đóng gói",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#44--10000--100m-requestphút",
+     "section": "07 · × 10.000: 100M/phút"
+    },
+    {
+     "id": "h-cpu",
+     "t": 92.7,
+     "text": "1 µs mỗi request = 0,0002 core ở 10k, 0,17 core ở 10M, 1,7 core ở 100M; collector không chạm DB giả định 0,2 ms CPU/request (phải đo) → ~28 pod ở 10M, ~280 pod ở 100M (ở 60% CPU)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#55-collector-chi-phí-mỗi-request-nhân-với-166667",
+     "section": "07 · Chi phí mỗi request của collector"
+    },
+    {
+     "id": "h-trackp",
+     "t": 92.7,
+     "text": "Track P thành tiền: P01 new ObjectMapper() mỗi request (+14 µs, 20 KB rác) → ~24 core và 30 GB/s rác ở 100M, vô hình ở 10k; P04 exception cho fake key (50% input sai) → ~31 core; cùng một dòng code, khác số request nhân vào",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#55-collector-chi-phí-mỗi-request-nhân-với-166667",
+     "section": "07 · Chi phí mỗi request của collector"
+    },
+    {
+     "id": "h-bills",
+     "t": 157.0,
+     "text": "Ba hoá đơn tính được trên bảng: chép raw qua AZ (2 bản × ~0,02 USD/GB) ≈ 6.900 USD/ngày với raw chưa đóng gói; 30 ngày raw trên S3 ≈ 110 nghìn USD/tháng (chưa đóng gói) so với ≈ 12 nghìn (đóng gói); CPU 1 µs = 1,7 core. Giá niêm yết, chỉ để ra bậc độ lớn; đóng gói và nén là bắt buộc",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#63-ba-thứ-phải-tính-tiền-ra-được",
+     "section": "07 · Ba hoá đơn"
+    },
+    {
+     "id": "h-cells",
+     "t": 203.3,
+     "text": "Cell theo region: client tới region gần nhất, client_id có cell nhà (như user → cell ở L4); mỗi cell chạy nguyên pipeline 10M, raw ở lại region; chỉ số đếm đã gộp đi toàn cục; tổng toàn cục = SUM theo cell, chỉ chốt khi mọi cell qua watermark",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#61-sơ-đồ-cell-theo-region",
+     "section": "07 · Cell theo region"
+    },
+    {
+     "id": "h-changes",
+     "t": 232.3,
+     "text": "Thay đổi ở 100M: cell gộp bằng cộng (số toàn cục chờ cell chậm nhất); khử trùng (client_id, seq) như idempotent producer của Kafka, state theo số client chứ không theo 1,5 tỷ batch_id; dây nhị phân + nén, client gộp khi ít và gửi dày (đổi hợp đồng); raw đóng gói ở lại region",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+     "section": "07 · Năm thay đổi so với 10M"
+    },
+    {
+     "id": "h-raw",
+     "t": 272.3,
+     "text": "Raw đóng gói, nén cột, ở lại region, giữ nóng ngắn: 173 TB/ngày (60 B/event) → ~18 TB/ngày (128 B/request) trước khi nén; đánh đổi: raw cũ nằm ở lớp lạnh, câu hỏi mới về nó trả lời chậm",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+     "section": "07 · Năm thay đổi so với 10M"
+    },
+    {
+     "id": "h-sketch",
+     "t": 272.3,
+     "text": "Sketch chỉ cho distinct và top-K: HyperLogLog ~12 KB, sai số ~0,81%, cộng được qua bucket và cell; số tổng giữ chính xác vì 4 số nguyên mỗi bucket là rẻ; sketch là xấp xỉ, không dùng tính tiền",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+     "section": "07 · Năm thay đổi so với 10M"
+    },
+    {
+     "id": "h-counts-vs-money",
+     "t": 304.2,
+     "text": "Số đếm làm active-active được vì không có bất biến giữa các cell (CRDT G-counter, tổng là phép cộng); số dư ví có bất biến (không âm) nên cần một nơi ghi duy nhất hoặc đồng thuận — đó là lý do họ A khác họ G",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao",
+     "section": "07 · Không làm ở 100M"
+    },
+    {
+     "id": "h-not",
+     "t": 338.2,
+     "text": "Không làm ở 100M: exactly-once xuyên region (2PC xuyên region là thứ giai đoạn 2 dạy tránh), một cụm Kafka toàn cầu, sketch/sampling cho số tổng, mỗi event một dòng trong bất kỳ DB nào (2.880 tỷ dòng/ngày)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao",
+     "section": "07 · Không làm ở 100M"
+    },
+    {
+     "id": "h-answer",
+     "t": 355.9,
+     "text": "Câu trả lời 100M: số mới; vật lý và tiền (1 µs = 1,7 core, raw qua zone, 1,5 tỷ khoá); cell theo region chạy pipeline 10M, chỉ số đếm cộng toàn cục; khử trùng theo client và số thứ tự; dây nhị phân nén; raw đóng gói ở lại region; sketch chỉ cho distinct và top-K; không exactly-once xuyên region, không Kafka toàn cầu, câu trả lời nói rõ đã chốt chưa",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#82-còn-100m--2-phút",
+     "section": "07 · Câu trả lời 100M trong 2 phút"
+    },
+    {
+     "id": "h-built-on",
+     "t": 407.9,
+     "text": "K05 dựa trên: Track P (giai đoạn 1 Ep04, Ep05), cell ở bậc L4 (file 02, Ep25 kế hoạch); giai đoạn 2: CRDT (Ep01), không 2PC (Ep07), sequence của producer (Ep12–Ep13)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  },
+  {
+   "id": "k06-family-c-at-scale",
+   "ep": 6,
+   "code": "K06",
+   "week": 10,
+   "title": "Collecting from sources you don't control",
+   "subtitle": "Family C at 10 and 100 million a minute: backpressure, idempotent sinks, partition keys, the key registry, and PII",
+   "file": "k06-family-c-at-scale.mp4",
+   "poster": "k06-family-c-at-scale.jpg",
+   "source": "k06-family-c-at-scale.yaml",
+   "duration": 334.4,
+   "bytes": 4782071,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 25.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 40.1,
+     "title": "Four rules, three loads"
+    },
+    {
+     "t": 89.4,
+     "title": "Backpressure"
+    },
+    {
+     "t": 137.6,
+     "title": "Rate limits at 100M"
+    },
+    {
+     "t": 174.6,
+     "title": "The key registry"
+    },
+    {
+     "t": 221.4,
+     "title": "Metrics"
+    },
+    {
+     "t": 255.4,
+     "title": "Drill"
+    },
+    {
+     "t": 301.0,
+     "title": "Built on"
+    },
+    {
+     "t": 322.8,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#7-họ-c-khi-tải-lớn--thu-thập-từ-nguồn-không-kiểm-soát",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#71-bảng-ba-mức-tải",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#73-registry-key-hợp-lệ-ở-33-triệu-lần-tra-mỗi-giây",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#75-metric-thêm-vào-sáu-metric-của-04"
+   ],
+   "points": [
+    {
+     "id": "c-table",
+     "t": 40.1,
+     "text": "Bốn quy tắc họ C ở ba mức tải: backpressure (rate limit gateway → quota theo tenant + buffer producer có giới hạn → token bucket cục bộ, SDK lùi có jitter); sink idempotent (event_id → batch_id + GREATEST → client_id, seq); partition key (tenant_id → batch_id → client_id trong cell); PII (hash/redact ở client, raw ở lại region)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#71-bảng-ba-mức-tải",
+     "section": "07 · Họ C ở ba mức tải"
+    },
+    {
+     "id": "c-backpressure",
+     "t": 89.4,
+     "text": "Mỗi lớp có giới hạn: SDK buffer giới hạn, bỏ cái cũ và đếm, backoff + jitter, bỏ cuộc 10 phút; edge quota 429 + Retry-After; collector buffer producer giới hạn → 503; Kafka là bộ giảm chấn (lag tăng, không mất); consumer max.poll.records theo p99, theo lô (P13, P20)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn",
+     "section": "07 · Backpressure nhiều lớp"
+    },
+    {
+     "id": "c-ratelimit",
+     "t": 137.6,
+     "text": "Rate limit ở 1,67 triệu request/s: token bucket Redis + Lua của lab 2 cần một round trip mỗi request → ~17 node Redis chỉ để đếm quota, thêm một RTT; thay bằng bucket trong RAM từng collector giữ một phần quota, cân lại vài giây một lần; đánh đổi: giới hạn toàn cục thành xấp xỉ",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#72-backpressure-bốn-lớp-lớp-nào-cũng-phải-có-giới-hạn",
+     "section": "07 · Backpressure nhiều lớp"
+    },
+    {
+     "id": "c-registry",
+     "t": 174.6,
+     "text": "Bloom filter chỉ tiết kiệm lượt tra cho key giả, mọi 'có thể có' vẫn hỏi store (hàng chục triệu/giây); giữ toàn bộ registry trong RAM collector dạng fingerprint 64 bit (10 triệu key ≈ 80 MB, xác suất trùng ≈ 5 × 10⁻¹³ mỗi lần tra); cập nhật qua compacted topic; ghi version registry vào raw",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#73-registry-key-hợp-lệ-ở-33-triệu-lần-tra-mỗi-giây",
+     "section": "07 · Registry key ở 33 triệu lần tra/giây"
+    },
+    {
+     "id": "c-metrics",
+     "t": 221.4,
+     "text": "Metric thêm: consumer_lag_seconds theo partition (một partition lag riêng = partition nóng); dedup_hits_per_sec (client retry hàng loạt); events_late, events_clock_skew; reconcile_drift theo cell; collector_cpu_us_per_request (+10 µs = +17 core ở 100M)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#75-metric-thêm-vào-sáu-metric-của-04",
+     "section": "07 · Metric thêm"
+    },
+    {
+     "id": "c-built-on",
+     "t": 301.0,
+     "text": "K06 dựa trên: P13 và lab 2 token bucket (giai đoạn 1), backpressure (Ep13), P20 (Ep16), Kafka key và compacted topic (Ep12), redact ở client của đề Katalon 01",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    }
+   ]
+  },
+  {
+   "id": "k07-timed-answer-and-map",
+   "ep": 7,
+   "code": "K07",
+   "week": 10,
+   "title": "The timed answer, and where each idea comes from",
+   "subtitle": "Both follow-ups under time pressure, rapid-fire questions, then the map back to phase-1 and phase-2 lessons",
+   "file": "k07-timed-answer-and-map.mp4",
+   "poster": "k07-timed-answer-and-map.jpg",
+   "source": "k07-timed-answer-and-map.yaml",
+   "duration": 369.3,
+   "bytes": 5698846,
+   "engine": "kokoro",
+   "voices": [
+    "Tom (interviewer) — Kokoro am_michael",
+    "Emma (candidate) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 15.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 43.6,
+     "title": "Ten million"
+    },
+    {
+     "t": 119.9,
+     "title": "A hundred million"
+    },
+    {
+     "t": 184.8,
+     "title": "Rapid fire"
+    },
+    {
+     "t": 244.1,
+     "title": "The map: phase 1"
+    },
+    {
+     "t": 287.3,
+     "title": "The map: phase 2"
+    },
+    {
+     "t": 327.9,
+     "title": "Honest limits"
+    },
+    {
+     "t": 352.7,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#8-kịch-bản-trả-lời",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10-ranh-giới-trung-thực"
+   ],
+   "points": [
+    {
+     "id": "t-answer-10m",
+     "t": 59.4,
+     "text": "Câu trả lời mẫu 10M có bấm giờ: chốt hiểu đề, số mới, đường đọc ~500 dòng cho 1 năm, vỡ trước, một bản ghi mỗi request + key batch_id + khử trùng 15 phút + hai tầng, GREATEST, raw đóng gói + đối soát mỗi giờ, chưa làm region/client/sketch",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#81-nếu-là-10m-requestphút--2-phút",
+     "section": "07 · Câu trả lời 10M trong 2 phút"
+    },
+    {
+     "id": "t-answer-100m",
+     "t": 133.1,
+     "text": "Câu trả lời mẫu 100M có bấm giờ: số mới và đỉnh × 3; vật lý và tiền; cell chạy pipeline 10M, cộng số đếm; khử trùng theo client + số thứ tự; dây nhị phân nén; raw ở lại region; sketch chỉ cho distinct/top-K; không exactly-once xuyên region, không một Kafka toàn cầu",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#82-còn-100m--2-phút",
+     "section": "07 · Câu trả lời 100M trong 2 phút"
+    },
+    {
+     "id": "t-rapid",
+     "t": 184.8,
+     "text": "Follow-up nhanh: tenant 30% tải (key batch_id trải đều, tầng toàn cục chỉ thấy tổng con); retry sau khi khoá hết hạn (SDK bỏ cuộc 10 phút, khoá 15 phút, đối soát bắt phần còn lại); breakdown 100.000 key (giảm 500 lần, kho OLAP, Count-Min Sketch); region chết (đổi cell, epoch mới, chưa chốt tới khi đối soát); chi phí lớn nhất (CPU collector, byte qua zone, lưu raw)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#83-follow-up-hay-gặp",
+     "section": "07 · Follow-up hay gặp"
+    },
+    {
+     "id": "t-map-1a",
+     "t": 244.1,
+     "text": "Bản đồ giai đoạn 1, video đã dựng: ước lượng (Ep01–Ep03), Little's Law (Ep01), năm câu × 10 và 'chưa làm' (Ep06), 1 µs = 1,7 core (Track P Ep04, Ep05)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "t-map-1b",
+     "t": 264.0,
+     "text": "Bản đồ giai đoạn 1, tuần 2–4 (video chưa dựng): cả thang L0–L4 và cell (Ep25), quota/429/HTTPS ở edge và idempotency key (tuần 2), B-tree hay LSM (tuần 3), cache và đánh đổi nhất quán (tuần 4)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "t-map-2a",
+     "t": 287.3,
+     "text": "Bản đồ giai đoạn 2, phần Kafka: partition nóng (Ep03), key/thứ tự/acks (Ep12), at-least-once + sink idempotent (Ep13, Ep15), P20 (Ep16)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "t-map-2b",
+     "t": 306.7,
+     "text": "Bản đồ giai đoạn 2, phần stream và hệ phân tán: window và ad click (Ep17), đồng hồ và fencing (Ep19, Ep20), cell cộng như CRDT (Ep01), không 2PC (Ep07)",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2",
+     "section": "07 · Bản đồ nối với giai đoạn 1 và 2"
+    },
+    {
+     "id": "t-honest",
+     "t": 327.9,
+     "text": "Mọi số là phép tính từ giả định (20 cặp, 1 KB, 0,2 ms); ngưỡng là bậc độ lớn; P01/P04 là số đo thật nhưng nhân lên là ước lượng; giá là giá niêm yết; không có demo ở 10M/100M: nói 'tôi sẽ dựng và đo thế này', không nói 'tôi đã chạy'",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10-ranh-giới-trung-thực",
+     "section": "07 · Ranh giới trung thực"
+    }
+   ]
+  }
+ ]
+}

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import posixpath
 import re
 from pathlib import Path
 
@@ -51,6 +52,11 @@ JSD_SERIES = [
      "total": 30, "coverage": "02-do-phu-tuan-1.md"},
     {"id": "video-gd2", "title": "Giai đoạn 2 · Dữ liệu và hệ phân tán (tuần 5–10)", "voice": "Emma · Kokoro af_heart",
      "total": 23, "coverage": "02-do-phu.md", "weeks": {"5": "Tuần 5–6", "8": "Tuần 8–9"}},  # khối hai tuần
+    # bộ chen ngang: mã video K00…; "tuần" là mốc nên xem (sau tuần 4 = hết giai đoạn 1, sau tuần 10 = hết giai đoạn 2);
+    # nguồn nằm ở katalon-prep/ nên covers có dạng ../katalon-prep/… (chuẩn hoá đường dẫn trước khi tra tài liệu)
+    {"id": "video-katalon", "title": "Chen ngang Katalon · họ A + C: 10k → 10M → 100M request/phút",
+     "voice": "Tom hỏi (am_michael), Emma trả lời (af_heart)", "total": 8, "coverage": "02-do-phu.md", "prefix": "K",
+     "weeks": {"4": "Xem sau giai đoạn 1", "10": "Xem sau giai đoạn 2"}},
 ]
 
 
@@ -220,7 +226,7 @@ def collect_jsd_series(docs: dict) -> list[dict]:
             seen[v["id"]] = meta["id"]
             for ref in v.get("covers", []) + [p["src"] for p in v.get("points", []) if p.get("src")]:
                 f, _, anchor = ref.partition("#")      # mỗi anchor nguồn (covers, points) phải mở được trong app
-                key = SDR_DIR + f
+                key = posixpath.normpath(SDR_DIR + f)  # ../katalon-prep/… của bộ chen ngang
                 if key not in docs or (anchor and f'id="{anchor}"' not in docs[key]["h"]):
                     print(f"⚠ video {v['id']}: không mở được {ref}")
         d = SDR_DIR + meta["id"] + "/"
@@ -488,7 +494,7 @@ def main() -> None:
     print(f"  web/algorithms-learning.html  {kb:.0f} KB  → publish làm Artifact")
     print(f"  web/index.html                          → mở trực tiếp bằng trình duyệt")
     for x in series:
-        print(f"  {x['id']}: {len(x['lessons'])} video (tab Video): {', '.join('Ep%02d' % v['ep'] for v in x['lessons'])}"
+        print(f"  {x['id']}: {len(x['lessons'])} video (tab Video): {', '.join(v.get('code') or 'Ep%02d' % v['ep'] for v in x['lessons'])}"
               f" — media từ {jsd_base(x['id'], True)}")
     videos = [a for a in algos if "v" in a]
     if videos:

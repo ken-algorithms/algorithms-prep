@@ -1,0 +1,227 @@
+id: k01-baseline-10k
+ep: 1
+week: 4
+tag: "K01 · AFTER PHASE 1"
+title: "The 10k baseline in three minutes"
+subtitle: "Problem 04 as a mock answer: clarify, estimate, three principles, and right-sizing"
+covers:
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#0-đề-bài-và-những-gì-đề-bài-không-nói
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#1-vì-sao-câu-trả-lời-cũ-bị-bác--4-lỗ-hổng
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#2-trước-khi-vẽ-6-câu-hỏi-phải-hỏi-interviewer
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#3-ước-lượng-tải--con-số-quyết-định-kiến-trúc
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#65-late-arriving-data-và-watermark
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#7-chọn-tech-stack--3-phương-án-và-ngưỡng-chuyển
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: problem 04 · §0–4, §6.3–6.5, §7, §11"}
+      - {t: "Builds on phase 1: estimation (Ep01–Ep03), the scale-ladder rule (Ep06)"}
+    lines:
+      - tom: "Episode K01. Before I ask about ten million, I want the ten-thousand answer. Three minutes, from the top."
+      - emma: "Here's the answer that should have been given, rebuilt from problem 04."
+        say: "Here's the answer that should have been given, rebuilt from problem four."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: API, full: "application programming interface", vi: "giao diện lập trình; ở đây là endpoint HTTP nhận sự kiện"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh; event ID do client sinh"}
+    lines:
+      - emma: "API is the HTTP endpoint that receives the events, and ID means identifier, as in an event ID made by the client."
+        focus: 1
+
+  - kind: table
+    chapter: "Clarify"
+    heading: "Three questions before drawing anything"
+    columns: ["Ask", "Why it changes the design"]
+    widths: [4.0, 5.2]
+    build: true
+    points: [b-clarify]
+    rows:
+      - ["How many key-value pairs per request?", "10 per request → 1.7k events/s; 1,000 per request → 167k events/s"]
+      - ["Totals, or a breakdown per key?", "per key, rollups can hold more rows than the raw data: cardinality explosion"]
+      - ["A dashboard, or billing?", "billing needs exact numbers: raw data, idempotent writes, reconciliation"]
+    lines:
+      - tom: "Ten thousand requests a minute. Go."
+      - emma: "First, three questions. How many key-value pairs per request? Ten thousand requests a minute is not the unit of load. Events per second is, and the two can differ a hundred times."
+        focus: 0
+      - emma: "Totals, or a breakdown per key? Per key, the rollups can hold more rows than the raw data. And is this for a dashboard, or for billing? Billing means exact numbers: raw data, idempotent writes, and reconciliation."
+        focus: 2
+
+  - kind: table
+    chapter: "Four holes"
+    heading: "Why the on-the-spot answer was rejected"
+    columns: ["The answer did", "The hole"]
+    widths: [3.8, 5.4]
+    build: true
+    points: [b-holes]
+    rows:
+      - ["one cumulative counter, read from the last record", "can't answer an arbitrary range: time is baked into one number"]
+      - ["a lock on every insert to update it", "every write queues on one hot row; more instances don't help"]
+      - ["the counter as the only truth", "retries double-count; no backfill, no reconciliation"]
+      - ["buckets by insert time", "a batch sent at 10:03 holds events from 09:58: wrong bucket, forever"]
+    lines:
+      - emma: "Why the first answer failed. One cumulative counter only knows the current state. From three to five yesterday afternoon? It can't say. Time is baked into a single number."
+        focus: 0
+      - emma: "A lock on every insert puts every write in one queue, on one hot row. Atomic is correct, but not fast, and adding instances doesn't help."
+        focus: 1
+      - emma: "The counter as the only truth means a retry counts twice and nothing can prove it. And bucketing by insert time puts a batch's old events in the wrong minute, forever."
+        focus: 3
+
+  - kind: stats
+    chapter: "Estimate"
+    heading: "The numbers on the board"
+    sub: "Assumption: 20 pairs per request — say it, then confirm it"
+    points: [b-estimate]
+    items:
+      - {v: "3,333/s", l: "events per second", s: "10,000 ÷ 60 = 167 requests/s, × 20"}
+      - {v: "288M/day", l: "events a day", s: "about 17 GB of raw data a day"}
+      - {v: "96 rows", l: "read for “the last 24 hours”", s: "24 hourly buckets × 4 outcomes", tone: ok}
+    lines:
+      - emma: "Ten thousand a minute is a hundred sixty-seven requests per second. Times twenty pairs: three thousand three hundred events per second."
+        focus: 0
+      - emma: "That's two hundred eighty-eight million events a day, about seventeen gigabytes of raw data. So no query may ever scan the raw data."
+        focus: 1
+      - emma: "With hourly buckets, the last twenty-four hours is ninety-six rows: twenty-four hours times four outcomes. You read thousands of times less than you write."
+        focus: 2
+
+  - kind: diagram
+    chapter: "Design"
+    heading: "Tier 1: the minimal correct design"
+    points: [b-design]
+    nodes:
+      - {id: c, label: "POST /events", sub: "{ts, items}", x: 110, y: 75, w: 190, h: 70, shape: user}
+      - {id: a, label: "API", sub: "validate · classify · append · 202", x: 450, y: 75, w: 300, h: 76}
+      - {id: r, label: "raw_events", sub: "source of truth, 7 days", x: 900, y: 75, w: 300, h: 76, shape: db}
+      - {id: g, label: "agg_1m → agg_1h → agg_1d", sub: "derived, recomputable, by event time", x: 900, y: 225, w: 400, h: 76, shape: db, at: 1}
+      - {id: q, label: "GET /stats?from&to", sub: "split the range, add the buckets", x: 420, y: 330, w: 360, h: 76, at: 2}
+    edges:
+      - {a: c, b: a}
+      - {a: a, b: r, label: "batch, no lock"}
+      - {a: r, b: g, label: "rollup, async", dashed: true, at: 1}
+      - {a: g, b: q, label: "never touches raw", at: 2}
+    lines:
+      - emma: "The minimal correct design. The API validates, classifies each pair as true, false, fake key or malformed, appends to a raw table in batches, and answers 202. No lock, no counting in the request."
+        say: "The minimal correct design. The API validates, classifies each pair as true, false, fake key or malformed, appends to a raw table in batches, and answers two oh two. No lock, no counting in the request."
+        focus: 0
+      - emma: "Rollups run asynchronously, by event time: per minute, per hour, per day. They are derived, so they can always be recomputed from raw."
+        focus: 1
+      - emma: "A query splits its range into those buckets and adds them up. It never touches raw data."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Three principles"
+    heading: "Three principles, said out loud"
+    style: num
+    points: [b-principles, b-details]
+    items:
+      - {t: "Write is separate from compute", s: "append and answer 202; aggregation runs asynchronously"}
+      - {t: "Count per time bucket, not one total", s: "a range query adds the buckets it covers"}
+      - {t: "Raw is the truth, rollups are derived", s: "recompute, backfill, and reconcile at any time"}
+      - {t: "Details that score", s: "event time with a 30-minute recompute window · store counts, never ratios · event_id + ON CONFLICT DO NOTHING · an hourly reconcile against COUNT(*)"}
+    lines:
+      - emma: "Three principles. One: writing is separate from computing. Two: count per time bucket, not one total, because the question asks for any range."
+        focus: 1
+      - emma: "Three: raw data is the truth and rollups are derived, so they can be recomputed, backfilled and reconciled."
+        focus: 2
+      - emma: "Then pick two details that score. Buckets by event time, with a thirty-minute window that is recomputed, so late events land right. Counts, never ratios, because ratios don't add up. Idempotency at the raw table: a client event ID and on conflict do nothing. And an hourly job comparing rollups with a count over raw."
+        focus: 3
+
+  - kind: table
+    chapter: "Any range"
+    heading: "Any range, a bounded number of rows"
+    sub: "Greedy: from t1 to t2, always take the coarsest block that still fits"
+    columns: ["Piece", "Tier", "Rows"]
+    widths: [4.4, 2.6, 2.2]
+    mono: [2]
+    points: [b-decompose]
+    rows:
+      - ["03:17:30 → 03:18 and 11:42 → 11:42:10", "raw, two short reads", "2 reads"]
+      - ["42 + 42 minutes at the edges", "agg_1m", "84"]
+      - ["20 + 11 hours", "agg_1h", "31"]
+      - ["2 whole days in the middle", "agg_1d", "2"]
+      - ["Scanning raw for the same 3 days instead", "raw_events", "864,000,000"]
+    lines:
+      - tom: "From three seventeen and thirty seconds one morning, to eleven forty-two and ten seconds three days later. What do you read?"
+      - emma: "Split it greedily: always the coarsest block that still fits. Two short raw reads at the edges, eighty-four minute rows, thirty-one hour rows, and two day rows. About a hundred and twenty rows instead of eight hundred sixty-four million."
+        focus: 4
+      - emma: "A whole year reads at most about five hundred thirty rows. The cost is bounded, whatever the write load."
+
+  - kind: compare
+    chapter: "Right-sizing"
+    heading: "Right-sizing: say what you are not building"
+    points: [b-rightsize]
+    items:
+      - title: "At 3.3k events/s"
+        tone: ok
+        lines:
+          - "One Postgres node with TimescaleDB is enough: about a tenth of its capacity"
+          - "No Kafka, no Flink: four times the systems to run, for capacity nobody uses"
+      - title: "Switch when, and say the number"
+        tone: warn
+        lines:
+          - "Add a cache when the 24-hour read p99 > 50 ms or reads > 1,000/s"
+          - "Kafka + stream processor + columnar store at > 50k events/s, per-key cardinality > 10k, replay > 7 days, or many consumers"
+    lines:
+      - emma: "Then right-size, out loud. At three thousand three hundred events per second, one Postgres node with TimescaleDB is enough. I would not draw Kafka here: four times the systems to run, for capacity nobody uses."
+        focus: 0
+      - emma: "And I name the thresholds. A cache when the twenty-four-hour read p99 passes fifty milliseconds. Kafka, a stream processor and a columnar store above fifty thousand events per second, or a per-key breakdown with more than ten thousand keys, or replays longer than seven days, or many consumers of the same stream."
+        say: "And I name the thresholds. A cache when the twenty-four-hour read p ninety-nine passes fifty milliseconds. Kafka, a stream processor and a columnar store above fifty thousand events per second, or a per-key breakdown with more than ten thousand keys, or replays longer than seven days, or many consumers of the same stream."
+        focus: 1
+      - tom: "Good. Remember that fifty thousand. In K02 I'll push you past it."
+
+  - kind: speech
+    chapter: "Four sentences"
+    heading: "If you remember only four sentences"
+    points: [b-four]
+    items:
+      - {t: "“Write is separate from compute: the API appends and answers 202; aggregation runs asynchronously.”", say: "Write is separate from compute: the API appends and answers two oh two; aggregation runs asynchronously."}
+      - {t: "“I count per time bucket, not one total, because the question asks for any range.”"}
+      - {t: "“Raw is the truth and rollups are derived, so I can recompute and reconcile them.”"}
+      - {t: "“This load doesn't need Kafka yet, and here is the number at which I'd add it.”"}
+    lines:
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+      - read: emma
+        focus: 3
+
+  - kind: table
+    chapter: "Built on"
+    heading: "Built on: phase 1"
+    columns: ["In this answer", "Where you learned it"]
+    widths: [4.2, 5.0]
+    points: [b-built-on]
+    rows:
+      - ["Requests per second, events per day, GB per day", "Phase 1 · Ep01–Ep03 · estimation"]
+      - ["“Not Kafka yet, until this number”", "Phase 1 · Ep06 · climb a rung only when something breaks"]
+      - ["Client-made event ID, kept longer than retries", "Phase 1 · week 2 · the four idempotency-key rules"]
+      - ["Version-bump cache, single-flight", "Phase 1 · week 4 · the three cache illnesses"]
+    lines:
+      - emma: "Nothing here is new. The numbers are the estimation of phase one, episodes one to three. Not Kafka yet is the rule of the scale ladder from episode six: climb a rung only when something breaks."
+        focus: 1
+      - emma: "The client-made event ID follows the four idempotency-key rules of week two. And the cache for the last twenty-four hours uses the version bump and single-flight of week four."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: dot
+    items:
+      - {t: "Clarify the unit of load, totals versus per key, dashboard versus billing"}
+      - {t: "3,333 events/s · 288M a day · 96 rows for the last 24 hours"}
+      - {t: "Append and 202 · buckets by event time · raw is truth · reconcile"}
+      - {t: "Next, K02: ten times, a hundred times, and the part that never changes"}
+    lines:
+      - tom: "That's the answer that earns the follow-up."
+      - emma: "Next, K02: ten times and a hundred times more, and the one part of the system that never changes."
+        focus: 3

@@ -743,11 +743,14 @@ function vSer(){  // bộ video đang xem: theo lựa chọn đã lưu, mặc đ
   return SER.find(x => x.id === S.vser) || SER[0];
 }
 const vSrc = f => esc((vSer().base || "") + f);
-function srcRef(ref){  // "10-implement-gd1-nen-tang.md#11-..." → [khoá tài liệu, anchor]
+function srcRef(ref){  // "10-implement-gd1-nen-tang.md#11-..." → [khoá tài liệu, anchor]; "../katalon-prep/…" được chuẩn hoá
   const [f, a] = String(ref).split("#");
-  return [(JSDV.dir || "") + f, a || ""];
+  const out = [];
+  ((JSDV.dir || "") + f).split("/").forEach(p => { if(p === "..") out.pop(); else if(p && p !== ".") out.push(p); });
+  return [out.join("/"), a || ""];
 }
-const srcLabel = ref => String(ref).split("#")[0].replace(/\.md$/, "").split("-")[0];
+const vCode = v => v.code || "Ep" + String(v.ep).padStart(2, "0");  // K03 ở bộ chen ngang, Ep03 ở hai bộ giai đoạn
+const srcLabel = ref => String(ref).split("#")[0].split("/").pop().replace(/\.md$/, "").split("-")[0];
 function renderVid(){
   el("nVid").textContent = vAll();
   if(!SER.length){
@@ -790,7 +793,7 @@ function renderVid(){
   const covers = (v.covers || []).map(r => { const [d, a] = srcRef(r);
     return DOCS[d] ? `<button data-act="doc" data-doc="${esc(d)}" data-anchor="${esc(a)}" title="${esc(r)}">${esc(DOCS[d].t.split(" — ")[0].slice(0, 40))}${a ? " · mục" : ""}</button>` : ""; }).join("");
   el("vInfo").innerHTML = `
-    <div class="vmeta"><div><h3>Ep${String(v.ep).padStart(2, "0")} · ${esc(v.title)}</h3>
+    <div class="vmeta"><div><h3>${esc(vCode(v))} · ${esc(v.title)}</h3>
       <div class="sub">${esc(v.subtitle)} · ${mmss(v.duration)} · ${v.mb} MB</div></div>
       <span class="vrate">${[1, 1.25, 1.5].map(r => `<button class="fbtn" data-act="vrate" data-r="${r}" aria-pressed="${(S.vrate || 1) === r}">${r}×</button>`).join("")}
       <label><input type="checkbox" data-act="vseen" data-v="${esc(v.id)}" ${S.vid[v.id] ? "checked" : ""}> Đã xem</label></span></div>
@@ -805,7 +808,7 @@ function renderVid(){
     `<div class="vweek">${esc((X.weeks || {})[w] || (+w ? "Tuần " + w : "Định hướng"))}</div>` + weeks[w].map(x => `
       <button class="vitem${S.vid[x.id] ? " seen" : ""}" data-act="vid" data-v="${esc(x.id)}" aria-current="${x.id === vidCur}">
         ${x.poster ? `<img loading="lazy" alt="" src="${vSrc(x.poster)}" onerror="this.style.visibility='hidden'">` : '<span class="ph"></span>'}
-        <span><b>Ep${String(x.ep).padStart(2, "0")} · ${esc(x.title)}</b><small>${mmss(x.duration)} · ${(x.chapters || []).length} chương · ${(x.points || []).length} ý</small></span>
+        <span><b>${esc(vCode(x))} · ${esc(x.title)}</b><small>${mmss(x.duration)} · ${(x.chapters || []).length} chương · ${(x.points || []).length} ý</small></span>
       </button>`).join("")).join("") +
     (left > 0 ? `<p class="hint">Còn ${left} video của ${esc(X.title.split(" · ")[0].toLowerCase())} làm theo kế hoạch; tiến độ ghi trong “Kế hoạch + nhật ký”.</p>` : "");
 }

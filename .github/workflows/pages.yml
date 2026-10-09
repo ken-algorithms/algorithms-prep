@@ -52,11 +52,11 @@ jobs:
           (cd leetcode-38-bai-video && find . -path '*/nhom-*/bai-*/*' \( -name 'bai-*-full.mp4' -o -name 'bai-*.gif' \) \
             -exec cp --parents {} ../_deploy/media/ \;)
           # video bài giảng Java System Design (tab Video của app): mỗi bộ java-system-design/<bộ>/lessons
-          # sang media/jsd/<bộ>/, đúng chỗ web/build.py trỏ tới
-          for d in java-system-design/video-gd*/lessons; do
+          # (video-gd1, video-gd2, video-katalon…) sang media/jsd/<bộ>/, đúng chỗ web/build.py trỏ tới
+          for d in java-system-design/video-*/lessons; do
             s=$(basename "$(dirname "$d")")
             mkdir -p "_deploy/media/jsd/$s"
-            find "$d" -maxdepth 1 \( -name 'ep*.mp4' -o -name 'ep*.jpg' \) -exec cp {} "_deploy/media/jsd/$s/" \;
+            find "$d" -maxdepth 1 \( -name '*.mp4' -o -name '*.jpg' \) -exec cp {} "_deploy/media/jsd/$s/" \;
           done
           echo "— media —"
           find _deploy/media -type f | sort
@@ -76,7 +76,7 @@ jobs:
           python3 - <<'PY'
           import json, pathlib, sys
           need = []
-          for m in sorted(pathlib.Path("java-system-design").glob("video-gd*/lessons/lessons.json")):
+          for m in sorted(pathlib.Path("java-system-design").glob("video-*/lessons/lessons.json")):
               s = m.parent.parent.name
               need += [f"{s}/{f}" for x in json.loads(m.read_text())["lessons"] for f in (x["file"], x.get("poster")) if f]
           miss = [f for f in need if not pathlib.Path("_deploy/media/jsd", f).exists()]

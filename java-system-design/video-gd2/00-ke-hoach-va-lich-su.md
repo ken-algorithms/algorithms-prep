@@ -260,7 +260,7 @@ kiểm · **Xong** người dùng đã duyệt.
 | Ep11 | 7 | **Chờ duyệt** | 4:42 | 3,8 | 5 | 1 | 4 ý chính · 5 chữ viết tắt |
 | Ep12 | 8–9 | **Chờ duyệt** | 4:56 | 4,1 | 7 | 1 | 7 ý chính · 4 chữ viết tắt |
 | Ep13 | 8–9 | **Chờ duyệt** | 3:40 | 3,2 | 6 | 1 | 4 ý chính · 6 chữ viết tắt |
-| Ep14 | 8–9 | **Chờ duyệt** | 4:57 | 4,7 | 8 | 1 | 5 ý chính · 7 chữ viết tắt |
+| Ep14 | 8–9 | **Chờ duyệt** | 5:04 | 4,8 | 8 | 1 | 5 ý chính · 8 chữ viết tắt |
 | Ep15 | 8–9 | **Chờ duyệt** | 6:08 | 5,6 | 8 | 1 | 9 ý chính · 4 chữ viết tắt |
 | Ep16 | 8–9 | **Chờ duyệt** | 4:57 | 4,2 | 8 | 1 | 7 ý chính · 2 chữ viết tắt |
 | Ep17 | 8–9 | **Chờ duyệt** | 4:27 | 3,7 | 6 | 1 | 7 ý chính · 3 chữ viết tắt |
@@ -270,7 +270,7 @@ kiểm · **Xong** người dùng đã duyệt.
 | Ep21 | 10 | **Chờ duyệt** | 4:25 | 3,6 | 5 | 1 | 5 ý chính · 1 chữ viết tắt |
 | Ep22 | 10 | **Chờ duyệt** | 6:24 | 5,9 | 8 | 1 | 9 ý chính · 10 chữ viết tắt |
 
-**Đã dựng 23/23 video, 2:03:02 (≈ 123 phút), 106 MB — chờ duyệt. Đã duyệt 0/23.**
+**Đã dựng 23/23 video, 2:03:10 (≈ 123 phút), 107 MB — chờ duyệt. Đã duyệt 0/23.**
 
 ---
 
@@ -343,6 +343,15 @@ Yêu cầu: làm hết video giai đoạn 2 bằng giọng Emma `af_heart`, xong
 - **Chưa làm**: chưa có người nghe lại toàn bộ, đó là bước duyệt. Góp ý về giọng, tốc độ, độ dài hay bố
   cục dựng lại nhanh vì tiếng đã nằm trong bộ nhớ đệm.
 - Commit trên nhánh `claude/wizardly-pascal-9yhum5`.
+
+### Đợt 1b — 08/10/2026: dựng lại Ep14 và Ep15 (khi làm bộ chen ngang Katalon)
+
+- Lệnh `check` nay kiểm cả các dòng của cột so sánh (`compare`). Lộ ra **WAL** trên slide "P09, on purpose" của Ep14 mà
+  thẻ chữ viết tắt không có: thêm WAL vào thẻ và một câu giải thích.
+- `speak.py` thêm cách đọc *dedup* (trước đó Kokoro đọc `dᵻdˈʌp`, gần "đờ-đắp"); đúng một câu của Ep15 có chữ này
+  ("a dedup table you must clean up").
+- Dựng lại hai video; các câu khác lấy tiếng từ bộ nhớ đệm. Ep14 4:57 → 5:04; Ep15 vẫn
+  6:08. Chi tiết ở [kế hoạch bộ chen ngang](../video-katalon/00-ke-hoach-va-lich-su.md#7-công-cụ-thay-đổi-cho-bộ-này).
 
 ---
 

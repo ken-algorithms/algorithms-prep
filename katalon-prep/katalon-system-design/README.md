@@ -8,9 +8,9 @@
 
 ---
 
-## 1. Nhận họ bài trong 30 giây — 4 trục phân loại
+## 1. Nhận họ bài trong 30 giây — 5 trục phân loại
 
-Đừng học thuộc danh sách. Hỏi 4 câu này về đề bài, câu trả lời sẽ chỉ thẳng vào họ:
+Đừng học thuộc danh sách. Hỏi 5 câu này về đề bài, câu trả lời sẽ chỉ thẳng vào họ:
 
 ```text
 Trục 1 — Ghi nặng hay đọc nặng?
@@ -41,7 +41,7 @@ Trục 5 — Có ĐỌC rồi TÍNH rồi GHI dựa trên cái vừa đọc khô
 > Dấu hiệu: trong đề có hai bên cùng chạm một thực thể, và ít nhất một bên **ra quyết định dựa trên
 > giá trị vừa đọc**. Xem [06](06-race-condition-balance-ledger.md).
 
-**Ví dụ chạy thử 4 trục trên bài đã hỏi thật** (10k request/phút, đếm true/false/fake-key):
+**Ví dụ chạy thử 5 trục trên bài đã hỏi thật** (10k request/phút, đếm true/false/fake-key):
 
 | Trục | Trả lời | Suy ra |
 |---|---|---|
@@ -49,6 +49,7 @@ Trục 5 — Có ĐỌC rồi TÍNH rồi GHI dựa trên cái vừa đọc khô
 | 2 | **Theo khoảng bất kỳ** | **Bắt buộc bucket thời gian + rollup phân tầng** ← chỗ giải pháp cũ vỡ |
 | 3 | Không (nếu single-tenant) | Bỏ qua fairness |
 | 4 | Tuyệt đối (đếm số) | Giữ raw + `ON CONFLICT DO NOTHING` + reconcile job |
+| 5 | Không (chỉ append, không đọc rồi ghi đè) | Bỏ qua khoá; đó là lý do ghi không cần lock |
 
 → Ra đúng kiến trúc ở [04](04-event-counting-10k.md), không cần "nhớ bài".
 
@@ -58,9 +59,9 @@ Trục 5 — Có ĐỌC rồi TÍNH rồi GHI dựa trên cái vừa đọc khô
 
 | # | Họ bài | Chữ ký nhận dạng | Lõi giải pháp | Bẫy kinh điển | File |
 |---|---|---|---|---|---|
-| **A** | **Đếm & tổng hợp theo thời gian**<br>*(counting/aggregation at scale)* | Ghi nặng, đọc nhẹ, **nhưng đọc theo khoảng thời gian bất kỳ** | Pre-aggregation vào **bucket thời gian** + rollup phân tầng (phút→giờ→ngày) + phân rã khoảng lúc query | **Cardinality explosion**; lưu tỉ lệ thay vì lưu count; bucket theo ingest-time thay vì event-time | [03](03-realtime-analytics-dashboard.md) · [**04** ⭐](04-event-counting-10k.md) |
+| **A** | **Đếm & tổng hợp theo thời gian**<br>*(counting/aggregation at scale)* | Ghi nặng, đọc nhẹ, **nhưng đọc theo khoảng thời gian bất kỳ** | Pre-aggregation vào **bucket thời gian** + rollup phân tầng (phút→giờ→ngày) + phân rã khoảng lúc query | **Cardinality explosion**; lưu tỉ lệ thay vì lưu count; bucket theo ingest-time thay vì event-time | [03](03-realtime-analytics-dashboard.md) · [**04** ⭐](04-event-counting-10k.md) · [07](07-event-counting-10m-100m.md) (10M, 100M) |
 | **B** | **Điều phối tác vụ & chia tài nguyên hữu hạn**<br>*(scheduling / fair queueing)* | Nhiều bên **tranh nhau một pool hữu hạn** | Quota cứng + **hàng đợi có trọng số** (WFQ/DRR) + priority & preemption + bin-packing (LPT) | Đọc thành bài throughput; FIFO chung gây **head-of-line blocking**; priority tuyệt đối gây **starvation** | [**02** ⭐](02-distributed-test-execution.md) |
-| **C** | **Thu thập & xử lý luồng sự kiện**<br>*(ingestion pipeline)* | Dữ liệu đến liên tục từ nguồn **mình không kiểm soát** | Backpressure + at-least-once **+ sink idempotent** + partition key giữ ordering đúng phạm vi | Hàng đợi **vô hạn**; hot partition; PII rời client trước khi redact | [**01** ⭐](01-truetest-journey-mining.md) |
+| **C** | **Thu thập & xử lý luồng sự kiện**<br>*(ingestion pipeline)* | Dữ liệu đến liên tục từ nguồn **mình không kiểm soát** | Backpressure + at-least-once **+ sink idempotent** + partition key giữ ordering đúng phạm vi | Hàng đợi **vô hạn**; hot partition; PII rời client trước khi redact | [**01** ⭐](01-truetest-journey-mining.md) · [07 §7](07-event-counting-10m-100m.md#7-họ-c-khi-tải-lớn--thu-thập-từ-nguồn-không-kiểm-soát) |
 | **D** | **Hệ thống có LLM trong vòng lặp**<br>*(agentic / AI system design)* | Có bước **không tất định** nằm giữa pipeline | Plan tất định, LLM **chỉ nằm trong tool**; schema ràng buộc; validation gate; escalate theo confidence | Để LLM quyết flow; tin self-reported confidence; không có eval harness | [../katalon-prep-common/04-ai-agent-system-design.md](../katalon-prep-common/04-ai-agent-system-design.md) · [../AI-STACK-INTERVIEW-ANSWERS.md](../AI-STACK-INTERVIEW-ANSWERS.md) |
 | **E** | **Tìm kiếm ngữ nghĩa / RAG**<br>*(retrieval)* | Truy vấn theo **ý nghĩa**, không theo khoá chính xác | Embedding + vector index + **rerank** (bi-encoder lọc, cross-encoder xếp hạng) | Cắt `top_k` quá sớm; truncate embedding của model không phải MRL; nhầm cosine similarity với cosine distance | [../AI-STACK-INTERVIEW-ANSWERS.md §8](../AI-STACK-INTERVIEW-ANSWERS.md) |
 | **F** | **Độ tin cậy & chống lỗi lan**<br>*(resilience)* | Có **phụ thuộc ngoài** có thể chậm hoặc chết | Timeout theo tầng + retry có jitter + circuit breaker + bulkhead + DLQ | Retry không jitter gây **thundering herd**; retry và circuit breaker giải **hai** bài khác nhau; nuốt lỗi thành dead code | [../katalon-prep-java/06-distributed-resilience/](../katalon-prep-java/06-distributed-resilience/) · [../katalon-prep-python/](../katalon-prep-python/) |
@@ -114,6 +115,7 @@ cuối làm mọi giải pháp "một counter duy nhất" sụp đổ, và đó 
 | [**04** — Event Counting 10k/phút](04-event-counting-10k.md) ⭐ | A | **Đã hỏi thật, vòng Principal** | Bản đào sâu nhất: 4 lỗ hổng của câu trả lời cũ → thiết kế đúng → demo từng bước |
 | [**05** — Hệ thống thật all-in-one trên AWS](05-he-thong-that-allinone-aws.md) | — | Review repo thật của bạn | **Không phải đề bài** — là kho **bằng chứng thật** (ECS/ALB/autoscaling/Terraform) để dẫn chứng khi trả lời bất kỳ bài nào |
 | [**06** — Race condition khi tính balance](06-race-condition-balance-ledger.md) ⭐ | G | **Lỗi thật, lặp lại, trong `all-in-one-v2`** | **Hai phần.** *Phần I — chữa hệ đang chạy:* 7 phát hiện có file:line (0 `@Version`, 0 `FOR UPDATE`, `synchronized` khoá nhầm chỗ), thang 5 bậc giải pháp, balance real-time đúng. *Phần II — thiết kế lại từ đầu:* [đổi định nghĩa để race biến mất](06-race-condition-balance-ledger.md#121-một-thay-đổi-định-nghĩa-xoá-được-phần-lớn-bài-toán), batch chỉ **phát lệnh** chứ không tính, scale khi posting tăng vô hạn, và [kiến trúc AWS 11 bước](06-race-condition-balance-ledger.md#13-kiến-trúc-aws--khai-báo-từng-bước) có Terraform |
+| [**07** — Event Counting 10M và 100M/phút](07-event-counting-10m-100m.md) | A + C | Follow-up của 04: *"10M thì sao? 100M thì sao?"* | Thang ước lượng × 10 tới × 10.000, cái gì vỡ trước ở từng bước, kiến trúc 10M (Kafka key `batch_id`, khử trùng, ghi đè `GREATEST`) và 100M (cell theo region), họ C khi tải lớn, bản đồ nối với giai đoạn 1–2. Có [8 video chen ngang](../../java-system-design/video-katalon/00-ke-hoach-va-lich-su.md) |
 
 **Vì sao 05 nằm ở đây dù không phải đề bài:** khi trả lời design, câu mạnh nhất không phải *"tôi sẽ
 dùng ALB"* mà là *"hệ thống tôi đang vận hành dùng ALB + StepScaling, và đây là file Terraform"*.
@@ -138,7 +140,7 @@ không được gì.
 
 ## 6. Khung 45 phút
 
-Áp cho cả 5 file. Không đổi theo đề.
+Áp cho mọi đề trong folder. Không đổi theo đề.
 
 ```text
  5' Clarify      → functional / non-functional / scale / constraint. HỎI, đừng đoán
@@ -169,8 +171,8 @@ không được gì.
 |---|---|
 | **30 phút** | [04](04-event-counting-10k.md) §1 (4 lỗ hổng) + §11 (kịch bản 3 phút), rồi mục 1–2 của file này |
 | **2 giờ** | Trên + [01](01-truetest-journey-mining.md) trọn vẹn (bài on-domain quan trọng nhất) + [06 §10.1](06-race-condition-balance-ledger.md#101-kể-theo-star-90-giây) (STAR có bằng chứng code thật) |
-| **Nửa ngày** | Cả 6 file, và **chạy demo** ở [04 §8](04-event-counting-10k.md#8-demo-chạy-được--từng-bước) để có bảng số của chính mình |
-| **Trước mỗi vòng** | Mục 1 (4 trục) của file này — đó là thứ dùng được cho đề **chưa từng thấy** |
+| **Nửa ngày** | Cả 7 file, và **chạy demo** ở [04 §8](04-event-counting-10k.md#8-demo-chạy-được--từng-bước) để có bảng số của chính mình |
+| **Trước mỗi vòng** | Mục 1 (5 trục) của file này — đó là thứ dùng được cho đề **chưa từng thấy** |
 
 ---
 
@@ -181,5 +183,6 @@ không được gì.
 | **Demo ở [04 §8](04-event-counting-10k.md#8-demo-chạy-được--từng-bước) chưa chạy** | 🔴 | Bảng đo còn ô trống. Đừng nói "tôi đã đo được" trước khi chạy thật |
 | Họ B chưa có code chạy được | 🟡 | WFQ/DRR mới ở mức mô tả. [../katalon-prep-java/08-system-design/](../katalon-prep-java/08-system-design/) có token bucket + circuit breaker nhưng chưa có fair queueing |
 | **Bản sửa ở [06](06-race-condition-balance-ledger.md) chưa triển khai** | 🔴 | Chẩn đoán đã có bằng chứng file:line, nhưng chưa sửa và chưa đo mức lỗi trên production. Việc đầu tiên nên làm là chạy query đối soát ở [06 §6 bước 5](06-race-condition-balance-ledger.md#bước-5--job-đối-soát-thứ-chứng-minh-đã-sửa) để có con số trước/sau |
+| **Kiến trúc 10M/100M ở [07](07-event-counting-10m-100m.md) chưa có demo** | 🟡 | Mọi số là phép nhân từ giả định (20 item/request, 0,2 ms CPU mỗi request của collector). Nói *"tôi sẽ dựng và đo thế này"*, không nói *"tôi đã chạy"* ([07 §10](07-event-counting-10m-100m.md#10-ranh-giới-trung-thực)) |
 | Họ E chưa có file riêng ở đây | 🟢 | Nội dung đầy đủ đã có ở [../AI-STACK-INTERVIEW-ANSWERS.md §8](../AI-STACK-INTERVIEW-ANSWERS.md); tách ra chỉ để cho đều, không thêm giá trị |
 | Chưa có bài **storage/indexing** thuần | 🟢 | Chưa gặp trong JD Katalon. [../katalon-prep-java/05-postgres-depth/](../katalon-prep-java/05-postgres-depth/) đã phủ phần index/EXPLAIN |

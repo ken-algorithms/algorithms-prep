@@ -1,0 +1,242 @@
+id: k02-ladder-x10-x100
+ep: 2
+week: 4
+tag: "K02 · AFTER PHASE 1"
+title: "Climbing the ladder: ten and a hundred times"
+subtitle: "Numbers for every rung, the read path that doesn't move, and the first two things that break"
+covers:
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#1-đề-mở-rộng--hỏi-lại-gì-trước-khi-trả-lời
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#2-thang-ước-lượng-10k--100m-requestphút
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#3-điều-không-đổi-đường-đọc
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#4-cái-gì-vỡ-trước--đi-từng-bước--10
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: problem 07 · §1–3, §4.1–4.2, the pattern of §4"}
+      - {t: "Builds on phase 1: Ep01 conversions · Ep06 the ladder and “× 10”"}
+    lines:
+      - tom: "Episode K02. You said fifty thousand events per second is where your design changes. Let's walk up to it, and past it."
+      - emma: "Then I'll start the way phase one taught: numbers before boxes."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: WAL, full: "write-ahead log", vi: "nhật ký ghi trước của Postgres; mỗi dòng ghi đều đi qua"}
+      - {abbr: OLAP, full: "online analytical processing", vi: "kho cột cho truy vấn gom nhiều dòng (ClickHouse)"}
+      - {abbr: API, full: "application programming interface", vi: "ở đây: endpoint nhận sự kiện"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "WAL is the write-ahead log: every row Postgres writes goes through it first. OLAP, online analytical processing, means a columnar store built for aggregates, like ClickHouse."
+        focus: 1
+      - emma: "API is the endpoint that receives the events, and ID means identifier."
+        focus: 3
+
+  - kind: table
+    chapter: "Ask first"
+    heading: "At this scale, ask these before answering"
+    columns: ["Ask", "Why it changes the design at 10M to 100M"]
+    widths: [3.8, 5.4]
+    build: true
+    points: [l-ask]
+    rows:
+      - ["Still 20 pairs per request?", "20 → 3.3M events/s; 200 → 33M events/s at the same 10M a minute"]
+      - ["How many clients, sending how often?", "a few chatty agents can pre-aggregate; millions of quiet devices can't"]
+      - ["One region, or worldwide?", "worldwide → regional cells, and data that must stay in its region"]
+      - ["A dashboard, or billing?", "billing only uses reconciled numbers from batch"]
+    lines:
+      - tom: "Ten million a minute. Go."
+      - emma: "First I restate it: ten million requests a minute, still twenty pairs each, still exact counts over any range. Then I ask again about the unit of load, because twenty or two hundred pairs is a tenfold difference."
+        focus: 0
+      - emma: "How many clients send, and how often? A few thousand chatty agents can pre-aggregate on their side. Millions of quiet devices cannot."
+        focus: 1
+      - emma: "One region or worldwide? And dashboard or billing? Billing only ever uses numbers that a batch job has reconciled."
+        focus: 3
+
+  - kind: exercise
+    chapter: "The ladder"
+    label: "Question"
+    q: "Fill the ladder before any boxes: requests per second, events per second, events per day, raw GB per day."
+    items:
+      - {t: "10k, 100k, 1 million, 10 million, 100 million requests a minute"}
+      - {t: "20 pairs per request · 60 bytes per raw event · about 1 KB per request on the wire"}
+    lines:
+      - tom: "Fill the ladder: ten thousand, a hundred thousand, a million, ten million, a hundred million a minute. Requests per second, events per second, events per day, raw data per day."
+      - wait: 8
+        note: "Divide by 60, multiply by 20, then by 1,440 minutes a day."
+
+  - kind: table
+    heading: "The ladder, rung by rung"
+    sub: "20 pairs per request · 60 B per raw event (problem 04) · peak about × 3"
+    columns: ["Per minute", "Requests/s", "Events/s", "Events/day", "Raw/day", "On the wire"]
+    widths: [1.6, 1.6, 1.5, 1.5, 1.3, 1.9]
+    mono: [1, 2, 3, 4, 5]
+    accent: [2]
+    build: true
+    points: [l-ladder]
+    rows:
+      - ["10k (04)", "167", "3,333", "288M", "17 GB", "0.17 MB/s"]
+      - ["100k", "1,667", "33,333", "2.88B", "173 GB", "1.7 MB/s"]
+      - ["1 million", "16,667", "333,333", "28.8B", "1.7 TB", "17 MB/s"]
+      - ["10 million", "166,667", "3.3 million", "288B", "17 TB", "1.3 Gbit/s"]
+      - ["100 million", "1.67 million", "33 million", "2,880B", "173 TB", "13 Gbit/s"]
+    lines:
+      - emma: "Ten thousand a minute: a hundred sixty-seven requests per second, three thousand three hundred events, seventeen gigabytes of raw a day."
+        focus: 0
+      - emma: "Each rung is ten times the one before. A hundred thousand a minute: thirty-three thousand events per second. A million: three hundred thirty-three thousand."
+        focus: 2
+      - emma: "Ten million a minute: a hundred sixty-six thousand requests per second, three point three million events per second, two hundred eighty-eight billion events a day, seventeen terabytes of raw, and about one point three gigabits per second coming in."
+        focus: 3
+      - emma: "A hundred million: one point six seven million requests per second, thirty-three million events, a hundred seventy-three terabytes of raw a day, and thirteen gigabits per second. At the peak, three times that."
+        focus: 4
+
+  - kind: stats
+    chapter: "What never changes"
+    heading: "The read path doesn't move"
+    sub: "rollup rows = tenants × outcomes × buckets — there is no “events per second” in that formula"
+    points: [l-read-constant]
+    items:
+      - {v: "5,760", l: "minute rows a day, one tenant", s: "4 outcomes × 1,440 minutes · at every rung", tone: ok}
+      - {v: "57.6 million", l: "minute rows a day, 10,000 tenants", s: "still independent of the load"}
+      - {v: "≈ 530", l: "rows for any one-year query", s: "the range split of problem 04, unchanged", tone: ok}
+    lines:
+      - emma: "Now the surprise. The rollup table has one row per tenant, outcome and bucket. There is no events per second in that formula."
+      - emma: "One tenant at minute resolution is five thousand seven hundred sixty rows a day, at ten thousand a minute and at a hundred million a minute."
+        focus: 0
+      - emma: "So the range split, the cache and the query from K01 stay exactly as they are. A one-year query still reads about five hundred thirty rows. Everything that changes is on the write path."
+        focus: 2
+
+  - kind: table
+    chapter: "Cardinality, relatively"
+    heading: "Cardinality explosion is relative to the load"
+    sub: "gain = events per bucket ÷ distinct groups per bucket · 100,000 keys × 4 outcomes = 400,000 groups"
+    columns: ["Load", "Events per minute", "Gain of a per-key rollup", "Verdict"]
+    widths: [1.8, 2.2, 2.6, 2.6]
+    mono: [1, 2]
+    points: [l-cardinality]
+    rows:
+      - ["10k a minute", "200,000", "≤ 0.5", "useless: about one row per event"]
+      - ["10M a minute", "200 million", "500", "worth it, in a columnar store"]
+    lines:
+      - tom: "And if I want the breakdown per key? A hundred thousand keys."
+      - emma: "Problem 04 said a per-key rollup is useless here, and at ten thousand a minute that's true: two hundred thousand events a minute over four hundred thousand groups. Almost every event is its own row."
+        say: "Problem four said a per-key rollup is useless here, and at ten thousand a minute that's true: two hundred thousand events a minute over four hundred thousand groups. Almost every event is its own row."
+        focus: 0
+      - emma: "At ten million a minute, the same groups receive two hundred million events, a gain of five hundred times. So cardinality explosion is a ratio, not a fixed number. But that's five hundred seventy-six million rows a day per tenant: a job for an OLAP store, not Postgres."
+        focus: 1
+
+  - kind: flow
+    chapter: "Five sentences"
+    heading: "Every “ten times more” answer has five sentences"
+    sub: "From phase 1, file 02 §5 — the drill you practised on the bank system"
+    points: [l-five]
+    build: true
+    items:
+      - {t: "New numbers", s: "say the new load in the real unit"}
+      - {t: "Breaks first", s: "name it, with the number"}
+      - {t: "Fix", s: "and its trade-off"}
+      - {t: "Breaks next", s: "the next ceiling"}
+      - {t: "Not yet", s: "what you deliberately don't build", tone: ok}
+    lines:
+      - emma: "Phase one gave us the shape of every ten-times answer: five sentences. The new numbers. What breaks first, with the number. The fix and its trade-off. What breaks next."
+        focus: 3
+      - emma: "And the one that scores: what I'm not building yet, and why it still has headroom."
+        focus: 4
+
+  - kind: table
+    chapter: "× 10: 100k a minute"
+    heading: "× 10 · 100k requests a minute"
+    columns: ["", "Answer"]
+    widths: [1.6, 7.6]
+    build: true
+    points: [l-x10]
+    rows:
+      - ["Numbers", "1,667 requests/s · 33,333 events/s · 2.88B events a day · 173 GB raw a day"]
+      - ["Breaks first", "one Postgres primary writing a row, a unique index entry and WAL per event: 33k rows/s hits the ~30–50k ceiling"]
+      - ["Fix", "combine in the API: one row per request with 4 counters and the 20 items packed · writes drop 20 times"]
+      - ["Trade-off", "dedup per request (batch_id), not per event · a per-key breakdown must unpack the items"]
+      - ["Not yet", "Kafka, a stream processor: after a 20-times cut, one node has lots of headroom"]
+    lines:
+      - emma: "Ten times: a hundred thousand a minute, thirty-three thousand events per second."
+        focus: 0
+      - emma: "What breaks first is the single Postgres primary. One row per event, plus a unique index entry, plus the WAL, while the rollups read the same table. Thirty-three thousand rows per second is right at the ceiling of one primary, thirty to fifty thousand, order of magnitude."
+        focus: 1
+      - emma: "The fix: combine in the API. Each request becomes one row, with four counters and its twenty items packed. Writes drop twenty times. The trade-off: deduplication is now per request, by batch ID, and a per-key breakdown has to unpack the items."
+        focus: 3
+      - emma: "Not yet: Kafka. After a twentyfold cut, one node has plenty of headroom."
+        focus: 4
+
+  - kind: table
+    chapter: "× 100: 1 million a minute"
+    heading: "× 100 · 1 million requests a minute"
+    columns: ["", "Answer"]
+    widths: [1.6, 7.6]
+    build: true
+    points: [l-x100]
+    rows:
+      - ["Numbers", "16,667 requests/s · 333,333 events/s · 28.8B events a day · 1.7 TB raw a day"]
+      - ["Breaks first", "the API writes to the database synchronously: a slow database or a failover means held requests, errors, then a retry storm"]
+      - ["Fix", "Kafka between API and compute (acks=all, 3 replicas, min.insync.replicas=2) · 202 after Kafka acks · a stream processor builds the rollups · raw to object storage"]
+      - ["Trade-off", "2–3 more systems to run · numbers become eventual, a few seconds behind"]
+      - ["Not yet", "a columnar store: total rollups still fit Postgres"]
+    lines:
+      - emma: "A hundred times: a million a minute, three hundred thirty-three thousand events per second."
+        focus: 0
+      - emma: "Now what breaks is coupling. The API writes to the database synchronously, so a slow database, or a thirty-second failover, means the API holds requests or fails them, and then the clients' retries arrive all at once."
+        focus: 1
+      - emma: "The fix is a durable buffer: Kafka between the API and the computation, with acks all, three replicas, and two in sync. The API answers 202 once Kafka acknowledges. A stream processor builds the rollups, and raw data flows on to object storage for reconciliation. This is the hundred-times answer of problem 04."
+        say: "The fix is a durable buffer: Kafka between the API and the computation, with acks all, three replicas, and two in sync. The API answers two oh two once Kafka acknowledges. A stream processor builds the rollups, and raw data flows on to object storage for reconciliation. This is the hundred-times answer of problem four."
+        focus: 2
+      - emma: "The trade-off is two or three more systems, and numbers that lag a few seconds. Not yet: a columnar store. Total rollups still fit in Postgres."
+        focus: 4
+
+  - kind: bullets
+    chapter: "The pattern"
+    heading: "The pattern: every × 10 moves the aggregation closer to the source"
+    style: num
+    points: [l-pattern]
+    build: true
+    items:
+      - {t: "10k a minute: the database aggregates", s: "continuous aggregates over raw rows"}
+      - {t: "100k: the API aggregates", s: "one row per request"}
+      - {t: "1 million: a stream processor aggregates", s: "behind Kafka"}
+      - {t: "10 million: the collector and the partition aggregate", s: "one record per request, deduplicated per partition — K03"}
+      - {t: "100 million: the region, sometimes the client", s: "cells, counts summed globally — K05"}
+    lines:
+      - emma: "Here's the pattern to say out loud. Every ten times moves the place where we aggregate one step closer to the source."
+      - emma: "The database at ten thousand. The API at a hundred thousand. A stream processor at a million."
+        focus: 2
+      - emma: "The collector and each Kafka partition at ten million. And at a hundred million, the region, and sometimes the client itself."
+        focus: 4
+
+  - kind: table
+    chapter: "Built on"
+    heading: "Built on: phase 1, plus a preview of phase 2"
+    columns: ["In this video", "Where you learned it"]
+    widths: [4.2, 5.0]
+    points: [l-built-on]
+    rows:
+      - ["÷ 60, × 20, × 1,440; bytes per day; Gbit/s", "Phase 1 · Ep01 · conversions you do in your head"]
+      - ["The five sentences of “× 10”, “not yet”", "Phase 1 · Ep06 · the ladder L0–L4 and its rule"]
+      - ["One primary's write ceiling, B-tree index per row", "Phase 1 · week 3 · storage engines and indexes"]
+      - ["Kafka acks, replicas, a durable buffer", "Phase 2 · Ep12 · ordering, keys, durable writes"]
+    lines:
+      - emma: "Built on phase one: the conversions from episode one, and the ladder and its five sentences from episode six. The write ceiling of one primary comes from week three, storage engines and indexes."
+        focus: 2
+      - emma: "The Kafka settings are a preview of phase two, episode twelve. That's where the next video starts."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: dot
+    items:
+      - {t: "Fill the ladder first: 10M a minute = 166,667 requests/s = 3.3 million events/s"}
+      - {t: "Rollup rows don't depend on the load: the read path stays"}
+      - {t: "× 10: combine per request · × 100: Kafka as a durable buffer"}
+      - {t: "Next, K03 (after phase 2): ten million a minute, the pipeline"}
+    lines:
+      - tom: "So the reads never move, and every ten times pushes aggregation toward the source."
+      - emma: "Next, K03: ten million a minute. Watch it after phase two, because it lives on Kafka keys and stream windows."
+        focus: 3

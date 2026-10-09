@@ -1,6 +1,6 @@
 # Độ phủ nội dung — video giai đoạn 2
 
-**147/147 ý chính đã có video.** Bảng sinh bằng `python -m lesson_video coverage` từ `points.yaml` (ý chính lấy từ tài liệu nguồn) và kịch bản `ep*.yaml`; mỗi ý có chữ bắt buộc (`expect`) mà lệnh `check` đã kiểm là có mặt trong cảnh dạy ý đó. Thời điểm lấy từ `lessons.json` sau khi dựng.
+**147/147 ý chính đã có video.** Bảng sinh bằng `python -m lesson_video coverage` từ `points.yaml` (ý chính lấy từ tài liệu nguồn) và các kịch bản `.yaml`; mỗi ý có chữ bắt buộc (`expect`) mà lệnh `check` đã kiểm là có mặt trong cảnh dạy ý đó. Thời điểm lấy từ `lessons.json` sau khi dựng.
 
 ## Theo video
 
@@ -20,7 +20,7 @@
 | Ep11 · Timed designs: a payment system and a digital wallet | 4:42 | 5 | 4 |
 | Ep12 · Kafka: ordering, keys, and durable writes | 4:56 | 7 | 7 |
 | Ep13 · Kafka: delivery guarantees, consumer groups, and dead letters | 3:40 | 6 | 4 |
-| Ep14 · Lab 8, part 1: the outbox and its relay on real Kafka | 4:57 | 8 | 5 |
+| Ep14 · Lab 8, part 1: the outbox and its relay on real Kafka | 5:04 | 8 | 5 |
 | Ep15 · Lab 8, part 2: the idempotent consumer, and seven tests that prove it | 6:08 | 8 | 9 |
 | Ep16 · Track P: P20, the slow consumer and the rebalance storm | 4:57 | 8 | 7 |
 | Ep17 · Stream processing, and the ad click aggregation design | 4:27 | 6 | 7 |
@@ -479,11 +479,11 @@ Nguồn: [20-implement-gd2-du-lieu-phan-tan.md#lab-8--spring-boot--kafka--postgr
 
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
-| ✅ | Project my-work/w8-9-kafka-lab: spring-boot-starter-web, spring-kafka, spring-boot-starter-jdbc, Postgres; bản lõi không Spring OutboxLab.java đã chạy với Postgres 16.4 và Kafka 4.1.2 thật, dùng để đối chiếu không để chép; test bằng Testcontainers nếu có Docker, không thì Kafka từ tarball như §0 | Ep14 · 0:52 (The project) |
-| ✅ | Bước 1 schema 6 bảng: account (check balance >= 0), transfer, ledger_entry, outbox (event_id unique, topic, msg_key, payload, created_at, published_at null = chưa gửi), partial index outbox_pending where published_at is null, processed_event (event_id khoá chính), notification | Ep14 · 1:25 (Step 1 · Schema) |
-| ✅ | Bước 2: TransferService.transfer() @Transactional: trừ có điều kiện (where id = ? and balance >= ?), 0 dòng thì từ chối; cộng bên nhận; insert transfer; hai ledger_entry; một dòng outbox key = acct-{from}; một commit cho tiền, sổ cái và sự kiện | Ep14 · 2:05 (Step 2 · One transaction) |
-| ✅ | Bước 3 relay @Scheduled(fixedDelay = 200): trong một transaction ngắn select … where published_at is null order by id limit 100 for update skip locked (relay khác bỏ qua, không chờ); producer.send(record).get() với header event-id, chỉ đánh dấu published_at khi broker đã ack; relay crash sau khi gửi trước khi đánh dấu → gửi lại (at-least-once) | Ep14 · 2:46 (Step 3 · The relay) |
-| ✅ | Relay giữ connection trong lúc gửi lô 100 message: P09 ở mức nhỏ, chấp nhận vì Kafka cùng AZ ack trong vài ms, relay 1–2 instance với pool riêng, delivery.timeout.ms chặn trên thời gian giữ; không chấp nhận được thì chuyển sang CDC | Ep14 · 3:52 (P09, on purpose) |
+| ✅ | Project my-work/w8-9-kafka-lab: spring-boot-starter-web, spring-kafka, spring-boot-starter-jdbc, Postgres; bản lõi không Spring OutboxLab.java đã chạy với Postgres 16.4 và Kafka 4.1.2 thật, dùng để đối chiếu không để chép; test bằng Testcontainers nếu có Docker, không thì Kafka từ tarball như §0 | Ep14 · 0:59 (The project) |
+| ✅ | Bước 1 schema 6 bảng: account (check balance >= 0), transfer, ledger_entry, outbox (event_id unique, topic, msg_key, payload, created_at, published_at null = chưa gửi), partial index outbox_pending where published_at is null, processed_event (event_id khoá chính), notification | Ep14 · 1:32 (Step 1 · Schema) |
+| ✅ | Bước 2: TransferService.transfer() @Transactional: trừ có điều kiện (where id = ? and balance >= ?), 0 dòng thì từ chối; cộng bên nhận; insert transfer; hai ledger_entry; một dòng outbox key = acct-{from}; một commit cho tiền, sổ cái và sự kiện | Ep14 · 2:13 (Step 2 · One transaction) |
+| ✅ | Bước 3 relay @Scheduled(fixedDelay = 200): trong một transaction ngắn select … where published_at is null order by id limit 100 for update skip locked (relay khác bỏ qua, không chờ); producer.send(record).get() với header event-id, chỉ đánh dấu published_at khi broker đã ack; relay crash sau khi gửi trước khi đánh dấu → gửi lại (at-least-once) | Ep14 · 2:53 (Step 3 · The relay) |
+| ✅ | Relay giữ connection trong lúc gửi lô 100 message: P09 ở mức nhỏ, chấp nhận vì Kafka cùng AZ ack trong vài ms, relay 1–2 instance với pool riêng, delivery.timeout.ms chặn trên thời gian giữ; không chấp nhận được thì chuyển sang CDC | Ep14 · 3:59 (P09, on purpose) |
 | ✅ | Bước 4 consumer idempotent: @KafkaListener, trong MỘT transaction insert into processed_event(event_id) on conflict do nothing; chèn được 1 dòng thì tạo notification, 0 dòng thì bỏ qua (trùng); offset commit sau khi DB commit (mặc định Spring Kafka commit sau khi listener trả về) | Ep15 · 0:25 (Step 4 · Consumer) |
 | ✅ | Bước 5: DefaultErrorHandler + DeadLetterPublishingRecoverer + FixedBackOff(1000, 2): lỗi 3 lần sang <topic>.DLT; JSON hỏng đăng ký not-retryable → DLT ngay; phân biệt lỗi không bao giờ thành công với lỗi tạm thời | Ep15 · 1:05 (Step 5 · Retry and DLT) |
 | ✅ | Bước 6, bốn test có số: relayCrashAfterSend_producesDuplicates (1.000 dòng → 1.100 message), idempotentConsumer_appliesEachEventOnce (áp dụng 1.000, bỏ 100), twoRelaysWithSkipLocked_doNotDoublePublish (800/800), ledgerInvariantsHold (sum(ledger) = 0, tổng 100.000.000) | Ep15 · 1:42 (Step 6 · Seven tests) |

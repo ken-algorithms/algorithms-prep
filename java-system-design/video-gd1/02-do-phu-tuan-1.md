@@ -1,12 +1,12 @@
 # Độ phủ nội dung — video tuần 1
 
-**91/91 ý chính đã có video.** Bảng sinh bằng `python -m lesson_video coverage` từ `points.yaml` (ý chính lấy từ tài liệu nguồn) và kịch bản `ep*.yaml`; mỗi ý có chữ bắt buộc (`expect`) mà lệnh `check` đã kiểm là có mặt trong cảnh dạy ý đó. Thời điểm lấy từ `lessons.json` sau khi dựng.
+**91/91 ý chính đã có video.** Bảng sinh bằng `python -m lesson_video coverage` từ `points.yaml` (ý chính lấy từ tài liệu nguồn) và các kịch bản `.yaml`; mỗi ý có chữ bắt buộc (`expect`) mà lệnh `check` đã kiểm là có mặt trong cảnh dạy ý đó. Thời điểm lấy từ `lessons.json` sau khi dựng.
 
 ## Theo video
 
 | Video | Dài | Chương | Ý chính |
 |---|---:|---:|---:|
-| Ep00 · Phase 1 orientation | 8:08 | 10 | 18 |
+| Ep00 · Phase 1 orientation | 8:21 | 10 | 18 |
 | Ep01 · The estimation toolkit | 9:01 | 7 | 15 |
 | Ep02 · From N users to CCU and RPS | 10:14 | 11 | 16 |
 | Ep03 · Estimation workout | 10:23 | 8 | 8 |
@@ -77,9 +77,9 @@ Nguồn: [00-lo-trinh-6-thang.md#mục-tiêu-và-giả-định](../00-lo-trinh-6
 
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
-| ✅ | Ba kết quả sau 24 tuần: phỏng vấn 45–60 phút bằng tiếng Anh có số liệu và đánh đổi; công việc: design doc, review kiến trúc và code; bằng chứng: capstone có load test + 2–3 câu chuyện thiết kế thật | Ep00 · 1:03 (Where six months lead) |
-| ✅ | Học 10–12 giờ/tuần; chỉ có 5–6 giờ thì giãn thành 9–10 tháng; phỏng vấn trong 6–8 tuần thì làm nhanh giai đoạn 1, dồn sức cho giai đoạn 4 | Ep00 · 1:36 (Where six months lead) |
-| ✅ | Mỗi chủ đề đi 4 bước: đọc, vẽ sơ đồ, chạy demo Java/Spring, giải thích đánh đổi trong 2 phút (bước người phỏng vấn chấm); luyện tiếng Anh từ tháng đầu | Ep00 · 1:54 (Where six months lead) |
+| ✅ | Ba kết quả sau 24 tuần: phỏng vấn 45–60 phút bằng tiếng Anh có số liệu và đánh đổi; công việc: design doc, review kiến trúc và code; bằng chứng: capstone có load test + 2–3 câu chuyện thiết kế thật | Ep00 · 1:16 (Where six months lead) |
+| ✅ | Học 10–12 giờ/tuần; chỉ có 5–6 giờ thì giãn thành 9–10 tháng; phỏng vấn trong 6–8 tuần thì làm nhanh giai đoạn 1, dồn sức cho giai đoạn 4 | Ep00 · 1:49 (Where six months lead) |
+| ✅ | Mỗi chủ đề đi 4 bước: đọc, vẽ sơ đồ, chạy demo Java/Spring, giải thích đánh đổi trong 2 phút (bước người phỏng vấn chấm); luyện tiếng Anh từ tháng đầu | Ep00 · 2:07 (Where six months lead) |
 
 ### 00 · Tự đánh giá điểm xuất phát
 
@@ -87,7 +87,7 @@ Nguồn: [00-lo-trinh-6-thang.md#tự-đánh-giá-điểm-xuất-phát](../00-lo
 
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
-| ✅ | 14 câu tự đánh giá; dưới 5 ô: đi đủ giai đoạn 1; 5–9 ô: lướt giai đoạn 1; từ 10 ô: vào thẳng giai đoạn 3–4; không bỏ Track P và Track S | Ep00 · 2:13 (Self-check) |
+| ✅ | 14 câu tự đánh giá; dưới 5 ô: đi đủ giai đoạn 1; 5–9 ô: lướt giai đoạn 1; từ 10 ô: vào thẳng giai đoạn 3–4; không bỏ Track P và Track S | Ep00 · 2:26 (Self-check) |
 
 ### 00 · Tổng quan lộ trình
 
@@ -95,9 +95,9 @@ Nguồn: [00-lo-trinh-6-thang.md#tổng-quan-lộ-trình](../00-lo-trinh-6-thang
 
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
-| ✅ | 4 giai đoạn: nền tảng (tuần 1–4), dữ liệu và hệ phân tán (5–10), microservices và cloud (11–16), phỏng vấn và ứng tuyển (17–24) | Ep00 · 2:38 (Four phases) |
-| ✅ | Mốc: tuần 4 URL shortener + rate limiter trong 45 phút; tuần 10; tuần 16 capstone chạy trên cloud có số load test; tuần 24 CV mới, 6–8 câu chuyện STAR, nộp đơn | Ep00 · 2:38 (Four phases) |
-| ✅ | Capstone tuần 9–16: bản A ngân hàng (Mini Core Transfer), bản B SaaS | Ep00 · 3:20 (Four phases) |
+| ✅ | 4 giai đoạn: nền tảng (tuần 1–4), dữ liệu và hệ phân tán (5–10), microservices và cloud (11–16), phỏng vấn và ứng tuyển (17–24) | Ep00 · 2:51 (Four phases) |
+| ✅ | Mốc: tuần 4 URL shortener + rate limiter trong 45 phút; tuần 10; tuần 16 capstone chạy trên cloud có số load test; tuần 24 CV mới, 6–8 câu chuyện STAR, nộp đơn | Ep00 · 2:51 (Four phases) |
+| ✅ | Capstone tuần 9–16: bản A ngân hàng (Mini Core Transfer), bản B SaaS | Ep00 · 3:33 (Four phases) |
 
 ### 00 · Lịch tuần mẫu
 
@@ -105,7 +105,7 @@ Nguồn: [00-lo-trinh-6-thang.md#lịch-tuần-mẫu](../00-lo-trinh-6-thang.md#
 
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
-| ✅ | 5 buổi, 10–11 giờ: Thứ Hai đọc (1,5 giờ), Thứ Tư blog + bài tập (1,5 giờ), Thứ Sáu ôn + sổ lỗi + 30 phút Track P (1 giờ), Thứ Bảy lab (3–4 giờ), Chủ nhật Track S + đề bấm giờ + bài nói (3 giờ) | Ep00 · 3:42 (One week) |
+| ✅ | 5 buổi, 10–11 giờ: Thứ Hai đọc (1,5 giờ), Thứ Tư blog + bài tập (1,5 giờ), Thứ Sáu ôn + sổ lỗi + 30 phút Track P (1 giờ), Thứ Bảy lab (3–4 giờ), Chủ nhật Track S + đề bấm giờ + bài nói (3 giờ) | Ep00 · 3:55 (One week) |
 
 ### 00 · Giai đoạn 1
 
@@ -113,7 +113,7 @@ Nguồn: [00-lo-trinh-6-thang.md#giai-đoạn-1--nền-tảng-tuần-14](../00-l
 
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
-| ✅ | Bảng giai đoạn 1: tuần 1 ước lượng; tuần 2 networking, API, rate limiter; tuần 3 database sâu, URL shortener, ID generator; tuần 4 caching, nhất quán, notification; kèm cột Track P · Track S | Ep00 · 4:10 (Phase 1 at a glance) |
+| ✅ | Bảng giai đoạn 1: tuần 1 ước lượng; tuần 2 networking, API, rate limiter; tuần 3 database sâu, URL shortener, ID generator; tuần 4 caching, nhất quán, notification; kèm cột Track P · Track S | Ep00 · 4:23 (Phase 1 at a glance) |
 
 ### 00 · Track P
 
@@ -121,8 +121,8 @@ Nguồn: [00-lo-trinh-6-thang.md#v2-track-p--code-java-chậm-dưới-tải-cao]
 
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
-| ✅ | Kiến trúc chỉ nhân năng lực của một request; code giữ tài nguyên khan hiếm đặt trần cứng mà thêm pod không phá được (P09: 163 req/s với pool 10) | Ep00 · 4:41 (Two tracks) |
-| ✅ | 20 anti-pattern chia 4 nhóm: lãng phí mỗi request, giữ tài nguyên khan hiếm, round trip thừa, bộ nhớ; có code và số đo thật | Ep00 · 4:41 (Two tracks) |
+| ✅ | Kiến trúc chỉ nhân năng lực của một request; code giữ tài nguyên khan hiếm đặt trần cứng mà thêm pod không phá được (P09: 163 req/s với pool 10) | Ep00 · 4:54 (Two tracks) |
+| ✅ | 20 anti-pattern chia 4 nhóm: lãng phí mỗi request, giữ tài nguyên khan hiếm, round trip thừa, bộ nhớ; có code và số đo thật | Ep00 · 4:54 (Two tracks) |
 
 ### 00 · Track S
 
@@ -130,9 +130,9 @@ Nguồn: [00-lo-trinh-6-thang.md#v2-track-s--vẽ-hệ-thống-từ-100k-tới-1
 
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
-| ✅ | Đề nói 'N triệu user' mà không nói CCU hay RPS; Track S đổi ra tải thật, chọn bậc kiến trúc, trả lời 'tải tăng 10 lần thì sao' | Ep00 · 5:19 (Two tracks) |
-| ✅ | Trả lời nhanh: 100k → ~1.200 CCU ngày lương, ~200 RPS, L1; 1M → ~12.000, ~2.000, L2; 10M → ~120.000, ~20.000, L3 | Ep00 · 5:19 (Two tracks) |
-| ✅ | 10 bản vẽ V1–V10 rải dọc 24 tuần; giai đoạn 1 vẽ V1–V5 | Ep00 · 5:19 (Two tracks) |
+| ✅ | Đề nói 'N triệu user' mà không nói CCU hay RPS; Track S đổi ra tải thật, chọn bậc kiến trúc, trả lời 'tải tăng 10 lần thì sao' | Ep00 · 5:33 (Two tracks) |
+| ✅ | Trả lời nhanh: 100k → ~1.200 CCU ngày lương, ~200 RPS, L1; 1M → ~12.000, ~2.000, L2; 10M → ~120.000, ~20.000, L3 | Ep00 · 5:33 (Two tracks) |
+| ✅ | 10 bản vẽ V1–V10 rải dọc 24 tuần; giai đoạn 1 vẽ V1–V5 | Ep00 · 5:33 (Two tracks) |
 
 ### 10 §0 · Cách dùng file này
 
@@ -140,10 +140,10 @@ Nguồn: [10-implement-gd1-nen-tang.md#0-cách-dùng-file-này](../10-implement-
 
 | | Ý chính | Video · thời điểm |
 |:---:|---|---|
-| ✅ | Tự làm bài trước, ghi câu trả lời, rồi mới mở đáp án; đáp án là một lời giải hợp lý, chỗ khác ghi lý do vào sổ lỗi | Ep00 · 6:09 (How to study) |
-| ✅ | Thư mục bài làm my-work/: sổ lỗi, w1-uoc-luong, w2–w4 lab, drawings, recordings | Ep00 · 6:09 (How to study) |
-| ✅ | Mẫu sổ lỗi: ngày, đề/lab, lỗi, vì sao sai, lần sau làm gì | Ep00 · 6:09 (How to study) |
-| ✅ | Stack cho lab: Java 21, Spring Boot 3.3+, PostgreSQL 16, Redis 7, JUnit 5; Testcontainers, không có Docker thì embedded-postgres | Ep00 · 6:09 (How to study) |
+| ✅ | Tự làm bài trước, ghi câu trả lời, rồi mới mở đáp án; đáp án là một lời giải hợp lý, chỗ khác ghi lý do vào sổ lỗi | Ep00 · 6:22 (How to study) |
+| ✅ | Thư mục bài làm my-work/: sổ lỗi, w1-uoc-luong, w2–w4 lab, drawings, recordings | Ep00 · 6:22 (How to study) |
+| ✅ | Mẫu sổ lỗi: ngày, đề/lab, lỗi, vì sao sai, lần sau làm gì | Ep00 · 6:22 (How to study) |
+| ✅ | Stack cho lab: Java 21, Spring Boot 3.3+, PostgreSQL 16, Redis 7, JUnit 5; Testcontainers, không có Docker thì embedded-postgres | Ep00 · 6:22 (How to study) |
 
 ### 10 · Tuần 1: đầu ra và tài liệu đọc
 

@@ -143,6 +143,7 @@ class Scene(_M):
     edges: list[Edge] = []
     q: str = ""                # đề bài (cảnh exercise)
     n: str = ""                # số hiệu bài tập
+    label: str = ""            # nhãn của cảnh exercise thay cho "Exercise" (Question, Drill…)
     note: str = ""             # chú thích nhỏ cuối vùng nội dung
     covers: list[str] = []     # anchor nguồn mà cảnh này dạy
     points: list[str] = []     # mã ý chính (points.yaml) mà cảnh này dạy
@@ -215,6 +216,7 @@ class Lesson(_M):
     title: str
     subtitle: str = ""
     tag: str = ""
+    prefix: str = Field("Ep", pattern=r"^[A-Za-z]{1,3}$")  # mã video: Ep03, K03…
     series: str = "Java System Design · Phase 1"
     sources: str = "../.."          # thư mục chứa file nguồn, tính từ thư mục của file YAML
     covers: list[str] = []
@@ -271,6 +273,11 @@ class Lesson(_M):
             data["scenes"] = scenes
         return data
 
+    @property
+    def code(self) -> str:
+        """Mã hiện trên màn hình, trong bảng độ phủ và trên web: Ep03, K03…"""
+        return f"{self.prefix}{self.ep:02d}"
+
     def chapters(self) -> list[tuple[int, str]]:
         return [(i, sc.chapter) for i, sc in enumerate(self.scenes) if sc.chapter]
 
@@ -282,7 +289,12 @@ class Lesson(_M):
         return seen
 
 
-SERIES_KEYS = {"series", "speakers", "sources", "gap", "scene_gap"}
+SERIES_KEYS = {"series", "speakers", "sources", "gap", "scene_gap", "prefix"}
+
+
+def lesson_paths(lessons_dir: Path) -> list[Path]:
+    """Mọi kịch bản của một bộ: các file .yaml trừ points.yaml và series.yaml (ep03-….yaml, k03-….yaml…)."""
+    return sorted(p for p in Path(lessons_dir).glob("*.yaml") if p.name not in ("points.yaml", "series.yaml"))
 
 
 def series_defaults(path: Path) -> dict:

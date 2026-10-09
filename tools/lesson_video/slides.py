@@ -189,7 +189,7 @@ class Slides:
     def _header(self, d):
         d.rectangle((0, 0, W, 64), fill=C["card"])
         d.line((0, 64, W, 64), fill=C["line"], width=1)
-        tag = self.L.tag or (f"EP{self.L.ep:02d}" + (f" · WEEK {self.L.week}" if self.L.week else ""))
+        tag = self.L.tag or (self.L.code.upper() + (f" · WEEK {self.L.week}" if self.L.week else ""))
         ft = font("bold", 20)
         tw = d.textlength(tag, font=ft)
         d.polygon([(0, 0), (tw + 56, 0), (tw + 36, 64), (0, 64)], fill=C["acc"])
@@ -265,15 +265,30 @@ class Slides:
         cx0, cx1 = 780, W - 60
         cy0 = y0
         d.rounded_rectangle((cx0, cy0, cx1, bottom), 18, fill=C["card"], outline=C["line"], width=2)
-        key = self.order[0]
-        sp = self.L.speakers[key]
-        self._avatar(d, cx0 + 64, cy0 + 64, 38, key)
-        d.text((cx0 + 120, cy0 + 36), sp.name, font=font("bold", 28), fill=C["ink"])
-        d.text((cx0 + 120, cy0 + 72), self.voice_label.get(key, sp.role), font=font("regular", 16), fill=C["muted"])
-        yy = cy0 + 124
-        for it in sc.items:
-            yy = block(d, (cx0 + 28, yy), str(it.get("t", "")), "regular", 17, cx1 - cx0 - 56, C["ink"],
-                       max_lines=3) + 8
+        if len(self.order) == 1:
+            key = self.order[0]
+            sp = self.L.speakers[key]
+            self._avatar(d, cx0 + 64, cy0 + 64, 38, key)
+            d.text((cx0 + 120, cy0 + 36), sp.name, font=font("bold", 28), fill=C["ink"])
+            d.text((cx0 + 120, cy0 + 72), self.voice_label.get(key, sp.role), font=font("regular", 16), fill=C["muted"])
+            yy = cy0 + 124
+        else:  # hai, ba người nói (hỏi–đáp): mỗi người một dòng nhỏ hơn
+            yy = cy0 + 14
+            for key in self.order[:3]:
+                sp = self.L.speakers[key]
+                self._avatar(d, cx0 + 46, yy + 26, 24, key)
+                d.text((cx0 + 84, yy + 5), sp.name, font=font("bold", 22), fill=C["ink"])
+                fv, lv = fit(d, self.voice_label.get(key, sp.role), "regular", 14, cx1 - cx0 - 104, 1, min_size=12)
+                d.text((cx0 + 84, yy + 33), lv[0], font=fv, fill=C["muted"])
+                yy += 58
+            yy += 6
+        size = 17 if len(self.order) == 1 else 16
+        for it in sc.items:  # không vẽ tràn khỏi khung: còn bao nhiêu dòng thì cho mục đó bấy nhiêu
+            room = int((bottom - 14 - yy) // int(size * 1.25))
+            if room < 1:
+                break
+            yy = block(d, (cx0 + 28, yy), str(it.get("t", "")), "regular", size, cx1 - cx0 - 56, C["ink"],
+                       max_lines=min(3, room)) + 8
 
     def _k_acronyms(self, img, d, sc, fr, top, bottom):
         n = len(sc.items)
@@ -594,7 +609,7 @@ class Slides:
                       max_lines=max(1, int((y0 + ch - y - 12) // 23)), lead=1.22, min_size=13)
 
     def _k_exercise(self, img, d, sc, fr, top, bottom):
-        label = "Exercise " + sc.n if sc.n else "Exercise"
+        label = (sc.label or "Exercise") + (" " + sc.n if sc.n else "")
         f = font("bold", 18)
         lw = d.textlength(label, font=f) + 30
         d.rounded_rectangle((60, top, 60 + lw, top + 36), 18, fill=C["acc"])

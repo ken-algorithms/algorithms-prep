@@ -1,0 +1,237 @@
+id: k03-10m-pipeline
+ep: 3
+week: 10
+tag: "K03 · AFTER PHASE 2"
+title: "Ten million requests a minute: the pipeline"
+subtitle: "What breaks first, and a design that spreads the load: one record per request, Kafka keyed by batch_id"
+covers:
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#43--1000--10m-requestphút
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#5-kiến-trúc-ở-10m-requestphút
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#52-quyết-định-và-đánh-đổi
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#53-raw-đừng-cho-mỗi-event-một-uuid
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#81-nếu-là-10m-requestphút--2-phút
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: problem 07 · §4.3, §5.1–5.3, §8.1"}
+      - {t: "Builds on phase 2: Ep03 partitioning · Ep12 Kafka keys · Ep17 windows"}
+    lines:
+      - tom: "Episode K03. Ten million requests a minute, same contract. I want what breaks first, then a design."
+      - emma: "This one needs phase two: Kafka keys and partitions, delivery guarantees, and stream windows. If you haven't done weeks eight and nine yet, come back after them."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SDK, full: "software development kit", vi: "thư viện phía client gửi sự kiện (gom lô, retry)"}
+      - {abbr: API, full: "application programming interface", vi: "endpoint nhận sự kiện"}
+      - {abbr: LB, full: "load balancer", vi: "bộ cân bằng tải"}
+      - {abbr: TLS, full: "Transport Layer Security", vi: "lớp mã hoá của HTTPS"}
+      - {abbr: HTTPS, full: "HTTP over TLS", vi: "HTTP có mã hoá"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng dữ liệu dạng văn bản"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã 128 bit, sinh không cần nơi cấp"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: OLAP, full: "online analytical processing", vi: "kho cột cho truy vấn gom nhiều dòng"}
+    lines:
+      - emma: "SDK is the software development kit the clients use to send events, and the API is the endpoint that receives them. LB is the load balancer. TLS is the encryption under HTTPS, and JSON the text format of each request."
+        focus: 5
+      - emma: "A UUID is a universally unique identifier, sixteen bytes. ID means identifier, and OLAP is a columnar store for aggregates."
+        focus: 8
+
+  - kind: exercise
+    chapter: "The question"
+    label: "Question"
+    q: "Ten million requests a minute, 20 pairs each, exact counts over any range. What breaks first in the 1-million-a-minute design?"
+    items:
+      - {t: "That design: API → Kafka keyed by tenant_id → stream processor → rollups; raw rows per event"}
+      - {t: "Say the new numbers first, then one thing that breaks, with its number"}
+    lines:
+      - tom: "Ten million a minute. Your million-a-minute design had Kafka keyed by tenant, a stream processor, and one raw row per event. What breaks first?"
+      - wait: 8
+        note: "New numbers first. Then: which partition gets the biggest tenant?"
+
+  - kind: stats
+    chapter: "New numbers"
+    heading: "× 1,000 · the new numbers"
+    sub: "Peak about × 3: 500,000 requests/s, 10 million events/s, about 4 Gbit/s"
+    points: [m-numbers]
+    items:
+      - {v: "166,667/s", l: "requests", s: "10,000,000 ÷ 60"}
+      - {v: "3.3 million/s", l: "events", s: "288 billion a day", tone: warn}
+      - {v: "1.3 Gbit/s", l: "coming in", s: "about 1 KB of JSON per request"}
+      - {v: "17 TB/day", l: "raw at 60 B per event", s: "about 1.8 TB if packed per request", tone: bad}
+    lines:
+      - emma: "New numbers first. A hundred sixty-six thousand requests per second, three point three million events per second, two hundred eighty-eight billion a day."
+        focus: 1
+      - emma: "About one point three gigabits per second coming in, with a kilobyte of JSON per request. And raw data at sixty bytes per event would be seventeen terabytes a day."
+        focus: 3
+
+  - kind: table
+    chapter: "Breaks first"
+    heading: "What breaks first at 10 million a minute"
+    columns: ["What", "Why it breaks", "Number"]
+    widths: [2.6, 4.4, 2.2]
+    build: true
+    points: [m-breaks]
+    rows:
+      - ["Kafka key = tenant_id", "the biggest tenant lands on one partition, one consumer can't keep up, and lag grows forever", "20% of load = 667k events/s"]
+      - ["One raw row per event", "no database keeps 288 billion rows a day with a unique index", "3.3M inserts/s"]
+      - ["One message per event", "the payload is 20 pairs per request: why split it?", "3.3M messages/s"]
+    lines:
+      - emma: "What breaks first is the partition key. Keyed by tenant, the biggest tenant goes to one partition. If it's twenty percent of the load, that's six hundred sixty-seven thousand events per second for a single consumer. It can't keep up, and its lag grows forever."
+        focus: 0
+      - emma: "Next, one raw row per event. No database holds two hundred eighty-eight billion rows a day with a unique index on each. So deduplication by a unique index has nowhere to run."
+        focus: 1
+      - emma: "And one message per event is wasteful. A request already arrives with twenty pairs, so keep them together."
+        focus: 2
+
+  - kind: diagram
+    chapter: "The pipeline"
+    heading: "The pipeline at 10 million a minute"
+    points: [m-pipeline]
+    nodes:
+      - {id: c, label: "Client SDK", sub: "batch_id, ts, 20 items", x: 140, y: 52, w: 250, h: 74, shape: user}
+      - {id: e, label: "Edge LB + gateway", sub: "quota per tenant → 429", x: 470, y: 52, w: 250, h: 74}
+      - {id: o, label: "Collectors", sub: "1 record per request · 202", x: 830, y: 52, w: 300, h: 74}
+      - {id: k, label: "Kafka “requests”", sub: "key = batch_id · 64–128 partitions", x: 960, y: 190, w: 330, h: 74, shape: queue}
+      - {id: s, label: "Stream processor", sub: "dedup batch_id 15 min · 1-min windows", x: 560, y: 190, w: 320, h: 74, at: 1}
+      - {id: g, label: "Rollup store", sub: "Postgres totals · OLAP per key", x: 190, y: 190, w: 270, h: 74, shape: db, at: 1}
+      - {id: q, label: "Query API", sub: "split the range, as in 04", x: 190, y: 325, w: 270, h: 70, at: 1}
+      - {id: r, label: "Object storage", sub: "packed raw, Parquet", x: 960, y: 325, w: 330, h: 70, shape: db, at: 2}
+      - {id: b, label: "Hourly batch reconcile", sub: "recount · drift = 0", x: 560, y: 325, w: 320, h: 70, tone: ok, at: 2}
+    edges:
+      - {a: c, b: e, label: "HTTPS"}
+      - {a: e, b: o}
+      - {a: o, b: k, label: "acks=all"}
+      - {a: k, b: s, dashed: true, at: 1}
+      - {a: s, b: g, label: "overwrite", at: 1}
+      - {a: g, b: q, at: 1}
+      - {a: k, b: r, label: "sink", dashed: true, at: 2}
+      - {a: r, b: b, at: 2}
+      - {a: b, b: g, label: "repair", dashed: true, at: 2}
+    lines:
+      - emma: "Here's the pipeline. The client SDK sends a batch ID, an event time, and twenty items. The edge enforces a quota per tenant. Stateless collectors classify the twenty items, turn the request into one record, write it to Kafka with acks all, and answer 202."
+        say: "Here's the pipeline. The client SDK sends a batch ID, an event time, and twenty items. The edge enforces a quota per tenant. Stateless collectors classify the twenty items, turn the request into one record, write it to Kafka with acks all, and answer two oh two."
+        focus: 0
+      - emma: "The Kafka topic is keyed by batch ID. A stream processor drops duplicates of a batch ID within fifteen minutes, counts in one-minute windows by event time, and overwrites the rollups. The query side is exactly the one from K01."
+        focus: 1
+      - emma: "The same topic also flows to object storage as packed Parquet. Every hour a batch job recounts from it, and if the numbers drift, it repairs the rollups."
+        focus: 2
+
+  - kind: table
+    chapter: "Decisions"
+    heading: "Decisions and trade-offs (1/2)"
+    columns: ["Decision", "Choose", "The trade-off"]
+    widths: [2.0, 3.8, 3.4]
+    build: true
+    points: [m-key]
+    rows:
+      - ["Unit through Kafka", "one record per request: 4 counters + the items packed", "to inspect one event, read the raw"]
+      - ["Partition key", "batch_id: load spreads evenly; a retry lands on the same partition", "no order per tenant — counting needs none"]
+      - ["Partition count", "generous from day one, e.g. 64–128", "more files; slower rebalances"]
+    lines:
+      - emma: "Three decisions about Kafka. One record per request, with the four counters and the items packed: a hundred sixty-six thousand records a second instead of three point three million."
+        focus: 0
+      - emma: "Key by batch ID. The biggest tenant now spreads over every partition. And a retry of the same request carries the same batch ID, so it lands on the same partition as the original. Deduplication becomes local to one task. The cost: no order per tenant, and counting doesn't need order."
+        focus: 1
+      - emma: "Pick the partition count generously from day one. Adding partitions changes hash of key modulo the count, so a retry after the change may land elsewhere, and deduplication misses it."
+        focus: 2
+
+  - kind: table
+    heading: "Decisions and trade-offs (2/2)"
+    columns: ["Decision", "Choose", "The trade-off"]
+    widths: [2.0, 3.8, 3.4]
+    build: true
+    points: [m-aggregate]
+    rows:
+      - ["Aggregate", "two levels: local in each task, then global per tenant and minute", "one more shuffle inside the job"]
+      - ["Time", "tumbling 1-minute windows by event time · watermark 2 min · late up to 30 min", "final numbers are ~2 minutes behind"]
+      - ["Store", "Postgres for totals: 5,760 rows a day per tenant; a columnar store only for a per-key breakdown", "one more system when per-key arrives"]
+    lines:
+      - emma: "Aggregate in two levels. Each task first adds up its own records per tenant, minute and outcome. Only those small partial sums go to the global step, so a huge tenant never makes one task hot."
+        focus: 0
+      - emma: "Windows are one minute, tumbling, by event time, with a two-minute watermark, and windows accept late events for thirty minutes, the same window problem 04 used."
+        say: "Windows are one minute, tumbling, by event time, with a two-minute watermark, and windows accept late events for thirty minutes, the same window problem four used."
+        focus: 1
+      - emma: "And the store: total rollups still fit Postgres, five thousand seven hundred sixty rows a day per tenant. A columnar store only when the per-key breakdown arrives."
+        focus: 2
+
+  - kind: table
+    chapter: "Packed raw"
+    heading: "Raw: don't give every event a UUID"
+    sub: "event = (batch_id, position) — the problem 04 demo already derived uuid5(prefix:i)"
+    columns: ["Field", "Bytes"]
+    widths: [6.0, 3.2]
+    mono: [1]
+    build: true
+    points: [m-raw]
+    rows:
+      - ["batch_id + ts + tenant", "16 + 8 + 4"]
+      - ["20 × (key reference 4 + outcome 1)", "100"]
+      - ["One packed request", "128 = 6.4 per event"]
+      - ["10M a minute: 14.4 billion requests a day × 128 B", "≈ 1.8 TB/day, not 17"]
+    lines:
+      - emma: "Raw storage. Most of the sixty bytes per event in problem 04 is a random sixteen-byte event ID that doesn't compress. Give each request a batch ID instead, and identify an event by batch ID and position."
+        say: "Raw storage. Most of the sixty bytes per event in problem four is a random sixteen-byte event ID that doesn't compress. Give each request a batch ID instead, and identify an event by batch ID and position."
+        focus: 0
+      - emma: "A packed request is a hundred twenty-eight bytes: six point four bytes per event, before compression."
+        focus: 2
+      - emma: "That's about one point eight terabytes a day instead of seventeen. Columnar compression shrinks it further, but measure that on real data before quoting a number."
+        focus: 3
+
+  - kind: speech
+    chapter: "The 2-minute answer"
+    heading: "“What if it's 10 million a minute?” — two minutes"
+    points: [m-answer]
+    items:
+      - {t: "“Ten million a minute, still 20 pairs each: 166,000 requests and 3.3 million events per second.”"}
+      - {t: "“The read path doesn't change: rollups grow with groups × buckets, not with events.”"}
+      - {t: "“What breaks: keyed by tenant, the biggest tenant makes one partition hot; and no database keeps a row per event.”"}
+      - {t: "“So: one record per request, Kafka keyed by batch_id, dedup for 15 minutes, two-level windows by event time, overwrite the rollups, packed raw plus an hourly reconcile.”"}
+      - {t: "“Not yet: regions, client-side aggregation, sketches. None of them is needed at this rung.”"}
+    lines:
+      - tom: "Give me the whole answer, two minutes."
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+      - read: emma
+        focus: 3
+      - read: emma
+        focus: 4
+
+  - kind: table
+    chapter: "Built on"
+    heading: "Built on: phase 2 (and phase 1)"
+    columns: ["In this video", "Where you learned it"]
+    widths: [4.2, 5.0]
+    points: [m-built-on]
+    rows:
+      - ["Hot partition; key by what spreads; counting needs no order", "Phase 2 · Ep03 · partitioning, hot spots"]
+      - ["Order only inside a partition; changing the count moves keys", "Phase 2 · Ep12 · ordering, keys, durable writes"]
+      - ["Tumbling windows, event time, watermarks, late events", "Phase 2 · Ep17 · stream processing, ad click design"]
+      - ["Ad clicks: same family A, 1 billion a day", "Phase 2 · Ep17 · exercise 8.4"]
+      - ["“Not yet” at every rung", "Phase 1 · Ep06 · the ladder rule"]
+    lines:
+      - emma: "Built on phase two. The hot partition is episode three. Order only inside a partition, and the risk of changing the partition count, are episode twelve."
+        focus: 1
+      - emma: "Event-time windows and watermarks are episode seventeen, and so is ad click aggregation: the same family, at a billion clicks a day. And not yet is still the ladder rule of phase one."
+        focus: 4
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: dot
+    items:
+      - {t: "166,667 requests/s · 3.3 million events/s · 288 billion a day"}
+      - {t: "Breaks first: tenant_id as the key; a row per event"}
+      - {t: "One record per request · key = batch_id · two-level windows · packed raw"}
+      - {t: "Next, K04: why the counts stay exact with at-least-once parts"}
+    lines:
+      - tom: "You said overwrite. Consumers crash, replay, and come back from the dead. Prove the counts stay right."
+      - emma: "That's K04: exactly-once counts, built from at-least-once parts."
+        focus: 3

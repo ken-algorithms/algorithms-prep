@@ -1464,7 +1464,7 @@ Phần quan trọng nhất khi trình bày — nó cho thấy bạn cân đượ
 
 | Tài liệu | Liên quan chỗ nào |
 |---|---|
-| [README — bản đồ họ bài](README.md) | Họ G và 4 trục nhận diện |
+| [README — bản đồ họ bài](README.md) | Họ G và 5 trục nhận diện |
 | [04 — Event counting 10k/phút](04-event-counting-10k.md) | Cùng nguyên tắc *"đừng scan raw"* và *"reconcile để đo, không để tin"*; **khác** ở chỗ bài này cần chính xác tuyệt đối nên không dùng được cache TTL mù |
 | [05 — Hệ thống thật all-in-one trên AWS](05-he-thong-that-allinone-aws.md) | Xác nhận ECS chạy nhiều instance → lý do `synchronized` vô dụng |
 | [../katalon-prep-java/06-distributed-resilience/](../katalon-prep-java/06-distributed-resilience/) | Chuỗi at-least-once → idempotent, retry + jitter, DLQ — code chạy được |

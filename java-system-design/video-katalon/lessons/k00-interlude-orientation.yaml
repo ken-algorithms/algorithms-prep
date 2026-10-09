@@ -1,0 +1,168 @@
+id: k00-interlude-orientation
+ep: 0
+week: 4
+tag: "K00 · AFTER PHASE 1"
+title: "Katalon interlude: the question after 10k a minute"
+subtitle: "Families A and C, the follow-up “what if it's 10 million? 100 million?”, and how to practice"
+covers:
+  - ../katalon-prep/katalon-system-design/README.md#1-nhận-họ-bài-trong-30-giây--5-trục-phân-loại
+  - ../katalon-prep/katalon-system-design/README.md#2-bảy-họ-bài--chữ-ký-nhận-dạng-lõi-giải-pháp-bẫy-kinh-điển
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#0-đọc-trong-60-giây
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Sources: system design README (5 axes, 7 families) · problems 04 and 07"}
+    lines:
+      - emma: "This is an interlude between the phases: interview practice for Katalon. The question was really asked in a Principal interview: count events at ten thousand requests a minute."
+      - tom: "And I'm the interviewer who never stops at the first answer. Fine, ten thousand. What if it's ten million? A hundred million?"
+      - emma: "That follow-up is what these eight videos are about."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: PII, full: "personally identifiable information", vi: "dữ liệu định danh cá nhân: email, tên, số điện thoại"}
+    lines:
+      - emma: "One acronym today. PII is personally identifiable information: emails, names, phone numbers. It matters when you collect data from someone else's users."
+
+  - kind: exercise
+    chapter: "The question"
+    label: "Problem"
+    n: "04"
+    q: "About 10,000 requests a minute. Each request carries a list of key-value pairs: true or false, and some keys are fake. At any moment, how many true, false and fake keys — in the last 24 hours, or in any time range?"
+    points: [k-question]
+    items:
+      - {t: "Asked for real: Katalon, Principal interview"}
+      - {t: "Rejected on the spot: one counter, updated under a lock, read from the last record"}
+      - {t: "The follow-up to expect: “What if it's 10 million a minute? 100 million?”"}
+    lines:
+      - tom: "Here's the question. About ten thousand requests a minute. Each one carries a list of key-value pairs. The value is true or false, and some keys are fake. At any moment I want to know how many trues, falses and fake keys: in the last twenty-four hours, or in any time range I pick."
+      - emma: "The answer given on the spot was one counter, updated under a lock, and read from the last record. It was rejected. K01 rebuilds the right answer."
+      - tom: "And then I'll ask: what if it's ten million a minute? A hundred million?"
+        focus: 2
+      - wait: 5
+        note: "Which of the seven families is this? Use the five axes."
+
+  - kind: table
+    chapter: "Five axes"
+    heading: "Name the family in 30 seconds: five axes"
+    columns: ["Axis", "Here", "So…"]
+    widths: [3.6, 2.4, 3.2]
+    build: true
+    points: [k-axes]
+    rows:
+      - ["1 · Write-heavy or read-heavy?", "writes ≫ reads", "write asynchronously, answer 202"]
+      - ["2 · Reads by point or by range?", "any time range", "time buckets + rollups in tiers"]
+      - ["3 · Parties fighting over a finite resource?", "no", "not a fairness problem"]
+      - ["4 · Exact or approximate?", "exact: counts", "keep raw, idempotent writes, reconcile"]
+      - ["5 · Read, compute, then write what you read?", "no: append only", "no lock on the write path"]
+    lines:
+      - emma: "Before drawing anything, name the family. Five questions do it in thirty seconds. One: write-heavy or read-heavy? Writes dominate, so write asynchronously and answer 202 Accepted."
+        say: "Before drawing anything, name the family. Five questions do it in thirty seconds. One: write-heavy or read-heavy? Writes dominate, so write asynchronously and answer two oh two, Accepted."
+        focus: 0
+      - emma: "Two: do reads ask for a point or a range? Here, any time range. That forces time buckets and rollups in tiers, and it's where most candidates fail."
+        focus: 1
+      - emma: "Three: do many parties fight over a finite resource? No, so it's not a fairness problem. Four: exact or approximate? Counts are exact: keep the raw data, make writes idempotent, and reconcile."
+        focus: 3
+      - emma: "Five: does anyone read, compute, and then write based on what they read? No, events are only appended. That's why the write path needs no lock."
+        focus: 4
+
+  - kind: compare
+    chapter: "Families A and C"
+    heading: "Two of the seven families: processing and collecting"
+    points: [k-family-a, k-family-c]
+    items:
+      - title: "A · counting and aggregation over time"
+        lines:
+          - "Signature: write-heavy, read-light, but reads ask for any time range"
+          - "Core: time buckets, rollups minute → hour → day, split the range at query time"
+          - "Traps: cardinality explosion; storing ratios; bucketing by ingest time"
+      - title: "C · ingestion pipelines"
+        lines:
+          - "Signature: data keeps arriving from sources you don't control"
+          - "Core: backpressure; at-least-once + an idempotent sink; a partition key that keeps order where it matters"
+          - "Traps: unbounded queues; hot partitions; PII leaving the client before redaction"
+    lines:
+      - emma: "Of the seven families, two are about data. Family A, counting and aggregation over time, is the processing side: buckets, rollups, and splitting a range into pre-computed pieces. Its traps are cardinality explosion, storing ratios, and bucketing by arrival time instead of event time."
+        focus: 0
+      - emma: "Family C, ingestion pipelines, is the collecting side: data from sources you don't control. Its core is backpressure, at-least-once delivery with an idempotent sink, and a partition key that keeps order only where order matters. Its traps: unbounded queues, hot partitions, and personal data leaving the client before it's redacted."
+        focus: 1
+      - tom: "At ten thousand a minute, this is mostly family A. At ten million, family C gets loud."
+
+  - kind: stats
+    chapter: "Three loads"
+    heading: "Same contract, three loads"
+    sub: "Assumption, as in problem 04: 20 key-value pairs per request"
+    points: [k-ladder-preview]
+    items:
+      - {v: "3,333/s", l: "events at 10k a minute", s: "167 requests/s × 20 pairs"}
+      - {v: "3.3 million/s", l: "events at 10 million a minute", s: "× 1,000 · 166,667 requests/s", tone: warn}
+      - {v: "33 million/s", l: "events at 100 million a minute", s: "× 10,000 · 1.67 million requests/s", tone: bad}
+    lines:
+      - emma: "Numbers first. With twenty pairs per request, as in problem 04, ten thousand requests a minute is three thousand three hundred events per second."
+        say: "Numbers first. With twenty pairs per request, as in problem four, ten thousand requests a minute is three thousand three hundred events per second."
+        focus: 0
+      - emma: "Ten million a minute is a thousand times more: three point three million events per second."
+        focus: 1
+      - emma: "A hundred million is ten thousand times more: thirty-three million events per second. And here's the surprise of this series: the table that answers the queries doesn't grow at all."
+        focus: 2
+
+  - kind: compare
+    chapter: "Eight videos"
+    heading: "Eight videos, and when to watch them"
+    points: [k-plan]
+    items:
+      - title: "After phase 1 · estimation, × 10, Postgres"
+        lines:
+          - "K00 · this orientation"
+          - "K01 · the 10k baseline as a mock answer"
+          - "K02 · the ladder: × 10, × 100, and what never changes"
+      - title: "After phase 2 · Kafka, stream windows, fencing"
+        tone: ok
+        lines:
+          - "K03 · 10 million a minute: the pipeline"
+          - "K04 · counting exactly once with at-least-once parts"
+          - "K05 · 100 million a minute: physics and money"
+          - "K06 · family C at scale"
+          - "K07 · the timed answer, and the map back to phases 1 and 2"
+    lines:
+      - emma: "Eight videos. This one, the ten-thousand baseline, and the ladder need only phase one: estimation, the ten-times question, Postgres and caching."
+        focus: 0
+      - emma: "The other five need phase two: Kafka keys and delivery guarantees, stream windows and watermarks, and fencing tokens. Watch K03 to K07 after week ten."
+        focus: 1
+
+  - kind: bullets
+    chapter: "How to practice"
+    heading: "How to practice with these videos"
+    style: check
+    points: [k-practice]
+    items:
+      - {t: "When Tom asks, pause and answer out loud", s: "two minutes, with numbers, before you hear Emma"}
+      - {t: "Say the assumption before the number", s: "“20 pairs per request — I'd confirm that”"}
+      - {t: "Answer “ten times more” in five sentences", s: "new numbers → breaks first → fix and trade-off → breaks next → not yet"}
+      - {t: "Name the lesson each idea comes from", s: "every video ends with a “Built on” slide: phase-1 and phase-2 episodes"}
+    lines:
+      - emma: "How to practice. When Tom asks, pause and answer out loud, for two minutes, with numbers, before you hear my answer."
+        focus: 0
+      - emma: "Say the assumption before the number: twenty pairs per request, and I'd confirm that."
+        focus: 1
+      - emma: "Answer every ten-times question in the five sentences from phase one: the new numbers, what breaks first, the fix and its trade-off, what breaks next, and what you're not doing yet."
+        focus: 2
+      - emma: "And every video ends with a slide that names the phase-one and phase-two lessons it builds on. Nothing in this interlude is new. It's those lessons, under interview pressure."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: dot
+    items:
+      - {t: "Family A processes: buckets, rollups, ranges split at query time"}
+      - {t: "Family C collects: backpressure, idempotent sinks, partition keys"}
+      - {t: "10k → 10 million → 100 million a minute: × 1,000 and × 10,000"}
+      - {t: "Next: K01, the 10k baseline in three minutes"}
+    lines:
+      - tom: "So: family A processes, family C collects, and the load goes up a thousand and then ten thousand times."
+        focus: 2
+      - emma: "Next, K01: the ten-thousand baseline, answered in three minutes."
+        focus: 3

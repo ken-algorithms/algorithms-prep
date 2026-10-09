@@ -440,6 +440,7 @@ def build_home(pages: list[Page]) -> str:
     ])
     design = "".join([
         li("katalon-prep/katalon-system-design/04-event-counting-10k.md", "bài đã hỏi thật ở Principal", "⭐"),
+        li("katalon-prep/katalon-system-design/07-event-counting-10m-100m.md", "follow-up: 10M, 100M request/phút", "mới"),
         li("katalon-prep/katalon-system-design/06-race-condition-balance-ledger.md", "lỗi thật + thiết kế lại + AWS", "⭐"),
         li("katalon-prep/katalon-system-design/01-truetest-journey-mining.md"),
         li("katalon-prep/katalon-system-design/02-distributed-test-execution.md"),
@@ -459,6 +460,9 @@ def build_home(pages: list[Page]) -> str:
         li("java-system-design/video-gd2/00-ke-hoach-va-lich-su.md", "23 video tiếng Anh tuần 5–10, giọng Emma: kế hoạch, nhật ký", "mới"),
         li("java-system-design/video-gd2/02-do-phu.md", "23 video giai đoạn 2: ý chính nào dạy ở phút nào", "mới"),
         li("java-system-design/video-gd2/01-bang-chu-viet-tat.md", "chữ viết tắt mới của giai đoạn 2, cách đọc"),
+        li("java-system-design/video-katalon/00-ke-hoach-va-lich-su.md", "8 video chen ngang Katalon: 10k → 10M → 100M, Tom hỏi, Emma trả lời", "mới"),
+        li("java-system-design/video-katalon/02-do-phu.md", "8 video chen ngang: ý chính nào dạy ở phút nào", "mới"),
+        li("java-system-design/video-katalon/01-bang-chu-viet-tat.md", "chữ viết tắt mới của bộ chen ngang"),
         li("java-system-design/perf-lab/README.md", "JMH + demo, 33 test"),
         li("java-system-design/dist-lab/README.md", "lời giải giai đoạn 2, Postgres + Kafka thật"),
         li("java-system-design/ops-lab/README.md", "lời giải giai đoạn 3, Gatling + Hikari thật"),
@@ -467,7 +471,7 @@ def build_home(pages: list[Page]) -> str:
 <div class="hero">
   <h1>Interview Prep</h1>
   <p class="lead">Toàn bộ tài liệu ôn phỏng vấn ở một chỗ — hai hướng song song
-  (<b>NAB</b> và <b>Katalon</b>), sáu bài system design, và bộ LeetCode.
+  (<b>NAB</b> và <b>Katalon</b>), bảy bài system design, và bộ LeetCode.
   Gõ <code>/</code> để tìm kiếm toàn văn.</p>
   <div class="stats">
     <div class="stat"><b>{len(pages)}</b><span>tài liệu</span></div>

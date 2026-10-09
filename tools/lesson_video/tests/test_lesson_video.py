@@ -93,6 +93,9 @@ scenes:
     ("an SLO; use draw.io at work", "an S L O; use draw dot I O at work"),
     ("retriable or not retryable", "retry able or not retry able"),
     ("Client A locks it. A poll returns; then A's write and topic A.", "Client eigh locks it. A poll returns; then A's write and topic eigh."),
+    ("K01 to K07 at 13 Gbit/s", "K 1 to K 7 at 13 gigabits per second"),
+    ("PII; dedup by batch_id; Dedup hits; dedups stay", "P I I; dee-doop by batch_id; Dee-doop hits; dedups stay"),
+    ("1 µs = 1.7 cores; 0.1 ms; 1 s; 11 ms", "1 microsecond = 1 point 7 cores; 0 point 1 milliseconds; 1 second; 11 milliseconds"),
 ])
 def test_speakable(text, spoken):
     assert speakable(text) == spoken
@@ -107,18 +110,23 @@ def test_glossary_check_flags_missing_card(tmp_path):
     assert any("không có trong bảng" in m for m in problems)
 
 
-SERIES = sorted((REPO / "java-system-design").glob("video-gd*/lessons"))
+SERIES = sorted((REPO / "java-system-design").glob("video-*/lessons"))
+# bảng chữ viết tắt mà mỗi bộ được dùng: bộ sau dựa trên bảng của các bộ trước, mỗi bộ chỉ ghi chữ mới
+GLOSSARIES = {"video-gd1": ["video-gd1"], "video-gd2": ["video-gd1", "video-gd2"],
+              "video-katalon": ["video-gd1", "video-gd2", "video-katalon"]}
 
 
 @pytest.mark.skipif(not SERIES, reason="chưa có kịch bản bộ video")
 @pytest.mark.parametrize("lessons_dir", SERIES, ids=lambda d: d.parent.name)
 def test_real_scripts_pass_check(lessons_dir):
-    """Mọi kịch bản của mọi bộ: anchor, chữ bắt buộc, chữ viết tắt (bảng của giai đoạn 1 + bảng chữ mới của bộ)."""
+    """Mọi kịch bản của mọi bộ: anchor, chữ bắt buộc, chữ viết tắt (bảng của bộ và của các bộ nó dựa vào)."""
     points = sc.load_points(lessons_dir / "points.yaml")
-    glossaries = {REPO / "java-system-design" / "video-gd1" / "01-bang-chu-viet-tat.md",
-                  lessons_dir.parent / "01-bang-chu-viet-tat.md"}
+    names = GLOSSARIES.get(lessons_dir.parent.name, ["video-gd1", lessons_dir.parent.name])
+    glossaries = [REPO / "java-system-design" / n / "01-bang-chu-viet-tat.md" for n in names]
     terms = set().union(*(coverage.glossary_terms(g) for g in glossaries if g.exists()))
-    for p in sorted(lessons_dir.glob("ep*.yaml")):
+    paths = sc.lesson_paths(lessons_dir)
+    assert paths, lessons_dir
+    for p in paths:
         lesson = sc.load(p)
         assert sc.check(lesson, p, points) == [], p.name
         assert coverage.acronym_report(lesson, terms) == [], p.name
@@ -136,6 +144,33 @@ def test_phase2_points_and_headings_all_covered():
     data = coverage.collect(lessons, lessons / "points.yaml")
     assert [pid for pid, claims in data["claims"].items() if not claims] == []
     assert [anchor for anchor, eps in data["scope"].items() if not eps] == []
+
+
+KATALON = REPO / "java-system-design" / "video-katalon" / "lessons"
+
+
+@pytest.mark.skipif(not KATALON.exists(), reason="chưa có bộ video chen ngang")
+def test_interlude_points_and_headings_all_covered():
+    data = coverage.collect(KATALON, KATALON / "points.yaml")
+    assert [pid for pid, claims in data["claims"].items() if not claims] == []
+    assert [anchor for anchor, eps in data["scope"].items() if not eps] == []
+    assert {L.code for _, L in data["lessons"]} >= {"K00", "K07"}
+
+
+def test_prefix_code_and_two_speaker_title_card(tmp_path):
+    (tmp_path / "series.yaml").write_text(
+        'series: "Java System Design · Katalon interlude"\nprefix: K\n'
+        'speakers:\n  tom: {name: Tom, role: interviewer, color: "#1F5FAD", voice: {kokoro: am_michael}}\n'
+        '  emma: {name: Emma, role: candidate, color: "#A3346B", voice: {kokoro: af_heart}}\n', encoding="utf-8")
+    p = tmp_path / "k03-x.yaml"
+    p.write_text("id: k03-x\nep: 3\ntitle: t\nscenes:\n  - kind: title\n    items: [{t: a}]\n"
+                 "    lines:\n      - tom: Ten million a minute?\n      - emma: Numbers first.\n", encoding="utf-8")
+    assert sc.lesson_paths(tmp_path) == [p]
+    lesson = sc.load(p)
+    assert lesson.code == "K03" and list(lesson.speakers) == ["tom", "emma"]
+    tl = timeline.build(lesson, tts.Silent(), say=lambda s: None)
+    slides = Slides(lesson, {"tom": "interviewer · Kokoro am_michael", "emma": "candidate · Kokoro af_heart"})
+    assert all(slides.render(fr, 0.5).size == (W, H) for fr in tl.frames)
 
 
 def test_series_defaults_apply(tmp_path):

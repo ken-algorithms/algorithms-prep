@@ -22,10 +22,13 @@ WORDS = {
     # giai đoạn 2 (kiểm phiên âm 08/10/2026): ISR đọc "isser", eKYC "ee-kick", etcd "etkd", Tết thành chuỗi chữ cái
     "ISR": "I S R", "eKYC": "e K Y C", "etcd": "et-see-dee", "retriable": "retry able", "Retriable": "Retry able", "retryable": "retry able", "Retryable": "Retry able",
     "Tết": "Tet",
+    # video chen ngang Katalon (kiểm phiên âm 08/10/2026): PII đọc "pee-eye", dedup đọc "đờ-đắp"
+    "PII": "P I I", "dedup": "dee-doop", "Dedup": "Dee-doop",
 }
 UNITS = {
     "ns/op": "nanoseconds per op", "B/op": "bytes per op", "req/s": "requests per second",
-    "Mbit/s": "megabits per second", "MB/s": "megabytes per second", "GB/s": "gigabytes per second",
+    "Mbit/s": "megabits per second", "Gbit/s": "gigabits per second", "MB/s": "megabytes per second",
+    "GB/s": "gigabytes per second", "Gbit": "gigabits",
     "ops/s": "operations per second", "ms": "milliseconds", "µs": "microseconds", "ns": "nanoseconds",
     "KB": "kilobytes", "MB": "megabytes", "GB": "gigabytes", "TB": "terabytes", "B": "bytes",
     "s": "seconds", "h": "hours",
@@ -57,8 +60,8 @@ def speakable(text: str) -> str:
     # "A" viết hoa giữa câu là tên (Client A, relay A, then A pauses, fix A), mạo từ giữa câu luôn viết
     # thường; đầu câu thì để nguyên vì "A poll returns…" là mạo từ. "A's" Kokoro đã đọc đúng.
     t = re.sub(r"(?<=[^\s.!?“\"(])(\s+)A\b(?![’'/])", r"\1eigh", t)
-    # mã của lộ trình: P01–P07 → P one to P seven; D09 → D nine; Ep03 → episode three
-    t = re.sub(r"\b([PD])0(\d)\b", r"\1 \2", t)
+    # mã của lộ trình: P01–P07 → P one to P seven; D09 → D nine; K03 (video chen ngang) → K three; Ep03 → episode three
+    t = re.sub(r"\b([PDK])0(\d)\b", r"\1 \2", t)
     t = re.sub(r"\bEp0?(\d+)\b", r"episode \1", t)
     # lũy thừa: 10^5, 10⁵, 62^7
     t = re.sub(r"\b(\d+)\^(\d+)", _power, t)
@@ -78,6 +81,9 @@ def speakable(text: str) -> str:
     for u in sorted(UNITS, key=len, reverse=True):
         t = re.sub(r"(?<=\d)\s?" + re.escape(u) + r"(?![\w/])", " " + UNITS[u], t)
     t = re.sub(r"(?<=[a-z])/s\b", " per second", t)          # sau đơn vị: "tests/s", "pings/s"
+    # "1 µs" → "1 microsecond" (số ít), trừ phần lẻ của số thập phân ("0 point 1 milliseconds")
+    t = re.sub(r"(?<!point )(?<!\d )\b1 (microsecond|millisecond|nanosecond|second|hour|byte|kilobyte|megabyte|"
+               r"gigabyte|terabyte|gigabit|megabit)s\b", r"1 \1", t)
     t = re.sub(r"(to the \w+) s\b", r"\1 seconds", t)
     t = re.sub(r"(?<=\d)\s?×(?=\s|$|[),.;])", " times", t)       # 2.4× → times
     t = re.sub(r"\s?×\s?", " times ", t)
