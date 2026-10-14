@@ -1004,6 +1004,224 @@
      "section": "README · 5-test-chứng-minh-gì--kết-quả-chạy-thật"
     }
    ]
+  },
+  {
+   "id": "k09-code-rollup-and-query",
+   "ep": 9,
+   "code": "K09",
+   "week": 4,
+   "title": "Code 2: RollupJob, RangeDecomposer and StatsService",
+   "subtitle": "The counting side and the answering side, line by line",
+   "file": "k09-code-rollup-and-query.mp4",
+   "poster": "k09-code-rollup-and-query.jpg",
+   "source": "k09-code-rollup-and-query.yaml",
+   "duration": 187.7,
+   "bytes": 3115283,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 9.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 16.1,
+     "title": "refreshRecent"
+    },
+    {
+     "t": 54.3,
+     "title": "replace"
+    },
+    {
+     "t": 85.3,
+     "title": "Decompose"
+    },
+    {
+     "t": 116.6,
+     "title": "Stats"
+    },
+    {
+     "t": 141.7,
+     "title": "Wiring"
+    },
+    {
+     "t": 167.3,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#33-rollup-job-tính-lại-rồi-ghi-đè",
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#34-đường-đọc-phân-rã-khoảng-bất-kỳ"
+   ],
+   "points": [
+    {
+     "id": "c2-refresh",
+     "t": 16.1,
+     "text": "refreshRecent(): cửa sổ 30 phút tới đầu phút hiện tại, replace + seal trong một transaction; replaceAll ba tầng",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#33-rollup-job-tính-lại-rồi-ghi-đè",
+     "section": "README · 33-rollup-job-tính-lại-rồi-ghi-đè"
+    },
+    {
+     "id": "c2-replace",
+     "t": 54.3,
+     "text": "replace(): DELETE + INSERT … SELECT date_bin; refresh(from, to) dùng lại cho backfill và sửa, không dời seal",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#33-rollup-job-tính-lại-rồi-ghi-đè",
+     "section": "README · 33-rollup-job-tính-lại-rồi-ghi-đè"
+    },
+    {
+     "id": "c2-decompose",
+     "t": 85.3,
+     "text": "decompose(): clamp theo seal, chọn lại tầng ở mỗi bước, add() gộp tầng giống nhau, đuôi sau seal đọc raw",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#34-đường-đọc-phân-rã-khoảng-bất-kỳ",
+     "section": "README · 34-đường-đọc-phân-rã-khoảng-bất-kỳ"
+    },
+    {
+     "id": "c2-stats",
+     "t": 116.6,
+     "text": "StatsService.query(): mảng 4 số theo outcome, raw đếm, bucket cộng và đếm số dòng đọc; Stats.of chia tỉ lệ lúc đọc",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#34-đường-đọc-phân-rã-khoảng-bất-kỳ",
+     "section": "README · 34-đường-đọc-phân-rã-khoảng-bất-kỳ"
+    },
+    {
+     "id": "c2-jobs",
+     "t": 141.7,
+     "text": "Jobs: reloadKeys mỗi phút, rollup mỗi phút, reconcile phút 5 mỗi giờ, partitions tạo trước và xoá quá hạn",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#37-bốn-job-nền",
+     "section": "README · 37-bốn-job-nền"
+    }
+   ]
+  },
+  {
+   "id": "k10-code-tests-and-numbers",
+   "ep": 10,
+   "code": "K10",
+   "week": 4,
+   "title": "Code 3: the tests that prove it, and the numbers they printed",
+   "subtitle": "Real PostgreSQL 16, a movable clock, COUNT(*) as the oracle — 20 tests, all green",
+   "file": "k10-code-tests-and-numbers.mp4",
+   "poster": "k10-code-tests-and-numbers.jpg",
+   "source": "k10-code-tests-and-numbers.yaml",
+   "duration": 257.6,
+   "bytes": 3908564,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 14.5,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 25.5,
+     "title": "Test setup"
+    },
+    {
+     "t": 65.4,
+     "title": "The big one"
+    },
+    {
+     "t": 92.8,
+     "title": "It printed"
+    },
+    {
+     "t": 114.1,
+     "title": "Every promise"
+    },
+    {
+     "t": 147.8,
+     "title": "Plant a bug"
+    },
+    {
+     "t": 170.6,
+     "title": "Contention"
+    },
+    {
+     "t": 199.4,
+     "title": "Run it"
+    },
+    {
+     "t": 215.0,
+     "title": "Honest limits"
+    },
+    {
+     "t": 238.9,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#5-test-chứng-minh-gì--kết-quả-chạy-thật",
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#6-chạy-như-một-service",
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#8-ranh-giới-trung-thực"
+   ],
+   "points": [
+    {
+     "id": "c3-setup",
+     "t": 25.5,
+     "text": "Test trung thực: Postgres 16 thật chạy subprocess (không Docker, không H2), database mới mỗi test, đồng hồ do test điều khiển, COUNT(*) trên raw là oracle",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#5-test-chứng-minh-gì--kết-quả-chạy-thật",
+     "section": "README · 5-test-chứng-minh-gì--kết-quả-chạy-thật"
+    },
+    {
+     "id": "c3-oracle-test",
+     "t": 65.4,
+     "text": "anyRangeEqualsCountOnRaw: 3 giờ tải, 10% batch trễ tới 5 phút, rollup mỗi phút, 500 khoảng ngẫu nhiên phải bằng COUNT(*) trên raw",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#5-test-chứng-minh-gì--kết-quả-chạy-thật",
+     "section": "README · 5-test-chứng-minh-gì--kết-quả-chạy-thật"
+    },
+    {
+     "id": "c3-printed",
+     "t": 92.8,
+     "text": "Kết quả: 72.000 event, 500/500 khoảng khớp, mỗi truy vấn ≤ 436 dòng bucket; cả 3 giờ đọc 12 dòng, 0 dòng raw",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#5-test-chứng-minh-gì--kết-quả-chạy-thật",
+     "section": "README · 5-test-chứng-minh-gì--kết-quả-chạy-thật"
+    },
+    {
+     "id": "c3-test-table",
+     "t": 114.1,
+     "text": "Mỗi lời hứa một test: retry, trễ trong cửa sổ, trễ 3 giờ (1.000 → 1.020), drift, đọc bị chặn, retention, cách bị bác, hợp đồng HTTP qua Spring",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#5-test-chứng-minh-gì--kết-quả-chạy-thật",
+     "section": "README · 5-test-chứng-minh-gì--kết-quả-chạy-thật"
+    },
+    {
+     "id": "c3-reconcile-test",
+     "t": 147.8,
+     "text": "ReconcilerTest: cố tình cộng 5 vào một bucket → drift −5 → sửa → sạch",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#35-đối-soát-và-event-trễ",
+     "section": "README · 35-đối-soát-và-event-trễ"
+    },
+    {
+     "id": "c3-contention",
+     "t": 170.6,
+     "text": "Đo tranh chấp 7 lần: 1.080–1.367 / 4.094–5.986 / 3.334–5.488 batch/s; nói tỉ lệ, không đọc số tuyệt đối",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#5-test-chứng-minh-gì--kết-quả-chạy-thật",
+     "section": "README · 5-test-chứng-minh-gì--kết-quả-chạy-thật"
+    },
+    {
+     "id": "c3-run",
+     "t": 199.4,
+     "text": "Chạy: mvn -pl 10-event-counting test (20 test, không Docker); chạy service với Postgres 16 và curl",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#6-chạy-như-một-service",
+     "section": "README · 6-chạy-như-một-service"
+    },
+    {
+     "id": "c3-limits",
+     "t": 215.0,
+     "text": "Giới hạn: đúng đắn đã test; số tranh chấp là một lần chạy; chưa load test kéo dài; advisory lock và cache chưa code",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#8-ranh-giới-trung-thực",
+     "section": "README · 8-ranh-giới-trung-thực"
+    }
+   ]
   }
  ]
 }
