@@ -228,6 +228,102 @@
      "section": "04-event-counting-10k · 12-ranh-giới-trung-thực"
     }
    ]
+  },
+  {
+   "id": "k02-approach2-count-at-query-time",
+   "ep": 2,
+   "code": "K02",
+   "week": 2,
+   "title": "Approach 2: store every event, count when asked",
+   "subtitle": "Correct on five tests out of six — rejected for the read path, kept as the source of truth",
+   "file": "k02-approach2-count-at-query-time.mp4",
+   "poster": "k02-approach2-count-at-query-time.jpg",
+   "source": "k02-approach2-count-at-query-time.yaml",
+   "duration": 183.3,
+   "bytes": 2526567,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 13.7,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 25.0,
+     "title": "The idea"
+    },
+    {
+     "t": 52.4,
+     "title": "Five passes"
+    },
+    {
+     "t": 75.7,
+     "title": "Test T2"
+    },
+    {
+     "t": 93.7,
+     "title": "The cost"
+    },
+    {
+     "t": 112.2,
+     "title": "Measured"
+    },
+    {
+     "t": 136.5,
+     "title": "Keep half"
+    },
+    {
+     "t": 165.0,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#22-cách-2--lưu-mọi-event-đếm-lúc-hỏi",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#61-data-model"
+   ],
+   "points": [
+    {
+     "id": "a2-idea",
+     "t": 25.0,
+     "text": "Cách 2: mỗi item một dòng, event_id tất định + ON CONFLICT DO NOTHING, COUNT(*) GROUP BY outcome cho khoảng bất kỳ",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#22-cách-2--lưu-mọi-event-đếm-lúc-hỏi",
+     "section": "README · 22-cách-2--lưu-mọi-event-đếm-lúc-hỏi"
+    },
+    {
+     "id": "a2-scorecard",
+     "t": 52.4,
+     "text": "Cách 2 qua 5/6 tiêu chí; trượt T2 vì chi phí đọc tăng theo dữ liệu",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#22-cách-2--lưu-mọi-event-đếm-lúc-hỏi",
+     "section": "README · 22-cách-2--lưu-mọi-event-đếm-lúc-hỏi"
+    },
+    {
+     "id": "a2-read-cost",
+     "t": 93.7,
+     "text": "'24 giờ qua' = 288 triệu dòng mỗi lần refresh; một năm 105 tỷ; index không đổi bản chất",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#3-ước-lượng-tải--con-số-quyết-định-kiến-trúc",
+     "section": "04-event-counting-10k · 3-ước-lượng-tải--con-số-quyết-định-kiến-trúc"
+    },
+    {
+     "id": "a2-measured",
+     "t": 112.2,
+     "text": "Đo: khoảng 5 giờ 25 phút — cách 2 đếm 32.460 dòng raw, cách 4 đọc 337 dòng bucket + 60 dòng raw",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#22-cách-2--lưu-mọi-event-đếm-lúc-hỏi",
+     "section": "README · 22-cách-2--lưu-mọi-event-đếm-lúc-hỏi"
+    },
+    {
+     "id": "a2-keep-raw",
+     "t": 136.5,
+     "text": "Giữ bảng raw: nguồn sự thật, idempotency ở tầng dưới cùng, oracle cho test, giữ 7 ngày",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#61-data-model",
+     "section": "04-event-counting-10k · 61-data-model"
+    }
+   ]
   }
  ]
 }
