@@ -551,6 +551,116 @@
      "section": "04-event-counting-10k · 11-kịch-bản-trình-bày-3-phút"
     }
    ]
+  },
+  {
+   "id": "k05-build-tables-and-write-path",
+   "ep": 5,
+   "code": "K05",
+   "week": 3,
+   "title": "Build 1: the tables, the partitions and the write path",
+   "subtitle": "Deterministic event ids, four outcomes, one insert per batch, and an honest 202",
+   "file": "k05-build-tables-and-write-path.mp4",
+   "poster": "k05-build-tables-and-write-path.jpg",
+   "source": "k05-build-tables-and-write-path.yaml",
+   "duration": 306.0,
+   "bytes": 4317081,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 13.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 33.6,
+     "title": "Tables"
+    },
+    {
+     "t": 62.3,
+     "title": "Raw table"
+    },
+    {
+     "t": 114.0,
+     "title": "Event id"
+    },
+    {
+     "t": 153.6,
+     "title": "Write path"
+    },
+    {
+     "t": 200.7,
+     "title": "Four outcomes"
+    },
+    {
+     "t": 227.3,
+     "title": "Registry"
+    },
+    {
+     "t": 255.7,
+     "title": "202"
+    },
+    {
+     "t": 285.2,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#3-dựng-hệ-thống-theo-cách-4",
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#31-bảng-và-partition",
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#32-đường-ghi",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#66-phân-loại-fake-key",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#610-backpressure-khi-burst"
+   ],
+   "points": [
+    {
+     "id": "b1-tables",
+     "t": 33.6,
+     "text": "Sáu bảng: raw_events (7 ngày), agg_1m (30 ngày), agg_1h (1 năm), agg_1d (mãi), rollup_state (sealed_until), valid_keys",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#31-bảng-và-partition",
+     "section": "README · 31-bảng-và-partition"
+    },
+    {
+     "id": "b1-raw-ddl",
+     "t": 62.3,
+     "text": "DDL raw: outcome smallint; partition theo ngày UTC của ts; PK (event_id, ts) phải chứa cột partition; ts là event time; bound có +00",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#61-data-model",
+     "section": "04-event-counting-10k · 61-data-model"
+    },
+    {
+     "id": "b1-event-id",
+     "t": 114.0,
+     "text": "event_id = UUID theo tên của tenant/batchId/index; retry cùng batchId → cùng id → insert 0 dòng; id ngẫu nhiên phía server sẽ đếm mọi retry",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#31-bảng-và-partition",
+     "section": "README · 31-bảng-và-partition"
+    },
+    {
+     "id": "b1-write-path",
+     "t": 153.6,
+     "text": "Đường ghi năm bước: validate (1–1.000 item), kiểm event time (7 ngày → 422, tương lai → 400), phân loại, một INSERT nhiều dòng, 202",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#32-đường-ghi",
+     "section": "README · 32-đường-ghi"
+    },
+    {
+     "id": "b1-classify",
+     "t": 200.7,
+     "text": "Phân loại: key trước, value sau; key giả → fake_key; 'yes', 1, null → malformed, không gộp vào false",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#66-phân-loại-fake-key",
+     "section": "04-event-counting-10k · 66-phân-loại-fake-key"
+    },
+    {
+     "id": "b1-registry",
+     "t": 227.3,
+     "text": "Registry: < 100k key → HashSet trong RAM, thay cả bộ mỗi 60 s; 100k–10M → Redis set; > 10M → Bloom filter, 'không' là chắc chắn giả",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#66-phân-loại-fake-key",
+     "section": "04-event-counting-10k · 66-phân-loại-fake-key"
+    }
+   ]
   }
  ]
 }
