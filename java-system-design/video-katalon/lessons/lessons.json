@@ -324,6 +324,124 @@
      "section": "04-event-counting-10k · 61-data-model"
     }
    ]
+  },
+  {
+   "id": "k03-approach3-minute-counters",
+   "ep": 3,
+   "code": "K03",
+   "week": 2,
+   "title": "Approach 3: per-minute counters, bumped as you write",
+   "subtitle": "Fixes the range query, fast enough — and still rejected: atomic is not idempotent",
+   "file": "k03-approach3-minute-counters.mp4",
+   "poster": "k03-approach3-minute-counters.jpg",
+   "source": "k03-approach3-minute-counters.yaml",
+   "duration": 253.8,
+   "bytes": 3615244,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 18.5,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 29.7,
+     "title": "The idea"
+    },
+    {
+     "t": 55.6,
+     "title": "It works"
+    },
+    {
+     "t": 82.5,
+     "title": "Test T3"
+    },
+    {
+     "t": 102.9,
+     "title": "Retry"
+    },
+    {
+     "t": 142.5,
+     "title": "No raw"
+    },
+    {
+     "t": 173.4,
+     "title": "Redis"
+    },
+    {
+     "t": 202.7,
+     "title": "Not speed"
+    },
+    {
+     "t": 225.0,
+     "title": "Scorecard"
+    },
+    {
+     "t": 234.2,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#23-cách-3--counter-theo-phút-cộng-ngay-lúc-ghi",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật"
+   ],
+   "points": [
+    {
+     "id": "a3-idea",
+     "t": 29.7,
+     "text": "Cách 3: bảng (tenant, phút, outcome), upsert cnt = cnt + EXCLUDED.cnt theo event time; khoảng = tổng các phút",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#23-cách-3--counter-theo-phút-cộng-ngay-lúc-ghi",
+     "section": "README · 23-cách-3--counter-theo-phút-cộng-ngay-lúc-ghi"
+    },
+    {
+     "id": "a3-fixes",
+     "t": 55.6,
+     "text": "Cách 3 sửa được lỗi chí mạng: 09:30–10:30 khớp COUNT(*) trên raw; đọc rẻ; trễ đúng phút",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#23-cách-3--counter-theo-phút-cộng-ngay-lúc-ghi",
+     "section": "README · 23-cách-3--counter-theo-phút-cộng-ngay-lúc-ghi"
+    },
+    {
+     "id": "a3-retry",
+     "t": 102.9,
+     "text": "Atomic không phải idempotent: retry cộng 20 hai lần; đo 2.420 so với 2.400; sửa bằng raw + đếm lại",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật",
+     "section": "04-event-counting-10k · 64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật"
+    },
+    {
+     "id": "a3-no-raw",
+     "t": 142.5,
+     "text": "Không có raw: không phát hiện được sai, không tính lại được; bảng batch đã thấy = raw đổi tên + hai lệnh ghi phải commit cùng nhau",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#lỗ-hổng-3--trộn-nguồn-sự-thật-với-cache",
+     "section": "04-event-counting-10k · lỗ-hổng-3--trộn-nguồn-sự-thật-với-cache"
+    },
+    {
+     "id": "a3-redis",
+     "t": 173.4,
+     "text": "Redis hash theo giờ cùng thiết kế: 25 lần đọc trong pipeline; cùng lỗi đếm trùng, mất khi restart; chỉ làm cache",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#5-design-tầng-2--bản-production",
+     "section": "04-event-counting-10k · 5-design-tầng-2--bản-production"
+    },
+    {
+     "id": "a3-speed",
+     "t": 202.7,
+     "text": "Đo 7 lần: cách 3 4.094–5.986 batch/s, không chậm hơn cách 4 (3.334–5.488) — bác vì đúng đắn, không vì tốc độ",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#5-test-chứng-minh-gì--kết-quả-chạy-thật",
+     "section": "README · 5-test-chứng-minh-gì--kết-quả-chạy-thật"
+    },
+    {
+     "id": "a3-scorecard",
+     "t": 225.0,
+     "text": "Bảng chấm cách 3: qua 4/6; trượt T3 (retry) và T5 (sửa được)",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#23-cách-3--counter-theo-phút-cộng-ngay-lúc-ghi",
+     "section": "README · 23-cách-3--counter-theo-phút-cộng-ngay-lúc-ghi"
+    }
+   ]
   }
  ]
 }
