@@ -26,6 +26,7 @@
         <module>07-dsa-drill</module>
         <module>08-system-design</module>
         <module>09-kafka-pipeline</module>
+        <module>10-event-counting</module>
     </modules>
 
     <properties>

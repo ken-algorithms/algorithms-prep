@@ -2,7 +2,9 @@ package com.prep.kafka.producer;
 
 import org.apache.kafka.clients.producer.Partitioner;
 import org.apache.kafka.common.Cluster;
+import org.apache.kafka.common.utils.Utils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -20,7 +22,10 @@ public class BatchIdPartitioner implements Partitioner {
         int numPartitions = cluster.partitionCountForTopic(topic);
         if (numPartitions <= 0) return 0;
         String batchKey = (key != null) ? key.toString() : "";
-        return Math.abs(batchKey.hashCode()) % numPartitions;
+        // murmur2 + toPositive: cung cong thuc partitioner mac dinh cua Kafka cho record co key.
+        // Math.abs(hashCode()) se ra so AM khi hashCode() == Integer.MIN_VALUE.
+        byte[] bytes = keyBytes != null ? keyBytes : batchKey.getBytes(StandardCharsets.UTF_8);
+        return Utils.toPositive(Utils.murmur2(bytes)) % numPartitions;
     }
 
     @Override

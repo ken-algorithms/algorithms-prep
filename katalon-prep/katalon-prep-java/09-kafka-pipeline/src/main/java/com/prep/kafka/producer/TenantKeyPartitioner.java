@@ -2,7 +2,9 @@ package com.prep.kafka.producer;
 
 import org.apache.kafka.clients.producer.Partitioner;
 import org.apache.kafka.common.Cluster;
+import org.apache.kafka.common.utils.Utils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -18,7 +20,10 @@ public class TenantKeyPartitioner implements Partitioner {
         if (numPartitions <= 0) return 0;
         String tenantKey = (key != null) ? key.toString() : "";
         // Hash thuan theo tenantId
-        return Math.abs(tenantKey.hashCode()) % numPartitions;
+        // murmur2 + toPositive: cung cong thuc partitioner mac dinh cua Kafka cho record co key.
+        // Math.abs(hashCode()) se ra so AM khi hashCode() == Integer.MIN_VALUE.
+        byte[] bytes = keyBytes != null ? keyBytes : tenantKey.getBytes(StandardCharsets.UTF_8);
+        return Utils.toPositive(Utils.murmur2(bytes)) % numPartitions;
     }
 
     @Override

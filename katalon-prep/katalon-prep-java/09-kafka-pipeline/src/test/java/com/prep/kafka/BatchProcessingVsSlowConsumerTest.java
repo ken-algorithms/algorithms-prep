@@ -43,12 +43,8 @@ class BatchProcessingVsSlowConsumerTest {
         // Fake RollupRepository thuần Java, không dùng Mockito/ByteBuddy để an toàn 100% trên Java 21-25
         RollupRepository repo = new RollupRepository(null) {
             @Override
-            public boolean tryRecordBatch(String batchId, String tenantId) {
-                return true;
-            }
-            @Override
-            public void recordAggregates(String tenantId, long bucketMinute, Map<Outcome, Long> counts) {
-                // fast in-memory no-op
+            public boolean applyBatchOnce(String batchId, String tenantId, long bucketMinute, Map<Outcome, Long> counts) {
+                return true; // fast in-memory no-op
             }
         };
 
