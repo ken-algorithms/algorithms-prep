@@ -434,9 +434,11 @@ class Slides:
             y += h
 
     def _code_panel(self, d, box, code: str, lang: str, hl: Optional[tuple[int, int]] = None,
-                    max_size: int = 20, number: bool = True):
+                    max_size: int = 20, number: bool = True, reserve: float = 0):
+        """`reserve`: pixels kept free at the bottom of the panel, so the item label never covers a code line."""
         x0, y0, x1, y1 = box
         d.rounded_rectangle(box, 12, fill=C["code"])
+        y1 -= reserve
         lines = textwrap.dedent(code).strip("\n").split("\n")
         longest = max(len(ln) for ln in lines) + (4 if number else 0)
         lead = 1.32 if len(lines) <= 14 else 1.17
@@ -468,7 +470,12 @@ class Slides:
             hl = (int(a), int(b))
         if sc.heading and not sc.sub:
             top = 124
-        self._code_panel(d, (52, top, W - 52, bottom), sc.code, self._lang(sc), hl)
+        # keep room for the tallest item label, the same on every frame, so the code never jumps or hides
+        reserve = 0
+        for item in sc.items:
+            fl, ll = fit(d, str(item["t"]), "bold", 20, 520, 2, min_size=14)
+            reserve = max(reserve, len(ll) * fl.size * 1.25 + 22 + 10)
+        self._code_panel(d, (52, top, W - 52, bottom), sc.code, self._lang(sc), hl, reserve=reserve)
         if it:
             label = str(it["t"])
             f, lines = fit(d, label, "bold", 20, 520, 2, min_size=14)

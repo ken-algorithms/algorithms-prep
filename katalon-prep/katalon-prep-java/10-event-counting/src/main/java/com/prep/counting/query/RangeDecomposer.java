@@ -31,7 +31,7 @@ public final class RangeDecomposer {
         if (!from.isBefore(to)) {
             return parts;
         }
-        Instant rolledEnd = sealedUntil.isBefore(from) ? from : (sealedUntil.isBefore(to) ? sealedUntil : to);
+        Instant rolledEnd = clamp(sealedUntil, from, to); // buckets are only trusted before the seal
         Instant cur = from;
         while (cur.isBefore(rolledEnd)) {
             Tier tier = coarsestFitting(cur, rolledEnd);
@@ -65,6 +65,10 @@ public final class RangeDecomposer {
             }
         }
         parts.add(new Part(tier, from, to));
+    }
+
+    private static Instant clamp(Instant t, Instant lo, Instant hi) {
+        return t.isBefore(lo) ? lo : (t.isAfter(hi) ? hi : t);
     }
 
     private static Instant min(Instant a, Instant b) {

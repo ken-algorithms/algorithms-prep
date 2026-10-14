@@ -75,12 +75,12 @@ UPDATE naive_total SET true_cnt = true_cnt + ?, false_cnt = false_cnt + ?, ... W
 | T3 retry | ❌ | Test: hai batch rồi retry một batch → bản ghi cuối là **60**, đúng là 40 |
 | T4 trễ | ❌ | Không có khung giờ nào để đặt event vào |
 | T5 sửa được | ❌ | Không có raw |
-| T6 lock | ❌ | Đo: **1.237 batch/s** với 16 luồng, chậm ~4,4 lần cách 4 (§5) |
+| T6 lock | ❌ | Đo 7 lần: **1.080–1.367 batch/s** với 16 luồng, chậm 2,4–4,4 lần cách 4 (§5) |
 
 **Biến thể "lưu snapshot rồi trừ"** (`tổng(t2) − tổng(t1)`): chỉ đúng khi tổng không bao giờ reset — mà "24 giờ qua"
 lại cần reset; độ phân giải bằng chu kỳ snapshot; retry vẫn cộng trùng. Không cứu được.
 
-**Bác vì T1.** Lock (T6) là lý do thứ hai, không phải thứ nhất: 1.237 batch/s vẫn gấp ~7 lần 167 request/s của đề.
+**Bác vì T1.** Lock (T6) là lý do thứ hai, không phải thứ nhất: hơn 1.000 batch/s vẫn gấp ~6 lần 167 request/s của đề.
 
 ### 2.2 Cách 2 — lưu mọi event, đếm lúc hỏi
 
@@ -114,7 +114,7 @@ ON CONFLICT (tenant_id, bucket, outcome) DO UPDATE SET cnt = sync_agg_1m.cnt + E
 | T4 trễ | ✅ nếu bucket theo event time |
 | T3 retry | ❌ `cnt + n` **atomic nhưng không idempotent**: test retry một batch → 2.420, đúng là 2.400 |
 | T5 sửa được | ❌ không có raw: không biết đã sai, không tính lại được |
-| T6 lock | 🟡 đo: **5.986 batch/s**, không chậm hơn cách 4 ở tải này — **tốc độ không phải lý do bác** |
+| T6 lock | 🟡 đo 7 lần: **4.094–5.986 batch/s**, không lần nào chậm hơn cách 4 — **tốc độ không phải lý do bác** |
 
 **Bác vì T3 + T5.** Bài học: *atomic* đảm bảo không mất cập nhật, không đảm bảo không cộng hai lần.
 
@@ -270,11 +270,12 @@ Chạy ngày 14/10/2026 trong sandbox Linux, JDK 21, PostgreSQL 16.4 embedded. *
 | `ReconcilerTest` (1) | Cố tình cộng thừa 5 vào một bucket → phát hiện `drift = −5` → sửa → 0 | |
 | `RetentionTest` (1) | `DROP` 2 partition cũ; rollup ngày cũ vẫn trả lời | |
 | `RejectedApproachesTest` (3) | Cách 1: retry → 60/40; cách 3: khoảng đúng nhưng retry → 2.420/2.400; cách 2: 32.460 dòng raw so với 337 + 60 | |
-| `ContentionDemoTest` (1) | 4.000 batch, 16 luồng ghi, cùng một tenant và một phút | cách 1 **1.237**, cách 3 **5.986**, cách 4 **5.488** batch/s |
+| `ContentionDemoTest` (1) | 4.000 batch, 16 luồng ghi, cùng một tenant và một phút | 7 lần chạy: cách 1 **1.080–1.367**, cách 3 **4.094–5.986**, cách 4 **3.334–5.488** batch/s |
 | `ApiTest` (1) | Qua Spring thật: 202, retry → `duplicates`, `/stats` đủ 4 số và `successRate` 0,5, 422 khi quá cũ | |
 
-**Đọc số đo tranh chấp cho đúng:** một lần chạy trên một máy, Postgres embedded cấu hình mặc định. Kết luận dùng được
-là **thứ tự và tỉ lệ** (cách 1 chậm ~4–5 lần vì mọi request xếp hàng sau một row lock), không phải con số tuyệt đối.
+**Đọc số đo tranh chấp cho đúng:** bảy lần chạy trên một máy, Postgres embedded cấu hình mặc định; số dao động giữa các
+lần. Kết luận dùng được là **thứ tự và tỉ lệ** (cách 1 chậm 2,4–4,4 lần vì mọi request xếp hàng sau một row lock),
+không phải con số tuyệt đối.
 Cách 3 không chậm hơn cách 4 ở đây — nó bị bác vì đúng đắn, không vì tốc độ.
 
 ---
@@ -315,7 +316,7 @@ Ba ý của module này đi theo lên mọi mức tải: **raw (hoặc log) là 
 | Điều | Trạng thái |
 |---|---|
 | Đúng đắn (idempotent, khoảng bất kỳ, trễ, đối soát, retention) | ✅ Test trên Postgres 16 thật |
-| Số đo tranh chấp §5 | 🟡 Một lần chạy, một máy, embedded. Nói *"cách 1 chậm vài lần vì xếp hàng sau row lock"*, đừng đọc thuộc số |
+| Số đo tranh chấp §5 | 🟡 Bảy lần chạy, một máy, embedded, số dao động. Nói *"cách 1 chậm vài lần vì xếp hàng sau row lock"*, đừng đọc thuộc số |
 | Tải 10k request/phút liên tục | ⚠️ Chưa chạy load test kéo dài; test ghi 72.000 event theo thời gian giả |
 | Nhiều instance chạy job cùng lúc | ⚠️ Chưa có khoá; tài liệu ghi cách làm (`pg_try_advisory_lock`) |
 | Cache "24 giờ qua" (Redis, single-flight) | ⚠️ Chưa code; thiết kế ở [04 §6.9](../../katalon-system-design/04-event-counting-10k.md#69-cache-và-thundering-herd) |

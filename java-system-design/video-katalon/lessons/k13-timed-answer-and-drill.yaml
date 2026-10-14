@@ -1,0 +1,239 @@
+id: k13-timed-answer-and-drill
+ep: 13
+week: 10
+tag: "K13 · THE TIMED ANSWER"
+title: "The whole answer in three minutes, and a follow-up drill"
+subtitle: "Tell it as a story — first answer, why it failed, the fix, the proof — then answer five follow-ups"
+covers:
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#10-16-câu-follow-up-interviewer-hay-hỏi
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#12-ranh-giới-trung-thực
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#8-kịch-bản-trả-lời
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: problem 04 §10–§12 · problem 07 §8"}
+      - {t: "Watch it last; then practise it out loud with a timer"}
+    lines:
+      - emma: "The last video puts everything together. First the full answer, timed at three minutes, told as a story. Then five follow-up questions. Pause before each answer and say yours out loud."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: UTC, full: "Coordinated Universal Time", vi: "giờ chuẩn quốc tế"}
+    lines:
+      - emma: "SQL is the query language, ID means identifier, and UTC is coordinated universal time."
+        focus: 2
+
+  - kind: table
+    chapter: "Three minutes"
+    heading: "The three-minute shape"
+    points: [e-shape]
+    columns: ["Time", "Do", "Say"]
+    widths: [0.14, 0.20, 0.66]
+    build: true
+    rows:
+      - ["0:00–0:25", "ask", "“How many pairs per request? Totals or per key? Exact or approximate?”"]
+      - ["0:25–0:45", "estimate", "“3,333 events a second, 288 million a day: never scan raw to answer.”"]
+      - ["0:45–1:30", "reject, then fix", "“A running total loses time; per-minute + n double-counts retries; so…”"]
+      - ["1:30–2:10", "build", "“raw truth, buckets recomputed and replaced, any range decomposed.”"]
+      - ["2:10–2:40", "prove", "“Hourly reconcile; 500 random ranges equal COUNT(*) in my tests.”"]
+      - ["2:40–3:00", "right-size", "“No Kafka at this load; here is the threshold where I'd add it.”"]
+    lines:
+      - emma: "The shape. Twenty-five seconds of questions, before you draw anything. Twenty seconds of numbers."
+        focus: 1
+      - emma: "Then the part that makes this answer stronger than a textbook one: walk through the rejected approaches in one breath each, so the interviewer sees why the final design looks the way it does."
+        focus: 2
+      - emma: "Build it, prove it, and end on right-sizing."
+        focus: 5
+
+  - kind: speech
+    chapter: "The answer"
+    heading: "The answer, told as a story"
+    points: [e-story]
+    items:
+      - {t: "“Before I draw: about how many pairs per request, and do you need totals or a breakdown per key? I'll assume twenty and totals.”"}
+      - {t: "“That's 3,333 events a second, 288 million a day, while an answer is a few rows — so I must never scan raw to answer.”"}
+      - {t: "“The obvious design is a running total updated under a lock. It can't answer a range: time is baked into one number. Per-minute counters fix that, but cnt + n counts a retry twice, and with no raw nobody can notice.”"}
+      - {t: "“So: store every item once, keyed by a deterministic event id, and let a job recount the last 30 minutes of minute, hour and day buckets every minute — replace, never add.”"}
+      - {t: "“A range splits into the fewest buckets: a year is at most 529. An hourly job proves raw equals rollup, and repairs it if not.”"}
+      - {t: "“At this load, one Postgres is enough; I'd add Kafka past ~50k events a second, or for a per-key breakdown.”"}
+    lines:
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+        say: "That's three thousand three hundred events a second, two hundred eighty-eight million a day, while an answer is a few rows, so I must never scan raw to answer."
+      - read: emma
+        focus: 2
+        say: "The obvious design is a running total updated under a lock. It can't answer a range: time is baked into one number. Per-minute counters fix that, but count plus n counts a retry twice, and with no raw nobody can notice."
+      - read: emma
+        focus: 3
+      - read: emma
+        focus: 4
+      - read: emma
+        focus: 5
+        say: "At this load, one Postgres is enough; I'd add Kafka past about fifty thousand events a second, or for a per-key breakdown."
+
+  - kind: exercise
+    chapter: "Follow-up 1"
+    label: "Follow-up"
+    q: "“How many true between 3 and 5 p.m. last Tuesday?” Walk me through exactly what your system reads."
+    items:
+      - {t: "Answer out loud, then compare with the model answer"}
+    lines:
+      - emma: "Follow-up one. How many true between three and five p.m. last Tuesday? Walk me through exactly what your system reads."
+      - wait: 8
+
+  - kind: bullets
+    heading: "Model answer · 3 to 5 p.m. last Tuesday"
+    points: [e-f1]
+    items:
+      - {t: "Two hour buckets: 15:00 and 16:00", s: "both edges sit on hour boundaries, so no minute buckets and no raw"}
+      - {t: "× 4 outcomes = eight rows from agg_1h, summed", s: "the rate is divided at read time"}
+      - {t: "The question a running total can't answer", s: "this is exactly where the first answer broke"}
+    lines:
+      - emma: "The range splits into two hour buckets, three to four and four to five. Both edges sit on hour boundaries, so there are no minute buckets and no raw at all."
+        focus: 0
+      - emma: "Times four outcomes, that's eight rows from the hour tier, summed."
+        focus: 1
+      - emma: "And it's exactly the question a running total can't answer."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Follow-up 2"
+    label: "Follow-up"
+    q: "“A consumer or the job crashes halfway. Is anything counted twice?”"
+    items:
+      - {t: "Answer out loud, then compare with the model answer"}
+    lines:
+      - emma: "Follow-up two. Something crashes halfway through. Is anything counted twice?"
+      - wait: 8
+
+  - kind: bullets
+    heading: "Model answer · a crash halfway"
+    points: [e-f2]
+    items:
+      - {t: "A retried batch has the same event IDs", s: "the insert ignores them: 0 new rows"}
+      - {t: "The rollup replaces buckets in one transaction", s: "a crash rolls back to the old numbers; the next run recounts"}
+      - {t: "There is no increment anywhere", s: "so nothing can be applied twice"}
+    lines:
+      - emma: "No. A retried batch hits the same event IDs, and inserts nothing."
+        focus: 0
+      - emma: "The rollup replaces buckets inside one transaction. A crash rolls back to the old numbers, and the next run recounts them."
+        focus: 1
+      - emma: "There's no increment anywhere that could be applied twice."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Follow-up 3"
+    label: "Follow-up"
+    q: "“How do you know the number you give a customer is right?”"
+    items:
+      - {t: "Answer out loud, then compare with the model answer"}
+    lines:
+      - emma: "Follow-up three. How do you know the number you give a customer is right?"
+      - wait: 8
+
+  - kind: bullets
+    heading: "Model answer · how do you know it's right?"
+    points: [e-f3]
+    items:
+      - {t: "I don't trust it, I measure it"}
+      - {t: "Every hour: count raw = sum of the minute tier, per closed hour", s: "any drift → alert + automatic recompute of that hour"}
+      - {t: "Tested: a planted drift of 5 was found and repaired"}
+    lines:
+      - emma: "I don't trust it, I measure it."
+        focus: 0
+      - emma: "Every hour, a reconciler compares counting raw with summing the rollup, for each closed hour. Any drift is an alert and an automatic recompute."
+        focus: 1
+      - emma: "In my tests, I planted a drift of five, and it was found and repaired."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Follow-up 4"
+    label: "Follow-up"
+    q: "“Customers in Vietnam ask for ‘today’. Your day buckets are UTC. Now what?”"
+    items:
+      - {t: "Answer out loud, then compare with the model answer"}
+    lines:
+      - emma: "Follow-up four. Customers in Vietnam ask for today. Your day buckets are cut in UTC. Now what?"
+      - wait: 8
+
+  - kind: bullets
+    heading: "Model answer · “today” in Vietnam (UTC+7)"
+    points: [e-f4]
+    items:
+      - {t: "Today in Vietnam = 17:00 UTC yesterday → 17:00 UTC today"}
+      - {t: "The decomposer takes it like any range", s: "7 hour buckets + 17 hour buckets; no day bucket fits"}
+      - {t: "The hour tier serves every whole-hour time zone", s: "a half-hour zone such as India adds minute buckets at the edges"}
+    lines:
+      - emma: "Today in Vietnam runs from seventeen hundred UTC yesterday to seventeen hundred UTC today."
+        focus: 0
+      - emma: "The decomposer takes that range like any other: seven hour buckets, then seventeen more."
+        focus: 1
+      - emma: "So the hour tier serves every whole-hour time zone, with no extra day tier per zone. A half-hour zone, like India's, also uses minute buckets at both ends."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Follow-up 5"
+    label: "Follow-up"
+    q: "“Now it's 10 million a minute. In one minute: what changes?”"
+    items:
+      - {t: "Answer out loud, then compare with the model answer"}
+    lines:
+      - emma: "Last one. Now it's ten million a minute. In one minute, what changes?"
+      - wait: 8
+
+  - kind: bullets
+    heading: "Model answer · 10 million a minute, in one minute"
+    points: [e-f5]
+    items:
+      - {t: "Only the write path changes"}
+      - {t: "Pack each request; Kafka keyed by batch ID", s: "a big tenant can't make a hot partition"}
+      - {t: "Dedup batch IDs for fifteen minutes; 1-minute windows by event time", s: "write with greatest; packed raw to object storage; hourly recount"}
+      - {t: "The read path doesn't move"}
+    lines:
+      - emma: "Only the write path changes."
+        focus: 0
+      - emma: "Pack each request into one record, and put Kafka in front, keyed by batch ID, so a big tenant can't make a hot partition."
+        focus: 1
+      - emma: "Dedup batch IDs in the stream processor for fifteen minutes, count in one-minute windows by event time, and write with greatest. Raw goes packed to object storage, and an hourly batch recounts it."
+        focus: 2
+      - emma: "The read path doesn't move at all."
+        focus: 3
+
+  - kind: table
+    chapter: "Limits"
+    heading: "Say these limits before they ask"
+    points: [e-limits]
+    columns: ["Claim", "Say it as"]
+    widths: [0.44, 0.56]
+    rows:
+      - ["20 pairs per request, 3,333 events/s", "an assumption I would confirm"]
+      - ["Correctness of the design", "tested on real PostgreSQL 16: 20 tests"]
+      - ["Lock vs append speed", "one measured run: a ratio, not a benchmark"]
+      - ["~50k events/s per Postgres node", "an order of magnitude; I'd measure first"]
+      - ["10M and 100M designs, cloud prices", "on paper; list prices for orders of magnitude"]
+    lines:
+      - emma: "Finally, the limits, said before they're asked. Twenty pairs per request is an assumption to confirm. Correctness is tested on a real database."
+        focus: 1
+      - emma: "The speed comparison is one run. The Postgres threshold is an order of magnitude. And the ten and hundred million designs are on paper. Overclaiming one detail costs more than everything else earns."
+        focus: 4
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "The whole series in four lines"
+    style: check
+    items:
+      - {t: "Ask, estimate, then reject approaches one by one, with the test each fails"}
+      - {t: "Raw truth + buckets recomputed and replaced + ranges decomposed"}
+      - {t: "Prove it: tests against COUNT(*), an hourly reconcile"}
+      - {t: "Scale the write path; the read path never moves"}
+    lines:
+      - emma: "The whole series in four lines. Ask and estimate, then reject approaches one by one, each with the test it fails. Build raw truth with buckets that are recomputed, never incremented. Prove it, in tests and every hour. And when the load grows, scale the write path: the read path never moves. Good luck in the room."
+        focus: 3

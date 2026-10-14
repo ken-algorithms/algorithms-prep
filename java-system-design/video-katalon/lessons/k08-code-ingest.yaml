@@ -1,0 +1,229 @@
+id: k08-code-ingest
+ep: 8
+week: 4
+tag: "K08 · CODE 1"
+title: "Code 1: the module, the request, and IngestService"
+subtitle: "Read the write path in Java: classification, deterministic ids, one insert, 202"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#4-đọc-code-theo-thứ-tự
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#9-nếu-demo-bằng-javaspring-stack-của-katalon
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §4 · katalon-prep-java/10-event-counting"}
+      - {t: "Part C of 4: read the code, run the tests"}
+    lines:
+      - emma: "Part C opens the code. The module is called ten, event counting: Spring Boot three, Java twenty-one, and plain Postgres sixteen. Its tests start a real Postgres as a subprocess, so you don't need Docker to run them."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: API, full: "application programming interface", vi: "giao diện lập trình"}
+      - {abbr: JDBC, full: "Java Database Connectivity", vi: "chuẩn kết nối database của Java"}
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã 128 bit"}
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức web"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng thân request"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: UTC, full: "Coordinated Universal Time", vi: "giờ chuẩn quốc tế"}
+    lines:
+      - emma: "API is the application programming interface. JDBC is Java's database connectivity standard, and SQL is the query language."
+        focus: 2
+      - emma: "UUID is a universally unique identifier. HTTP is the web protocol, and JSON the request format."
+        focus: 5
+      - emma: "ID means identifier, and UTC is coordinated universal time."
+        focus: 7
+
+  - kind: table
+    chapter: "The map"
+    heading: "Read it in this order"
+    points: [c1-map]
+    columns: ["#", "File", "What to look for"]
+    widths: [0.06, 0.44, 0.50]
+    mono: [1]
+    rows:
+      - ["1", "resources/schema.sql", "raw is the truth; three derived tiers"]
+      - ["2", "domain/EventBatch, EventClassifier", "the contract; four outcomes"]
+      - ["3", "ingest/IngestService", "deterministic id; one insert; 202"]
+      - ["4", "rollup/RollupJob", "replace = delete + insert … select"]
+      - ["5", "query/RangeDecomposer, StatsService", "decompose, then sum"]
+      - ["6", "rollup/Reconciler", "count raw = sum rollup?"]
+      - ["7", "rejected/*", "approaches 1–3, real code, so tests can fail them"]
+      - ["8", "api/, CountingConfig, Jobs", "a thin Spring layer over plain classes"]
+    lines:
+      - emma: "Read it in this order. Schema first, then the request and the classifier, then the ingest service. That's this video."
+        focus: 2
+      - emma: "Next video: the rollup job, the decomposer, the stats service, and the reconciler."
+        focus: 5
+      - emma: "The rejected approaches are real code too, in their own package, so that tests can show them failing. And the Spring layer is deliberately thin: the core classes take plain constructor arguments, so tests build them directly against a real database."
+        focus: 7
+
+  - kind: code
+    chapter: "The request"
+    heading: "EventBatch and EventClassifier"
+    points: [c1-classifier]
+    code: |
+      public record EventBatch(String tenantId, String batchId, Instant ts, List<Item> items) {
+          public record Item(String key, Object value) {}   // Boolean, String, Number or null
+      }
+
+      public Outcome classify(String key, Object value) {
+          if (key == null || !registry.contains(key)) {
+              return Outcome.FAKE_KEY;                      // key first
+          }
+          if (value instanceof Boolean b) {
+              return b ? Outcome.TRUE : Outcome.FALSE;
+          }
+          if (value instanceof String s) {
+              if (s.equalsIgnoreCase("true"))  return Outcome.TRUE;
+              if (s.equalsIgnoreCase("false")) return Outcome.FALSE;
+          }
+          return Outcome.MALFORMED;                         // null, 1, "yes"
+      }
+    items:
+      - {lines: [1, 3], t: "a record; value stays Object, exactly as the JSON sent it"}
+      - {lines: [5, 8], t: "the key is checked first"}
+      - {lines: [9, 15], t: "pattern matching on the value's type"}
+      - {lines: [16, 16], t: "everything else is malformed, never false"}
+    lines:
+      - emma: "The request is a Java record. The value stays an Object, exactly as JSON sent it: a boolean, a string, a number, or null."
+        focus: 0
+      - emma: "The classifier checks the key first. Not in the registry means fake key, full stop."
+        focus: 1
+      - emma: "Then pattern matching on the value's type: a boolean, or the strings true and false."
+        focus: 2
+      - emma: "Everything else is malformed. That last line is the one that keeps a broken client visible."
+        focus: 3
+
+  - kind: code
+    chapter: "Ingest"
+    heading: "IngestService.ingest(): the checks"
+    points: [c1-ingest-checks]
+    code: |
+      public IngestResult ingest(EventBatch b) {
+          validate(b);                                      // ids, ts, 1..1000 items, else 400
+          int n = b.items().size();
+          Instant now = clock.instant();
+          if (b.ts().isBefore(now.minus(RAW_RETENTION))) {  // 7 days
+              rejectedTooLate.addAndGet(n);                 // a metric, never silent
+              throw new TooLateException("older than raw retention");   // → 422
+          }
+          if (b.ts().isAfter(now.plus(MAX_CLOCK_SKEW))) {   // 5 minutes
+              throw new IllegalArgumentException("event time is in the future");
+          }
+          if (b.ts().isBefore(now.minus(RollupJob.RECOMPUTE_WINDOW))) {
+              lateBeyondWindow.addAndGet(n);                // stored; reconcile repairs it
+          }
+          partitions.ensureFor(b.ts());
+    items:
+      - {lines: [2, 2], t: "reject garbage before it reaches the database"}
+      - {lines: [5, 8], t: "too old: refuse with 422 and count it"}
+      - {lines: [9, 11], t: "a client clock in the future: 400"}
+      - {lines: [12, 15], t: "late but storable: count it, store it, make sure its day exists"}
+    lines:
+      - emma: "The ingest method starts with the checks. Validate the shape first, so garbage never reaches the database."
+        focus: 0
+      - emma: "Too old for raw retention: add to the rejected too late counter, and throw. The controller turns that into a four twenty-two."
+        focus: 1
+      - emma: "A timestamp more than five minutes in the future is a broken client clock: four hundred."
+        focus: 2
+      - emma: "Late, but within retention: count it as late beyond the window, and store it anyway. The reconciler will repair its bucket. Finally, make sure the partition for its day exists."
+        focus: 3
+
+  - kind: code
+    chapter: "One insert"
+    heading: "IngestService.ingest(): one insert per batch"
+    points: [c1-insert]
+    code: |2
+          var sql = new StringBuilder(
+              "INSERT INTO raw_events (event_id, ts, tenant_id, key_name, outcome) VALUES ");
+          List<Object> args = new ArrayList<>(n * 5);
+          for (int i = 0; i < n; i++) {
+              EventBatch.Item it = b.items().get(i);
+              sql.append(i == 0 ? "(?,?,?,?,?)" : ",(?,?,?,?,?)");
+              args.add(eventId(b.tenantId(), b.batchId(), i));
+              args.add(utc(b.ts()));
+              args.add(b.tenantId());
+              args.add(keyName(it.key()));
+              args.add(classifier.classify(it.key(), it.value()).code);
+          }
+          sql.append(" ON CONFLICT (event_id, ts) DO NOTHING");
+          int inserted = jdbc.update(sql.toString(), args.toArray());
+          return new IngestResult(n, inserted, n - inserted);
+      }
+    items:
+      - {lines: [1, 6], t: "one statement, twenty value tuples: one round trip"}
+      - {lines: [7, 11], t: "computed id · event time as OffsetDateTime in UTC · outcome code"}
+      - {lines: [13, 15], t: "the row count it returns is the number of new rows"}
+    lines:
+      - emma: "Then one statement for the whole batch: twenty value tuples, one round trip."
+        focus: 0
+      - emma: "Each row gets the computed event ID, the event time as an offset date time in UTC, never a java sql timestamp that drags in the machine's time zone, and the outcome code."
+        focus: 1
+      - emma: "On conflict, do nothing. The update count that comes back is exactly the number of new rows, so the response can say how many were duplicates."
+        focus: 2
+
+  - kind: code
+    chapter: "The id"
+    heading: "eventId() and the controller"
+    points: [c1-event-id-code]
+    code: |
+      public static UUID eventId(String tenantId, String batchId, int index) {
+          return UUID.nameUUIDFromBytes((tenantId + '/' + batchId + '/' + index).getBytes(UTF_8));
+      }
+
+      @PostMapping("/events")
+      public ResponseEntity<IngestResult> ingest(@RequestBody EventBatch batch) {
+          return ResponseEntity.status(HttpStatus.ACCEPTED).body(ingest.ingest(batch));
+      }
+
+      @GetMapping("/stats")
+      public Stats stats(@RequestParam String tenant, @RequestParam Instant from,
+                         @RequestParam Instant to) {
+          return stats.query(tenant, from, to);
+      }
+    items:
+      - {lines: [1, 3], t: "a name-based UUID: same tenant, batch and index → same id"}
+      - {lines: [5, 8], t: "202 Accepted with {received, inserted, duplicates}"}
+      - {lines: [10, 14], t: "any range, e.g. from=2026-08-26T03:17:30Z, parsed into Instant"}
+    lines:
+      - emma: "The event ID is one line: a name-based UUID of tenant, batch and index. The whole idempotency story rests on it."
+        focus: 0
+      - emma: "The controller is thin. Post events returns two oh two, accepted, with the ingest result as the body."
+        focus: 1
+      - emma: "And get stats takes the tenant and any range, parsed straight into Java instants."
+        focus: 2
+
+  - kind: table
+    chapter: "Proof"
+    heading: "IngestIdempotencyTest: what it proves"
+    points: [c1-tests]
+    columns: ["Test", "Result"]
+    widths: [0.52, 0.48]
+    rows:
+      - ["same batch sent twice", "inserted 20, then inserted 0 · duplicates 20"]
+      - ["same items, a different batchId", "40 rows: a new request is new data"]
+      - ["event time 8 days old", "422 · rejectedTooLate = 20"]
+      - ["1 hour in the future · 1,001 items", "400 both"]
+    lines:
+      - emma: "The tests prove each promise. The same batch twice: twenty inserted, then zero inserted and twenty duplicates."
+        focus: 0
+      - emma: "The same items under a different batch ID are counted twice, and that's correct. A new request is new data. Idempotency is about retries of one request, not about identical content."
+        focus: 1
+      - emma: "And the rejections: eight days old gives four twenty-two and a counter of twenty. An hour in the future, or a thousand and one items, gives four hundred."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "Core classes are plain Java; Spring is a thin layer"}
+      - {t: "classify(): key first, malformed is its own outcome"}
+      - {t: "ingest(): checks, one multi-row insert, ON CONFLICT DO NOTHING"}
+      - {t: "eventId(): one line holds the idempotency"}
+    lines:
+      - emma: "Recap. Plain classes under a thin Spring layer. Classify checks the key first. Ingest checks, then writes one multi-row insert that ignores conflicts. And one line, the event ID, carries the idempotency. Next, the code that counts and the code that answers."
+        focus: 3

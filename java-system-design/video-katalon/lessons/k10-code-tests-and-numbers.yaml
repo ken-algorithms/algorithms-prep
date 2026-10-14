@@ -1,0 +1,215 @@
+id: k10-code-tests-and-numbers
+ep: 10
+week: 4
+tag: "K10 · CODE 3"
+title: "Code 3: the tests that prove it, and the numbers they printed"
+subtitle: "Real PostgreSQL 16, a movable clock, COUNT(*) as the oracle — 20 tests, all green"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#5-test-chứng-minh-gì--kết-quả-chạy-thật
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#6-chạy-như-một-service
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#8-ranh-giới-trung-thực
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §5, §6, §8"}
+      - {t: "mvn -pl 10-event-counting test · 20 tests · about one minute"}
+    lines:
+      - emma: "A design you can describe is good. A design you have run, with tests that would fail if it were wrong, is what makes an interviewer stop probing. This video reads those tests, and the numbers they printed."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: JDK, full: "Java Development Kit", vi: "bộ công cụ Java; ở đây JDK 21"}
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức web; hợp đồng 202 / 422"}
+    lines:
+      - emma: "SQL is the query language, the JDK is the Java development kit, version twenty-one here, and HTTP is the web protocol."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Test setup"
+    heading: "Three tricks that make the tests honest"
+    points: [c3-setup]
+    items:
+      - {t: "Real PostgreSQL 16, started as a subprocess", s: "zonky embedded-postgres: no Docker, and no H2 pretending to be Postgres"}
+      - {t: "A fresh database per test, wired by hand", s: "Fixture: the same classes as production, built with plain constructors"}
+      - {t: "A clock the test moves", s: "MutableClock: “now”, late arrivals and the rollup window are exact"}
+      - {t: "COUNT(*) on raw is the oracle", s: "approach 2 is always right, so every fast answer must equal it"}
+    lines:
+      - emma: "Three tricks make these tests honest. First, real Postgres sixteen, started as a subprocess. An in-memory database pretending to be Postgres would never run date bin, partitions, or on conflict the same way."
+        focus: 0
+      - emma: "Second, every test gets a fresh database and builds the real classes by hand. Third, a clock the test moves, so now, late arrivals and the rollup window are exact, not timing-dependent."
+        focus: 2
+      - emma: "And the oracle is approach two, the one we rejected. Counting raw rows is slow, but always right, so every fast answer must equal it."
+        focus: 3
+
+  - kind: code
+    chapter: "The big one"
+    heading: "RollupAndQueryTest.anyRangeEqualsCountOnRaw"
+    points: [c3-oracle-test]
+    code: |
+      for (int minute = 0; minute < 180; minute++) {          // three hours, minute by minute
+          for (int i = 0; i < 20; i++) {
+              f.clock.set(minuteStart.plusSeconds(i * 3L));
+              Instant ts = f.clock.instant();
+              if (rnd.nextInt(10) == 0) ts = ts.minusSeconds(rnd.nextInt(300));   // 10% late
+              f.ingest.ingest(Fixture.batch("t1", ts, rnd));
+          }
+          f.clock.set(minuteStart.plus(Duration.ofMinutes(1)).plusSeconds(1));
+          f.rollup.refreshRecent();                            // the job runs as in production
+      }
+      for (int q = 0; q < 500; q++) {                          // 500 random ranges, to the second
+          Stats s = f.stats.query("t1", from, to);
+          assertArrayEquals(f.oracle.count("t1", from, to), arr(s));
+      }
+    items:
+      - {lines: [1, 7], t: "3 hours of traffic; 10% of batches up to 5 minutes late"}
+      - {lines: [8, 9], t: "the rollup runs every simulated minute"}
+      - {lines: [11, 14], t: "every answer must equal counting raw"}
+    lines:
+      - emma: "This is the test that matters most. Three hours of traffic, minute by minute, twenty batches a minute. One batch in ten arrives up to five minutes late."
+        focus: 0
+      - emma: "After each simulated minute, the rollup job runs exactly as it would in production."
+        focus: 1
+      - emma: "Then five hundred random ranges, to the second. Every answer from the fast path must equal counting raw rows. Not approximately. Exactly."
+        focus: 2
+
+  - kind: stats
+    chapter: "It printed"
+    heading: "What it printed"
+    points: [c3-printed]
+    items:
+      - {v: "72,000", l: "events in 3,600 batches", s: "10% of batches late by up to 5 minutes"}
+      - {v: "500 / 500", l: "random ranges equal COUNT(*) on raw", s: "to the second"}
+      - {v: "≤ 436", l: "bucket rows read by any one query", s: "the whole 3 hours: 12 rows, 0 raw rows"}
+    lines:
+      - emma: "Seventy-two thousand events in thirty-six hundred batches."
+        focus: 0
+      - emma: "All five hundred random ranges equal counting raw."
+        focus: 1
+      - emma: "No query read more than four hundred thirty-six bucket rows. And the whole three hours, already sealed, read twelve rows and zero raw rows: three hour buckets times four outcomes."
+        focus: 2
+
+  - kind: table
+    chapter: "Every promise"
+    heading: "One test per promise"
+    points: [c3-test-table]
+    columns: ["Promise", "Test", "Printed"]
+    widths: [0.26, 0.44, 0.30]
+    rows:
+      - ["T3 retry is a no-op", "IngestIdempotencyTest", "inserted 20 → 0, duplicates 20"]
+      - ["T4 late ≤ 30 min", "aLateEventInsideTheWindow…", "bucket 09:58: 0 → 20"]
+      - ["T4/T5 late 3 hours", "aBatchLaterThanTheWindow…", "09:00–10:00: 1,000 → 1,020"]
+      - ["T5 drift is caught", "ReconcilerTest", "drift −5 found → repaired → none"]
+      - ["T1/T2 bounded reads", "RangeDecomposerTest", "20,000 ranges, ≤ 507 buckets"]
+      - ["retention", "RetentionTest", "2 days dropped, old day still 20"]
+      - ["rejected approaches", "RejectedApproachesTest", "60 for 40 · 2,420 for 2,400"]
+      - ["the real HTTP contract", "ApiTest (Spring + MockMvc)", "202 · duplicates · 422"]
+    lines:
+      - emma: "Every promise from part A has its own test. A retry inserts nothing. A late event moves into its minute on the next run."
+        focus: 1
+      - emma: "A batch three hours late is wrong at first, a thousand where it should be a thousand and twenty, until the hourly reconcile repairs it. A drift planted by hand is found and fixed."
+        focus: 3
+      - emma: "Reads stay bounded, retention keeps old answers, the rejected approaches fail exactly as described, and the HTTP contract holds through the real Spring wiring."
+        focus: 7
+
+  - kind: code
+    chapter: "Plant a bug"
+    heading: "ReconcilerTest: plant a bug, watch it get caught"
+    points: [c3-reconcile-test]
+    code: |
+      f.rollup.refreshRecent();
+      f.rollup.refresh(at("10:00"), at("11:00"));
+      assertTrue(f.reconciler.reconcileLastHours(2).found().isEmpty());   // clean
+
+      // simulate a bug that double-counted 5 events in one minute bucket
+      f.jdbc.update("UPDATE agg_1m SET cnt = cnt + 5"
+              + " WHERE bucket = '2026-08-29 10:17:00+00' AND outcome = 1");
+
+      Reconciler.Report r = f.reconciler.reconcileLastHours(2);
+      assertEquals(-5, r.found().get(0).diff());          // raw − rollup
+      assertTrue(r.afterRepair().isEmpty());              // recomputed, clean again
+    items:
+      - {lines: [1, 3], t: "start clean"}
+      - {lines: [5, 7], t: "corrupt one bucket on purpose"}
+      - {lines: [9, 11], t: "found, repaired, verified"}
+    lines:
+      - emma: "This one is my favourite to describe in an interview. Start clean."
+        focus: 0
+      - emma: "Then plant a bug: add five to one minute bucket by hand, as if something had double counted."
+        focus: 1
+      - emma: "The reconciler finds a drift of exactly minus five, recomputes that hour, and checks again: clean. I don't believe my numbers are right. I measure it, every hour."
+        focus: 2
+
+  - kind: table
+    chapter: "Contention"
+    heading: "Contention, seven runs: 16 writers, 4,000 batches, one tenant"
+    points: [c3-contention]
+    columns: ["Write path", "Batches / s", "Read it as"]
+    widths: [0.40, 0.22, 0.38]
+    mono: [1]
+    rows:
+      - ["approach 1: lock + running total", "1,080–1,367", "everyone queues for one row"]
+      - ["approach 3: minute counters + n", "4,094–5,986", "fast; rejected for correctness"]
+      - ["accepted: append raw", "3,334–5,488", "fast, and retry-safe"]
+    note: "ContentionDemoTest, seven runs, one machine, embedded PostgreSQL. Quote the ratio, not the numbers."
+    lines:
+      - emma: "One more measurement, with a clear warning label: one machine, seven runs, and the numbers moved between runs. The locked running total did eleven to fourteen hundred batches a second. Minute counters and raw appends did roughly three and a half to six thousand."
+        focus: 2
+      - emma: "So quote the ratio, not the numbers. The lock costs two and a half to four and a half times. Approach three is not slow, it's wrong. That's the honest summary."
+
+  - kind: code
+    chapter: "Run it"
+    heading: "Run it yourself"
+    points: [c3-run]
+    code: |
+      cd katalon-prep/katalon-prep-java
+      mvn -pl 10-event-counting test          # 20 tests, real Postgres 16, no Docker
+
+      # or as a service, against your own Postgres:
+      docker run -d -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=stats -p 5432:5432 postgres:16
+      mvn -pl 10-event-counting spring-boot:run
+      psql -h localhost -U postgres stats -c "INSERT INTO valid_keys VALUES ('checkout_v2')"
+      curl -X POST localhost:8080/events -H 'Content-Type: application/json' -d '{...}'
+      curl "localhost:8080/stats?tenant=t1&from=2026-01-01T00:00:00Z&to=2030-01-01T00:00:00Z"
+    items:
+      - {lines: [1, 2], t: "the tests: about one minute", lang: bash}
+      - {lines: [4, 9], t: "the service: schema runs itself; rollup every minute"}
+    lines:
+      - emma: "To run the tests, one Maven command. About a minute, and no Docker."
+        focus: 0
+      - emma: "To run it as a service, point it at any Postgres sixteen. The schema creates itself, add a few valid keys, post a batch, and ask for any range."
+        focus: 1
+
+  - kind: table
+    chapter: "Honest limits"
+    heading: "Say these limits before they ask"
+    points: [c3-limits]
+    columns: ["", "Status"]
+    widths: [0.50, 0.50]
+    rows:
+      - ["Correctness: retries, ranges, late events, reconcile, retention", "✓ tested on real PostgreSQL 16"]
+      - ["Contention numbers", "one run, one machine: quote ratios"]
+      - ["A sustained 10,000 requests a minute for hours", "not load-tested yet"]
+      - ["Jobs on several instances at once", "advisory lock described, not coded"]
+      - ["The “last 24 hours” cache", "designed, not coded"]
+    lines:
+      - emma: "And say the limits before they ask. Correctness is tested on a real database. The contention numbers are one run."
+        focus: 1
+      - emma: "I haven't load-tested ten thousand a minute for hours. The advisory lock for several instances and the twenty-four hour cache are designed, not coded. Saying that plainly costs nothing, and claiming more costs everything."
+        focus: 4
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "Real Postgres, a movable clock, COUNT(*) as the oracle"}
+      - {t: "500/500 random ranges exact; ≤ 436 bucket rows per query"}
+      - {t: "A planted drift of −5 found and repaired"}
+      - {t: "Quote ratios, state limits"}
+    lines:
+      - emma: "Recap. Real Postgres, a clock you control, and the rejected approach as the oracle. Five hundred random ranges exact. A planted drift found and repaired. Quote ratios, and state your limits. Part D: what if it were ten million a minute?"
+        focus: 3

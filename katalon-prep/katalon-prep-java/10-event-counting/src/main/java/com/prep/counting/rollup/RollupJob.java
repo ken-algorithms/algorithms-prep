@@ -55,8 +55,10 @@ public final class RollupJob {
     private void replaceAll(Instant from, Instant to) {
         // minutes from raw, hours from minutes, days from hours: each tier reads the one below it
         replace("agg_1m", "1 minute", "raw_events", "ts", "count(*)", from, to);
-        replace("agg_1h", "1 hour", "agg_1m", "bucket", "sum(cnt)", floor(from, HOUR), ceil(to, HOUR));
-        replace("agg_1d", "1 day", "agg_1h", "bucket", "sum(cnt)", floor(from, DAY), ceil(to, DAY));
+        replace("agg_1h", "1 hour", "agg_1m", "bucket", "sum(cnt)",
+                floor(from, HOUR), ceil(to, HOUR));
+        replace("agg_1d", "1 day", "agg_1h", "bucket", "sum(cnt)",
+                floor(from, DAY), ceil(to, DAY));
     }
 
     private void replace(String target, String width, String source, String timeCol, String count,

@@ -1,0 +1,188 @@
+id: k01-approach1-lock-running-total
+ep: 1
+week: 2
+tag: "K01 · APPROACH 1 · REJECTED"
+title: "Approach 1: lock, add to a running total, read the last record"
+subtitle: "The answer given in the interview, run as real code, and the test it fails first"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#21-cách-1--khoá-và-một-tổng-chạy-đọc-bản-ghi-cuối
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#1-vì-sao-câu-trả-lời-cũ-bị-bác--4-lỗ-hổng
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §2.1 · problem 04 §1"}
+      - {t: "Code: rejected/LockedTotalCounter.java · RejectedApproachesTest"}
+    lines:
+      - emma: "Approach one is the answer that was actually given in the interview. We will not just say it is wrong. We will run it as real code against a real database, and watch which test it fails."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn của Postgres"}
+    lines:
+      - emma: "One acronym. SQL, the structured query language we use to talk to Postgres."
+        focus: 0
+
+  - kind: bullets
+    chapter: "The answer"
+    heading: "The answer given in the room"
+    points: [a1-idea]
+    items:
+      - {t: "“Receive the request and insert in chunks.”"}
+      - {t: "“While inserting, lock and add to the summary for the last 24 hours.”"}
+      - {t: "“To answer, read the last record.”"}
+      - {t: "The right instinct: count ahead of time, not when asked", s: "approach 4 keeps this idea"}
+    lines:
+      - emma: "Here is the answer, close to word for word. Receive the request and insert in chunks. While inserting, lock, and add to a summary for the last twenty-four hours. To answer, read the last record."
+        focus: 2
+      - emma: "Notice what is right about it. It counts ahead of time instead of counting when asked. The accepted design keeps exactly this instinct. What breaks is the shape of what it keeps."
+        focus: 3
+
+  - kind: code
+    chapter: "As code"
+    heading: "Approach 1 as code: one row per tenant, updated under a lock"
+    points: [a1-code]
+    code: |
+      CREATE TABLE naive_total (tenant_id text PRIMARY KEY,
+          true_cnt bigint, false_cnt bigint, fake_cnt bigint, malformed_cnt bigint);
+
+      -- every request, in one transaction:
+      SELECT 1 FROM naive_total WHERE tenant_id = ? FOR UPDATE;      -- the lock
+      UPDATE naive_total
+         SET true_cnt = true_cnt + ?, false_cnt = false_cnt + ?,
+             fake_cnt = fake_cnt + ?, malformed_cnt = malformed_cnt + ?
+       WHERE tenant_id = ?;
+
+      -- the answer: "read the last record"
+      SELECT true_cnt, false_cnt, fake_cnt, malformed_cnt FROM naive_total WHERE tenant_id = ?;
+    items:
+      - {lines: [1, 2], t: "one row per tenant: four running totals", lang: sql}
+      - {lines: [4, 9], t: "every request locks that row, then adds its counts"}
+      - {lines: [11, 12], t: "the only question it can answer: since the beginning"}
+    lines:
+      - emma: "Written as code, it is one row per tenant holding four running totals."
+        focus: 0
+      - emma: "Every request opens a transaction, locks that row with select for update, and adds its counts."
+        focus: 1
+      - emma: "And the answer is a read of that one row. Keep your eye on what that row can and cannot know."
+        focus: 2
+
+  - kind: exercise
+    chapter: "Test T1"
+    label: "Question"
+    q: "The interviewer asks: how many true values between 03:00 and 05:00 yesterday? Using only this table, how do you answer?"
+    items:
+      - {t: "The table holds four numbers per tenant"}
+    lines:
+      - emma: "Now be the interviewer. How many true values between three and five o'clock yesterday? Using only this table, answer it."
+      - wait: 7
+        note: "What does the row remember about when each event happened?"
+
+  - kind: table
+    chapter: "Time is gone"
+    heading: "What the running total remembers"
+    points: [a1-no-range]
+    columns: ["Moment", "Event", "Last record", "Truth for that hour"]
+    widths: [0.16, 0.38, 0.20, 0.26]
+    mono: [2]
+    build: true
+    rows:
+      - ["09:00", "batch A: 20 items", "20", "09:00–10:00: 20"]
+      - ["10:00", "batch B: 20 items", "40", "10:00–11:00: 20"]
+      - ["10:00", "client retries batch B", "60", "still 20 — counted twice"]
+      - ["later", "“between 09:00 and 10:00?”", "—", "no way to answer"]
+    lines:
+      - emma: "You can't. Watch the test. At nine, batch A adds twenty. The last record says twenty."
+        focus: 0
+      - emma: "At ten, batch B adds twenty more. The last record says forty. It no longer knows that twenty of them happened at nine. Time has been baked into a single number."
+        focus: 1
+      - emma: "Then the client times out and retries batch B. The test reads sixty. The truth is forty, and nothing in the table can tell you it is wrong, because no raw data exists."
+        focus: 2
+      - emma: "So the question about nine to ten has no answer at all. That is test one, any range, failed. It is fatal on its own."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Snapshots?"
+    heading: "The rescue that doesn't work: snapshots and subtraction"
+    points: [a1-snapshots]
+    items:
+      - {t: "Save the totals every minute; answer with total(t2) − total(t1)", s: "looks like it fixes T1"}
+      - {t: "Only valid if the total never resets", s: "but “last 24 hours” in the original answer needs a reset"}
+      - {t: "Resolution = the snapshot period", s: "03:17:30 needs a snapshot at 03:17:30"}
+      - {t: "A retry is still added twice", s: "T3 still fails; still no raw to check against"}
+    lines:
+      - emma: "A common rescue: save the totals every minute, and answer a range by subtracting two snapshots."
+        focus: 0
+      - emma: "That only works if the total never resets. But the original answer summarized the last twenty-four hours, which means resetting. Any subtraction across a reset is wrong."
+        focus: 1
+      - emma: "The resolution is only as fine as the snapshot period. And a retry is still added twice, with still no raw data to check against. Snapshots patch one symptom and keep the disease."
+        focus: 3
+
+  - kind: stats
+    chapter: "The lock"
+    heading: "The lock, measured: 16 writers, 4,000 batches, one tenant, seven runs"
+    points: [a1-lock-measured]
+    items:
+      - {v: "1,080–1,367/s", l: "approach 1: lock + running total", s: "every writer queues for one row lock"}
+      - {v: "3,334–5,488/s", l: "accepted design: append raw", s: "same batches, same machine: 2.4–4.4× faster"}
+      - {v: "167/s", l: "what the question needs", s: "10,000 requests a minute"}
+    note: "Seven runs on one machine, embedded PostgreSQL 16 (ContentionDemoTest). Read the ratio, not the absolute numbers."
+    lines:
+      - emma: "Now test six, the lock. Sixteen writer threads, four thousand batches, one tenant, run seven times. Approach one managed between about eleven hundred and fourteen hundred batches a second."
+        focus: 0
+      - emma: "The accepted design, appending raw rows, did between thirty-three hundred and fifty-five hundred on the same machine. Two and a half to four and a half times more, because nobody waits for one row."
+        focus: 1
+      - emma: "But be honest about it: the question only needs a hundred sixty-seven a second. At this load the lock is a ceiling you'd hit later. The reason to reject approach one is test one, not speed."
+        focus: 2
+
+  - kind: table
+    chapter: "Scorecard"
+    heading: "Approach 1 against the six tests"
+    points: [a1-scorecard]
+    columns: ["Test", "Result", "Why"]
+    widths: [0.30, 0.12, 0.58]
+    accent: [1]
+    rows:
+      - ["T1 any range", "✗ fatal", "a running total has no time left in it"]
+      - ["T2 cheap reads", "✓", "one row"]
+      - ["T3 retries", "✗", "measured: 60 for a true 40"]
+      - ["T4 late events", "✗", "no minute to put a late event into"]
+      - ["T5 find and fix", "✗", "no raw data to recompute from"]
+      - ["T6 no shared lock", "✗", "measured: 2.4–4.4× slower than appending"]
+    lines:
+      - emma: "The scorecard. It passes one test out of six: reads are cheap, because it reads one row."
+        focus: 1
+      - emma: "It fails the rest: no range, retries counted twice, no place for a late event, nothing to fix from, and a lock every writer waits on. Rejected, with test one as the reason."
+        focus: 5
+
+  - kind: speech
+    chapter: "In the room"
+    heading: "If they bring up your old answer"
+    points: [a1-say-it]
+    items:
+      - {t: "“My first answer locked and added to a running total, then read the last record.”"}
+      - {t: "“A running total keeps only the current state: the time of each event is gone, so it can't answer an arbitrary range.”"}
+      - {t: "“The instinct was right — count ahead of time — but per time bucket, asynchronously, with raw events as the source of truth.”"}
+    lines:
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+      - emma: "Owning the mistake and showing the stronger fix lands better than a perfect first answer. It is exactly what a Principal is hired to do."
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "Counting ahead of time: right instinct"}
+      - {t: "One running total: time is gone → no range (T1, fatal)"}
+      - {t: "Retry measured: 60 for a true 40, and no raw to notice"}
+      - {t: "Lock: 2.4–4.4× slower, but not the main reason"}
+    lines:
+      - emma: "Recap. Counting ahead of time is the right instinct. A single running total loses time, so it fails any range, and a retry silently counts twice. The lock is slow, but it's the second reason, not the first. Next, approach two: keep every event and count when asked."
+        focus: 3

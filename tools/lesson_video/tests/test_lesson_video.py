@@ -95,6 +95,7 @@ scenes:
     ("Client A locks it. A poll returns; then A's write and topic A.", "Client eigh locks it. A poll returns; then A's write and topic eigh."),
     ("K01 to K07 at 13 Gbit/s", "K 1 to K 7 at 13 gigabits per second"),
     ("PII; dedup by batch_id; Dedup hits; dedups stay", "P I I; dee-doop by batch_id; Dee-doop hits; dedups stay"),
+    ("seen batch IDs; one ID; UUIDs", "seen batch eye-dees; one ID; UUIDs"),
     ("1 µs = 1.7 cores; 0.1 ms; 1 s; 11 ms", "1 microsecond = 1 point 7 cores; 0 point 1 milliseconds; 1 second; 11 milliseconds"),
 ])
 def test_speakable(text, spoken):

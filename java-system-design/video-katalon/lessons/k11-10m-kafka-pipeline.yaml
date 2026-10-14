@@ -1,0 +1,223 @@
+id: k11-10m-kafka-pipeline
+ep: 11
+week: 10
+tag: "K11 · FOLLOW-UP · 10M"
+title: "“What about 10 million a minute?” — step by step to a Kafka pipeline"
+subtitle: "Climb ×10 at a time, reject what breaks, and keep the three ideas that never change"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#7-khi-tải-lên-10m-và-100m-requestphút
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#4-cái-gì-vỡ-trước--đi-từng-bước--10
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#43--1000--10m-requestphút
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#52-quyết-định-và-đánh-đổi
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once
+  - ../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §7 · problem 07 §4, §5 · module 09"}
+      - {t: "Part D of 4: watch after phase 2 (Kafka, streams, fencing)"}
+    lines:
+      - emma: "The interviewer nods at your design and asks the follow-up. What about ten million requests a minute? A thousand times more. We'll climb there ten times at a time, reject what breaks at each step, and see which ideas survive untouched."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: API, full: "application programming interface", vi: "collector nhận request"}
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý; chi phí mỗi request nhân 166.667"}
+      - {abbr: SDK, full: "software development kit", vi: "thư viện phía client: batch_id, retry"}
+      - {abbr: DLT, full: "dead-letter topic", vi: "topic chứa message hỏng, không chặn cả partition"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng message"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "API is the collector's interface, CPU the processor, and SDK the client library that picks batch IDs and retries."
+        focus: 2
+      - emma: "DLT is a dead-letter topic, where a broken message goes instead of blocking a partition. JSON is the message format, and ID means identifier."
+        focus: 5
+
+  - kind: stats
+    chapter: "Numbers"
+    heading: "Numbers first: 10M requests a minute"
+    points: [d1-numbers]
+    items:
+      - {v: "166,667/s", l: "requests", s: "peaks ~500k/s"}
+      - {v: "3.3M/s", l: "events", s: "288 billion a day"}
+      - {v: "~1.3 Gbit/s", l: "into the collectors", s: "~1 KB of JSON per request"}
+      - {v: "unchanged", l: "the read path", s: "rows = tenants × outcomes × buckets"}
+    lines:
+      - emma: "Numbers first. A hundred sixty-six thousand requests a second, three point three million events a second, two hundred eighty-eight billion a day."
+        focus: 1
+      - emma: "About one point three gigabits a second of JSON arriving."
+        focus: 2
+      - emma: "And one thing that does not change at all: the read path. Rollup rows grow with tenants, outcomes and buckets, not with events. Everything from part B's read side stays. Only the write path moves."
+        focus: 3
+
+  - kind: table
+    chapter: "×10, ×100"
+    heading: "Climb ×10 at a time: what breaks, what replaces it"
+    points: [d1-ladder]
+    columns: ["Load", "Breaks first", "Fix", "Not yet"]
+    widths: [0.15, 0.31, 0.34, 0.20]
+    build: true
+    rows:
+      - ["×10 · 100k/min", "one row per event: 33k inserts/s on one primary", "the API packs a request into ONE row with 4 counts", "Kafka"]
+      - ["×100 · 1M/min", "API writes synchronously: a failover = errors + retry storm", "Kafka between API and counting; 202 after acks=all", "ClickHouse"]
+      - ["×1,000 · 10M/min", "key = tenant: a hot partition · per-event unique index", "key = batch_id · dedup in stream state · overwrite", "multi-region"]
+    lines:
+      - emma: "Times ten, a hundred thousand a minute. What breaks first is one row per event: thirty-three thousand inserts a second on one Postgres primary. Fix: the API packs each request into one row with four counts. Writes drop twenty times. Still no Kafka."
+        focus: 0
+      - emma: "Times a hundred, a million a minute. Now the API writing synchronously to the database is the weak spot. A thirty-second failover becomes errors, then a retry storm. Fix: put Kafka between the API and the counting, and answer two oh two once Kafka has acknowledged."
+        focus: 1
+      - emma: "Times a thousand, ten million a minute. Two things break: keying Kafka by tenant makes a hot partition, and a unique index per event no longer fits anywhere. Let's take those apart."
+        focus: 2
+
+  - kind: table
+    chapter: "Rejected"
+    heading: "At 10M: options that get rejected"
+    points: [d1-rejected]
+    columns: ["Option", "Rejected because"]
+    widths: [0.38, 0.62]
+    build: true
+    rows:
+      - ["A bigger Postgres, one row per event", "3.3M rows/s is far past one primary (order 30–50k/s)"]
+      - ["Kafka keyed by tenant_id", "one big tenant = one hot partition (measured below)"]
+      - ["A consumer that writes each record synchronously", "500 records × 20 ms = 10 s > poll interval → rebalance storm"]
+      - ["Mark the batch, then add its counts, in two commits", "a crash in between loses the counts for good"]
+      - ["A dedup table row for every batch, in Postgres", "166,667 extra writes/s: dedup belongs in stream state"]
+    lines:
+      - emma: "Options that get rejected at ten million. A bigger Postgres with a row per event: three point three million rows a second is a hundred times past one primary."
+        focus: 0
+      - emma: "Kafka keyed by tenant: the biggest tenant lands on one partition, and one consumer can't keep up."
+        focus: 1
+      - emma: "A consumer that writes each record synchronously: five hundred records at twenty milliseconds each is ten seconds per poll, longer than the poll interval, so the group keeps rebalancing."
+        focus: 2
+      - emma: "Marking a batch as seen and adding its counts in two separate commits: crash in between and the counts are lost forever. I found exactly this bug in module nine's code and fixed it."
+        focus: 3
+      - emma: "And a dedup table with a row per batch in Postgres: that's a hundred sixty-six thousand extra writes a second. At this scale, dedup belongs in the stream processor's own state."
+        focus: 4
+
+  - kind: table
+    chapter: "Measured skew"
+    heading: "Measured: 10,000 requests, 4 partitions, one tenant sends 40%"
+    points: [d1-skew]
+    columns: ["Key", "Partition 0", "1", "2", "3", "Hottest"]
+    widths: [0.20, 0.17, 0.14, 0.14, 0.14, 0.21]
+    mono: [1, 2, 3, 4, 5]
+    rows:
+      - ["tenant_id", "5,320", "1,860", "1,320", "1,500", "53.2%"]
+      - ["batch_id", "2,537", "2,450", "2,482", "2,531", "25.4%"]
+    note: "module 09 PartitionSkewTest; partitioner = murmur2 + toPositive, like Kafka's default for keyed records"
+    lines:
+      - emma: "Measured in module nine. Ten thousand requests over four partitions, with one tenant sending forty percent. Keyed by tenant, one partition took fifty-three percent of everything."
+        focus: 0
+      - emma: "Keyed by batch ID, each partition took about a quarter. And because a retry carries the same batch ID, it lands on the same partition as the original, so dedup only needs local state. Counting doesn't need ordering per tenant, so nothing is lost."
+        focus: 1
+
+  - kind: diagram
+    chapter: "The pipeline"
+    heading: "The 10M pipeline"
+    points: [d1-pipeline]
+    nodes:
+      - {id: sdk, label: "Client SDK", sub: "batch_id · retry + jitter", x: 95, y: 60, w: 170, h: 70, shape: user}
+      - {id: col, label: "Collectors ~28 pods", sub: "validate · classify · pack · 202", x: 360, y: 60, w: 240, h: 70}
+      - {id: k, label: "Kafka", sub: "key = batch_id · 64–128 partitions", x: 690, y: 60, w: 240, h: 70, shape: queue}
+      - {id: sp, label: "Stream processor", sub: "dedup 15 min · 1-min windows", x: 690, y: 200, w: 250, h: 70, at: 1}
+      - {id: agg, label: "Rollup store", sub: "cnt = GREATEST(cnt, new)", x: 1020, y: 200, w: 230, h: 70, shape: db, at: 1}
+      - {id: obj, label: "Object storage", sub: "packed raw · Parquet", x: 1020, y: 60, w: 230, h: 70, shape: db, at: 2}
+      - {id: rec, label: "Hourly reconcile", sub: "recount raw → final_cnt", x: 1020, y: 335, w: 230, h: 70, at: 2, tone: warn}
+      - {id: q, label: "Stats", sub: "same decomposer as K07", x: 690, y: 335, w: 230, h: 70, at: 3, tone: ok}
+    edges:
+      - {a: sdk, b: col}
+      - {a: col, b: k, label: "acks=all"}
+      - {a: k, b: sp, at: 1}
+      - {a: sp, b: agg, label: "overwrite", at: 1}
+      - {a: k, b: obj, label: "sink", at: 2}
+      - {a: obj, b: rec, dashed: true, at: 2}
+      - {a: rec, b: agg, label: "final_cnt", dashed: true, at: 2}
+      - {a: agg, b: q, at: 3}
+    lines:
+      - emma: "The pipeline. The client SDK picks a batch ID and retries with backoff and jitter. About twenty-eight collector pods validate, classify, pack each request into one record, produce with acks all, and answer two oh two."
+        focus: 0
+      - emma: "A stream processor drops batch IDs it has seen in the last fifteen minutes, counts in one-minute windows by event time, and writes the window's count with greatest, so a replay or a zombie consumer can't move a number backwards."
+        focus: 1
+      - emma: "A sink copies packed raw to object storage, and an hourly batch recounts it, writing a final count. That's our reconciler, one size bigger."
+        focus: 2
+      - emma: "And the stats service reads the rollup with exactly the decomposer from part B."
+        focus: 3
+
+  - kind: code
+    chapter: "One transaction"
+    heading: "Module 09 fix: mark and count in ONE transaction"
+    points: [d1-one-tx]
+    code: |
+      public boolean applyBatchOnce(String batchId, String tenantId, long bucketMinute,
+                                    Map<Outcome, Long> counts) {
+          try {
+              return Boolean.TRUE.equals(tx.execute(s -> {
+                  int marked = jdbc.update("INSERT INTO processed_batch (batch_id, tenant_id) "
+                          + "SELECT ?, ? WHERE NOT EXISTS "
+                          + "(SELECT 1 FROM processed_batch WHERE batch_id = ?)",
+                          batchId, tenantId, batchId);
+                  if (marked == 0) return false;            // seen before: retry or redelivery
+                  recordAggregates(tenantId, bucketMinute, counts);   // same transaction
+                  return true;
+              }));
+          } catch (DuplicateKeyException race) {
+              return false;          // two consumers during a rebalance: the loser rolled back
+          }
+      }
+    items:
+      - {lines: [4, 8], t: "mark the batch as seen…"}
+      - {lines: [9, 11], t: "…and add its counts, in the same transaction: both or neither"}
+      - {lines: [13, 15], t: "a rebalance race rolls the loser back entirely"}
+    lines:
+      - emma: "Here's the module nine fix, because it teaches the rule at a size you can run. Mark the batch as seen."
+        focus: 0
+      - emma: "Then add its counts, inside the same transaction. Both happen, or neither. Before the fix, a crash between them meant the batch was marked but never counted, and the retry was skipped as a duplicate."
+        focus: 1
+      - emma: "If two consumers race during a rebalance, the loser hits the primary key and rolls back entirely. At ten million, the same rule lives in the stream processor: its dedup state and its counts move together in one checkpoint."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Failure modes"
+    heading: "Two more failures you must handle at 10M"
+    points: [d1-failures]
+    items:
+      - {t: "A poison pill: one message that can't be parsed", s: "error-handling deserializer + dead-letter publishing → DLT; the partition keeps moving"}
+      - {t: "A burst bigger than the producer buffer", s: "bounded buffer + token bucket in the collector → 429 with Retry-After, never an unbounded queue"}
+    lines:
+      - emma: "Two more failures to handle. A poison pill, one message that can't be parsed, would make a consumer retry it forever and block its partition. Route it to a dead-letter topic and keep moving. Module nine has a test for exactly that."
+        focus: 0
+      - emma: "And a burst bigger than the producer's buffer. Bound the buffer, put a token bucket in front of it, and answer four twenty-nine with retry after. An unbounded queue only turns a fast refusal into an out-of-memory crash twenty minutes later."
+        focus: 1
+
+  - kind: table
+    chapter: "What stayed"
+    heading: "Three ideas that never changed"
+    points: [d1-invariants]
+    columns: ["Idea", "At 10k a minute", "At 10M a minute"]
+    widths: [0.30, 0.34, 0.36]
+    rows:
+      - ["A log of truth", "raw_events in Postgres", "Kafka + packed raw in object storage"]
+      - ["Count by event time, per bucket", "RollupJob, 30-min window", "1-min windows, 30 min allowed lateness"]
+      - ["Never add blindly", "recount and replace", "dedup by batch_id + GREATEST + final_cnt"]
+    lines:
+      - emma: "Step back. Three ideas from part B never changed. A log of truth: the raw table became Kafka plus packed raw files. Counting by event time per bucket: the rollup job became one-minute windows."
+        focus: 1
+      - emma: "And never add blindly: recount and replace became dedup by batch ID, greatest, and a final count from the hourly recount. The tools changed. The design didn't."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "×10: pack per request · ×100: Kafka · ×1,000: key by batch_id"}
+      - {t: "Rejected: per-event rows, tenant keys, sync consumers, two-commit dedup"}
+      - {t: "Measured skew: 53.2% vs 25.4% on the hottest partition"}
+      - {t: "Same three ideas; the read path is untouched"}
+    lines:
+      - emma: "Recap. Times ten, pack each request. Times a hundred, add Kafka. Times a thousand, key by batch ID and dedup in stream state. And the read path never moved. Next: a hundred million a minute."
+        focus: 3
