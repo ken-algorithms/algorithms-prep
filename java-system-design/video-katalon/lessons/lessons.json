@@ -758,6 +758,149 @@
      "section": "04-event-counting-10k · 62-time-bucket-và-rollup-nhiều-tầng"
     }
    ]
+  },
+  {
+   "id": "k07-build-read-path-reconcile",
+   "ep": 7,
+   "code": "K07",
+   "week": 3,
+   "title": "Build 3: the read path, the reconcile, and retention",
+   "subtitle": "Split any range into the fewest buckets, prove the numbers every hour, and delete old data in O(1)",
+   "file": "k07-build-read-path-reconcile.mp4",
+   "poster": "k07-build-read-path-reconcile.jpg",
+   "source": "k07-build-read-path-reconcile.yaml",
+   "duration": 309.4,
+   "bytes": 4485731,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 13.2,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 20.5,
+     "title": "Decompose"
+    },
+    {
+     "t": 53.3,
+     "title": "Algorithm"
+    },
+    {
+     "t": 82.9,
+     "title": "A real bug"
+    },
+    {
+     "t": 118.1,
+     "title": "Bounded"
+    },
+    {
+     "t": 148.1,
+     "title": "Rates"
+    },
+    {
+     "t": 178.6,
+     "title": "Reconcile"
+    },
+    {
+     "t": 210.6,
+     "title": "Retention"
+    },
+    {
+     "t": 237.1,
+     "title": "Watch it"
+    },
+    {
+     "t": 261.1,
+     "title": "Cache"
+    },
+    {
+     "t": 291.6,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#34-đường-đọc-phân-rã-khoảng-bất-kỳ",
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#35-đối-soát-và-event-trễ",
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#36-retention",
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#37-bốn-job-nền",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#68-tỉ-lệ-50--đừng-bao-giờ-lưu-tỉ-lệ",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#69-cache-và-thundering-herd",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#611-retention-và-chi-phí-lưu-trữ",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#612-observability--6-metric-phải-có"
+   ],
+   "points": [
+    {
+     "id": "b3-example",
+     "t": 20.5,
+     "text": "Ví dụ 03:17:30 → 3 ngày sau 11:42:10: raw 30 s, 42 phút, 20 giờ, 2 ngày, 11 giờ, 42 phút, raw 10 s = 84 + 31 + 2 bucket",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ",
+     "section": "04-event-counting-10k · 63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ"
+    },
+    {
+     "id": "b3-algorithm",
+     "t": 53.3,
+     "text": "Thuật toán: mỗi bước lấy bucket thô nhất bắt đầu đúng ở đây và còn vừa; mép < 1 phút đọc raw; gộp mảnh cùng tầng; sau seal đọc raw",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#34-đường-đọc-phân-rã-khoảng-bất-kỳ",
+     "section": "README · 34-đường-đọc-phân-rã-khoảng-bất-kỳ"
+    },
+    {
+     "id": "b3-bug",
+     "t": 82.9,
+     "text": "Lỗi đã sửa: bản Python cũ đi tiếp cùng tầng tới hết khoảng → 4.824 bucket phút thay vì 84 + 31 + 2; kết quả vẫn đúng nên khó thấy",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#34-đường-đọc-phân-rã-khoảng-bất-kỳ",
+     "section": "README · 34-đường-đọc-phân-rã-khoảng-bất-kỳ"
+    },
+    {
+     "id": "b3-bounds",
+     "t": 118.1,
+     "text": "Chặn trên: ≤ 2 mảnh raw, ≤ 118 phút + 46 giờ, ≤ 529 bucket cho một năm; 20.000 khoảng ngẫu nhiên nhiều nhất 507",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#34-đường-đọc-phân-rã-khoảng-bất-kỳ",
+     "section": "README · 34-đường-đọc-phân-rã-khoảng-bất-kỳ"
+    },
+    {
+     "id": "b3-rate",
+     "t": 148.1,
+     "text": "Không lưu tỉ lệ: 90/100 và 10/1.000 → trung bình 45,5% sai, đúng là 9,1%; StatsService chia lúc đọc",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#68-tỉ-lệ-50--đừng-bao-giờ-lưu-tỉ-lệ",
+     "section": "04-event-counting-10k · 68-tỉ-lệ-50--đừng-bao-giờ-lưu-tỉ-lệ"
+    },
+    {
+     "id": "b3-reconcile",
+     "t": 178.6,
+     "text": "Reconciler: mỗi giờ đã đóng, COUNT(*) raw vs SUM(cnt) agg_1m bằng FULL OUTER JOIN; lệch → reconcile_drift + tính lại giờ đó",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#35-đối-soát-và-event-trễ",
+     "section": "README · 35-đối-soát-và-event-trễ"
+    },
+    {
+     "id": "b3-retention",
+     "t": 210.6,
+     "text": "Retention: DELETE 288 triệu dòng/ngày gây vacuum storm; drop partition là O(1); rollup giữ câu trả lời của ngày đã xoá",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#611-retention-và-chi-phí-lưu-trữ",
+     "section": "04-event-counting-10k · 611-retention-và-chi-phí-lưu-trữ"
+    },
+    {
+     "id": "b3-metrics-jobs",
+     "t": 237.1,
+     "text": "Sáu metric (reconcile_drift phải bằng 0) và bốn job nền: reload key, rollup, reconcile, partition",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#612-observability--6-metric-phải-có",
+     "section": "04-event-counting-10k · 612-observability--6-metric-phải-có"
+    },
+    {
+     "id": "b3-cache",
+     "t": 261.1,
+     "text": "Cache '24 giờ qua': key chứa phút đã seal (không đoán TTL), single-flight khi miss; lock ở đường đọc; chưa code",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#69-cache-và-thundering-herd",
+     "section": "04-event-counting-10k · 69-cache-và-thundering-herd"
+    }
+   ]
   }
  ]
 }
