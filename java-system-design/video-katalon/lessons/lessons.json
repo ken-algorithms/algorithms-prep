@@ -1,5 +1,124 @@
 {
-  "schema": "jsd-lessons/1",
-  "note": "Sinh bởi tools/lesson_video từ các file .yaml cùng thư mục — sửa kịch bản rồi chạy lại `python -m lesson_video build`, không sửa tay file này hay file .mp4.",
-  "lessons": []
+ "schema": "jsd-lessons/1",
+ "note": "Sinh bởi tools/lesson_video từ các file .yaml cùng thư mục — sửa kịch bản rồi chạy lại `python -m lesson_video build`, không sửa tay file này hay file .mp4.",
+ "lessons": [
+  {
+   "id": "k01-approach1-lock-running-total",
+   "ep": 1,
+   "code": "K01",
+   "week": 2,
+   "title": "Approach 1: lock, add to a running total, read the last record",
+   "subtitle": "The answer given in the interview, run as real code, and the test it fails first",
+   "file": "k01-approach1-lock-running-total.mp4",
+   "poster": "k01-approach1-lock-running-total.jpg",
+   "source": "k01-approach1-lock-running-total.yaml",
+   "duration": 260.9,
+   "bytes": 3759566,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 13.6,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 20.4,
+     "title": "The answer"
+    },
+    {
+     "t": 46.2,
+     "title": "As code"
+    },
+    {
+     "t": 64.7,
+     "title": "Test T1"
+    },
+    {
+     "t": 80.6,
+     "title": "Time is gone"
+    },
+    {
+     "t": 118.3,
+     "title": "Snapshots?"
+    },
+    {
+     "t": 150.6,
+     "title": "The lock"
+    },
+    {
+     "t": 190.3,
+     "title": "Scorecard"
+    },
+    {
+     "t": 209.9,
+     "title": "In the room"
+    },
+    {
+     "t": 240.7,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#21-cách-1--khoá-và-một-tổng-chạy-đọc-bản-ghi-cuối",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#1-vì-sao-câu-trả-lời-cũ-bị-bác--4-lỗ-hổng"
+   ],
+   "points": [
+    {
+     "id": "a1-idea",
+     "t": 20.4,
+     "text": "Câu trả lời cũ: insert theo chunk, lock và cộng vào tổng 24 giờ, đọc bản ghi cuối; ý đúng: đếm trước thay vì đếm lúc hỏi",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#1-vì-sao-câu-trả-lời-cũ-bị-bác--4-lỗ-hổng",
+     "section": "04-event-counting-10k · 1-vì-sao-câu-trả-lời-cũ-bị-bác--4-lỗ-hổng"
+    },
+    {
+     "id": "a1-code",
+     "t": 46.2,
+     "text": "Cách 1 thành code: một dòng mỗi tenant, SELECT … FOR UPDATE rồi UPDATE cộng dồn",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#21-cách-1--khoá-và-một-tổng-chạy-đọc-bản-ghi-cuối",
+     "section": "README · 21-cách-1--khoá-và-một-tổng-chạy-đọc-bản-ghi-cuối"
+    },
+    {
+     "id": "a1-no-range",
+     "t": 80.6,
+     "text": "Tổng chạy mất thời gian: 09:00 → 20, 10:00 → 40, retry → 60 (đúng là 40); không trả lời được 09:00–10:00",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#lỗ-hổng-1--một-counter-lũy-kế-không-trả-lời-được-range-query-chí-mạng",
+     "section": "04-event-counting-10k · lỗ-hổng-1--một-counter-lũy-kế-không-trả-lời-được-range-query"
+    },
+    {
+     "id": "a1-snapshots",
+     "t": 118.3,
+     "text": "Snapshot rồi trừ chỉ đúng khi tổng không reset; độ phân giải bằng chu kỳ snapshot; retry vẫn cộng trùng",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#lỗ-hổng-1--một-counter-lũy-kế-không-trả-lời-được-range-query-chí-mạng",
+     "section": "04-event-counting-10k · lỗ-hổng-1--một-counter-lũy-kế-không-trả-lời-được-range-query"
+    },
+    {
+     "id": "a1-lock-measured",
+     "t": 150.6,
+     "text": "Đo 7 lần: lock + tổng chạy 1.080–1.367 batch/s, append raw 3.334–5.488 (chậm 2,4–4,4 lần, 16 luồng); đề cần 167/s nên lock là lý do thứ hai",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#lỗ-hổng-2--lock-ở-write-path-là-anti-pattern-về-scale",
+     "section": "04-event-counting-10k · lỗ-hổng-2--lock-ở-write-path-là-anti-pattern-về-scale"
+    },
+    {
+     "id": "a1-scorecard",
+     "t": 190.3,
+     "text": "Bảng chấm cách 1: chỉ qua T2; trượt T1 (chí mạng), T3, T4, T5, T6",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#21-cách-1--khoá-và-một-tổng-chạy-đọc-bản-ghi-cuối",
+     "section": "README · 21-cách-1--khoá-và-một-tổng-chạy-đọc-bản-ghi-cuối"
+    },
+    {
+     "id": "a1-say-it",
+     "t": 209.9,
+     "text": "Kể lại câu trả lời cũ: tổng chạy chỉ giữ trạng thái hiện tại nên không trả lời khoảng; bản sửa đếm theo bucket, bất đồng bộ, raw là sự thật",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#12-ranh-giới-trung-thực",
+     "section": "04-event-counting-10k · 12-ranh-giới-trung-thực"
+    }
+   ]
+  }
+ ]
 }
