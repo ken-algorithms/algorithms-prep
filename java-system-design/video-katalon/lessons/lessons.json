@@ -901,6 +901,109 @@
      "section": "04-event-counting-10k · 69-cache-và-thundering-herd"
     }
    ]
+  },
+  {
+   "id": "k08-code-ingest",
+   "ep": 8,
+   "code": "K08",
+   "week": 4,
+   "title": "Code 1: the module, the request, and IngestService",
+   "subtitle": "Read the write path in Java: classification, deterministic ids, one insert, 202",
+   "file": "k08-code-ingest.mp4",
+   "poster": "k08-code-ingest.jpg",
+   "source": "k08-code-ingest.yaml",
+   "duration": 240.8,
+   "bytes": 3702303,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 17.1,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 42.7,
+     "title": "The map"
+    },
+    {
+     "t": 73.6,
+     "title": "The request"
+    },
+    {
+     "t": 101.5,
+     "title": "Ingest"
+    },
+    {
+     "t": 136.4,
+     "title": "One insert"
+    },
+    {
+     "t": 165.3,
+     "title": "The id"
+    },
+    {
+     "t": 188.0,
+     "title": "Proof"
+    },
+    {
+     "t": 220.2,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#4-đọc-code-theo-thứ-tự",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#9-nếu-demo-bằng-javaspring-stack-của-katalon"
+   ],
+   "points": [
+    {
+     "id": "c1-map",
+     "t": 42.7,
+     "text": "Thứ tự đọc code: schema.sql, EventBatch/EventClassifier, IngestService, RollupJob, RangeDecomposer/StatsService, Reconciler, rejected/, lớp Spring mỏng",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#4-đọc-code-theo-thứ-tự",
+     "section": "README · 4-đọc-code-theo-thứ-tự"
+    },
+    {
+     "id": "c1-classifier",
+     "t": 73.6,
+     "text": "EventBatch là record, value giữ kiểu Object; classify: key trước, pattern matching theo kiểu value, còn lại là MALFORMED",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#4-đọc-code-theo-thứ-tự",
+     "section": "README · 4-đọc-code-theo-thứ-tự"
+    },
+    {
+     "id": "c1-ingest-checks",
+     "t": 101.5,
+     "text": "ingest(): validate, quá 7 ngày → rejectedTooLate + 422, tương lai > 5 phút → 400, trễ > 30 phút → lateBeyondWindow, ensureFor partition",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#32-đường-ghi",
+     "section": "README · 32-đường-ghi"
+    },
+    {
+     "id": "c1-insert",
+     "t": 136.4,
+     "text": "Một INSERT nhiều dòng cho cả batch, OffsetDateTime UTC thay vì Timestamp, ON CONFLICT DO NOTHING, số dòng trả về = số dòng mới",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#9-nếu-demo-bằng-javaspring-stack-của-katalon",
+     "section": "04-event-counting-10k · 9-nếu-demo-bằng-javaspring-stack-của-katalon"
+    },
+    {
+     "id": "c1-event-id-code",
+     "t": 165.3,
+     "text": "eventId() một dòng: UUID.nameUUIDFromBytes; controller trả 202 ACCEPTED; GET /stats nhận Instant",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#31-bảng-và-partition",
+     "section": "README · 31-bảng-và-partition"
+    },
+    {
+     "id": "c1-tests",
+     "t": 188.0,
+     "text": "IngestIdempotencyTest: cùng batch hai lần → 20 rồi 0; batchId khác → 40 dòng; 8 ngày → 422; tương lai, 1.001 item → 400",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#5-test-chứng-minh-gì--kết-quả-chạy-thật",
+     "section": "README · 5-test-chứng-minh-gì--kết-quả-chạy-thật"
+    }
+   ]
   }
  ]
 }
