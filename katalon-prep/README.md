@@ -9,7 +9,9 @@ cd katalon-prep-java   && mvn test        # 191 test, 0 failure   (JDK 21 qua to
 cd katalon-prep-python && uv sync && uv run pytest -q   # 122 test, 0 failure   (offline)
 ```
 
-**Đã verify trên máy bạn: 313 test, 0 failure.** Không phần nào cần Docker. Phần Python không gọi mạng.
+**Đã verify trên máy bạn: 313 test, 0 failure.** Module Java [09](katalon-prep-java/09-kafka-pipeline/README.md) (8 test) và
+[10 — event counting](katalon-prep-java/10-event-counting/README.md) (20 test) thêm sau, đã chạy trong sandbox Linux. Không phần
+nào cần Docker. Phần Python không gọi mạng.
 
 > **Muốn luyện code tay 100% trong terminal, không mở IDE?**
 > → [**TERMINAL-DICTIONARY.md**](TERMINAL-DICTIONARY.md) — từ điển lệnh theo nhóm cho vim, SDKMAN,

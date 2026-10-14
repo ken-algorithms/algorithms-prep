@@ -1,178 +1,95 @@
 #!/usr/bin/env python3
-"""Comprehensive Playwright automated test suite for Video Tab & Katalon Series (K00-K13).
+"""Playwright test of the Video tab for the Katalon interlude series (K00–K13, narrated by Emma).
 
-Validates:
-1. Navigation to Video tab.
-2. Selection of 'Chen ngang Katalon' series.
-3. Existence of all 14 episodes (K00 to K13) and 3 structured section headers:
-   - Phần 1A: Sau giai đoạn 1 (Ước lượng & 10k)
-   - Phần 1B: Sau giai đoạn 2 (Kiến trúc 10M–100M)
-   - Phần 2: Thực chiến Code & Sửa lỗi Kafka (K08–K13)
-4. For each newly created episode (K08 through K13):
-   - Code, Title, Subtitle, Duration, Size.
-   - Chapters list is authentic and specific to that episode.
-   - Points list is authentic and specific to that episode.
-   - Source MP4 and Poster JPG URLs are unique and distinct from K00.
-   - None of K00's content, titles, or 284s duration leak into K08-K13.
-   - HTML5 video element loads metadata correctly (duration, dimensions 1280x720).
-   - Captures screenshots for visual audit.
+Everything it expects comes from java-system-design/video-katalon/lessons/lessons.json, so a rebuild that changes a
+length or a chapter does not need an edit here. It checks:
+1. the series button, the 14/14 counter and the four part headers (A–D) in order;
+2. for every video: code, title, length, chapter and key-point counts, poster and mp4 path match the manifest;
+3. the narrator is Emma only, and none of the removed scripts (old K00–K13) is still listed;
+4. every source link of the series (key points and covers) points at a document heading that exists.
+
+Run: python3 tests/test_playwright_katalon_videos.py   (screenshots go to $SHOTS, default: a temp folder)
 """
 from __future__ import annotations
 
-import sys
+import json
+import os
+import tempfile
 from pathlib import Path
+
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
+MANIFEST = ROOT / "java-system-design" / "video-katalon" / "lessons" / "lessons.json"
+PARTS = ["PHẦN A", "PHẦN B", "PHẦN C", "PHẦN D"]
+REMOVED = ["k00-interlude-orientation", "k03-10m-pipeline", "k08-kafka-ingest-setup", "k13-backpressure-and-troubleshooting"]
 
-EXPECTED_EPISODES = {
-    "k08-kafka-ingest-setup": {
-        "code": "K08",
-        "title": "Kafka hands-on: Ingestion API and Producer tuning",
-        "file": "k08-kafka-ingest-setup.mp4",
-        "expected_duration_str": "7:03",
-        "keyword": "Producer",
-        "must_not_contain": ["Families A and C", "Five axes", "Three loads", "Eight videos"],
-    },
-    "k09-fixing-partition-skew": {
-        "code": "K09",
-        "title": "The skewed partition bug: custom partitioners and fixing hotspots",
-        "file": "k09-fixing-partition-skew.mp4",
-        "expected_duration_str": "6:11",
-        "keyword": "skew",
-        "must_not_contain": ["Families A and C", "Five axes", "Three loads", "Eight videos"],
-    },
-    "k10-fixing-rebalance-storm": {
-        "code": "K10",
-        "title": "Fixing consumer lag and the P20 rebalance storm",
-        "file": "k10-fixing-rebalance-storm.mp4",
-        "expected_duration_str": "5:39",
-        "keyword": "batch",
-        "must_not_contain": ["Families A and C", "Five axes", "Three loads", "Eight videos"],
-    },
-    "k11-poison-pill-and-dlt": {
-        "code": "K11",
-        "title": "Poison pill isolation and non-blocking dead letter topics",
-        "file": "k11-poison-pill-and-dlt.mp4",
-        "expected_duration_str": "5:23",
-        "keyword": "DLT",
-        "must_not_contain": ["Families A and C", "Five axes", "Three loads", "Eight videos"],
-    },
-    "k12-idempotent-sink-greatest": {
-        "code": "K12",
-        "title": "Idempotent consumer: deduplication store and GREATEST upserts",
-        "file": "k12-idempotent-sink-greatest.mp4",
-        "expected_duration_str": "5:16",
-        "keyword": "Deduplication",
-        "must_not_contain": ["Families A and C", "Five axes", "Three loads", "Eight videos"],
-    },
-    "k13-backpressure-and-troubleshooting": {
-        "code": "K13",
-        "title": "Backpressure, buffer limits, and live debugging drills",
-        "file": "k13-backpressure-and-troubleshooting.mp4",
-        "expected_duration_str": "5:30",
-        "keyword": "drill",
-        "must_not_contain": ["Families A and C", "Five axes", "Three loads", "Eight videos"],
-    },
-}
+
+def mmss(t: float) -> str:
+    t = int(t + 0.5)
+    return f"{t // 60}:{t % 60:02d}"
 
 
 def test_video_portal():
+    lessons = json.loads(MANIFEST.read_text(encoding="utf-8"))["lessons"]
+    assert len(lessons) == 14, f"manifest has {len(lessons)} lessons"
+    shots = Path(os.environ.get("SHOTS") or tempfile.mkdtemp(prefix="katalon-shots-"))
+    shots.mkdir(parents=True, exist_ok=True)
     html_file = (ROOT / "web" / "index.html").resolve()
-    assert html_file.exists(), f"File {html_file} not found!"
-
-    screenshot_dir = ROOT / "web" / "test_artifacts"
-    screenshot_dir.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(
-            headless=True,
-            args=["--allow-file-access-from-files", "--no-sandbox"]
-        )
+        browser = pw.chromium.launch(headless=True, args=["--allow-file-access-from-files", "--no-sandbox"])
         page = browser.new_page(viewport={"width": 1440, "height": 900})
-
-        url = f"file://{html_file}"
-        print(f"[TEST] Loading portal: {url}")
-        page.goto(url, wait_until="networkidle")
-
-        # Step 1: Click Video Tab
-        print("[TEST] Switching to Video tab...")
-        video_tab = page.locator('button.tab[data-t="vid"]')
-        video_tab.click()
+        errors: list[str] = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(f"file://{html_file}", wait_until="load")
+        page.locator('button.tab[data-t="vid"]').click()
         page.wait_for_selector("#p-vid", state="visible")
-
-        # Step 2: Select 'video-katalon' series
-        print("[TEST] Selecting 'video-katalon' series...")
-        katalon_series_btn = page.locator('button[data-act="vser"][data-s="video-katalon"]')
-        katalon_series_btn.click()
+        page.locator('button[data-act="vser"][data-s="video-katalon"]').click()
         page.wait_for_timeout(300)
 
-        # Step 3: Verify Series Header & Counter
-        v_title = page.locator("#vTitle").inner_text()
-        print(f"[TEST] Series Title: {v_title}")
-        assert "Chen ngang Katalon" in v_title, f"Unexpected series title: {v_title}"
-        assert "14/14" in v_title, f"Expected 14/14 videos in title, got: {v_title}"
+        title = page.locator("#vTitle").inner_text()
+        print("[TEST] series title:", title)
+        assert "Chen ngang Katalon" in title and "14/14" in title, title
 
-        # Step 4: Verify Section Headers in Sidebar
         headers = [h.upper() for h in page.locator("#vList .vweek").all_inner_texts()]
-        print(f"[TEST] Section headers in sidebar: {headers}")
-        assert any("PHẦN 1A: SAU GIAI ĐOẠN 1" in h for h in headers), "Missing Phần 1A header"
-        assert any("PHẦN 1B: SAU GIAI ĐOẠN 2" in h for h in headers), "Missing Phần 1B header"
-        assert any("PHẦN 2: THỰC CHIẾN CODE" in h for h in headers), "Missing Phần 2 header"
+        print("[TEST] part headers:", headers)
+        assert len(headers) == 4 and all(h.startswith(p) for h, p in zip(headers, PARTS)), headers
 
-        # Step 5: Verify Total Videos Count in Sidebar
-        ep_items = page.locator("#vList button.vitem")
-        total_eps = ep_items.count()
-        print(f"[TEST] Total episodes in sidebar: {total_eps}")
-        assert total_eps == 14, f"Expected 14 episodes, found {total_eps}"
+        items = page.locator("#vList button.vitem")
+        assert items.count() == 14, items.count()
+        listed = [items.nth(i).get_attribute("data-v") for i in range(14)]
+        assert listed == [x["id"] for x in lessons], listed
+        assert not set(REMOVED) & set(listed), "a removed video is still listed"
 
-        # Step 6: Detailed Verification for K08 through K13
-        for vid, spec in EXPECTED_EPISODES.items():
-            print(f"\n[TEST] ---> Verifying Episode {spec['code']} ({vid}) <---")
-            btn = page.locator(f'#vList button.vitem[data-v="{vid}"]')
-            assert btn.count() == 1, f"Episode button for {vid} not found!"
-            btn.click()
-            page.wait_for_timeout(400)
-
-            # 6.1: Check UI Header in #vInfo
+        refs = 0
+        for i, x in enumerate(lessons):
+            items.nth(i).click()
+            page.wait_for_timeout(250)
             heading = page.locator("#vInfo h3").inner_text()
             sub = page.locator("#vInfo .sub").inner_text()
-            print(f"  Heading : {heading}")
-            print(f"  Subtitle: {sub}")
+            chapters = page.locator('#vInfo .vchaps button[data-act="seek"]').count()
+            points = page.locator("#vInfo .vpt").count()
+            src = page.get_attribute("#vEl", "src") or ""
+            poster = page.get_attribute("#vEl", "poster") or ""
+            ok = (heading.startswith(f"{x['code']} · ") and x["title"] in heading and mmss(x["duration"]) in sub
+                  and chapters == len(x["chapters"]) and points == len(x["points"])
+                  and src.endswith(f"video-katalon/lessons/{x['file']}") and poster.endswith(x["poster"]))
+            print(f"{'OK ' if ok else 'BAD'} {heading} · {mmss(x['duration'])} · {chapters} chapters · {points} points")
+            assert ok, (heading, sub, chapters, points, src, poster)
+            for doc, anchor in page.evaluate("""() => [...document.querySelectorAll(
+                    '#vInfo .vpt .src, #vInfo .vchaps button[data-act="doc"]')].map(b => [b.dataset.doc, b.dataset.anchor || ''])"""):
+                found = page.evaluate("([d, a]) => !!(DOCS[d] && (!a || DOCS[d].h.includes(`id=\"${a}\"`)))", [doc, anchor])
+                assert found, f"{x['code']}: source {doc}#{anchor} does not resolve"
+                refs += 1
+            page.screenshot(path=str(shots / f"{x['code']}.png"))
 
-            assert spec["code"] in heading, f"Expected code {spec['code']} in heading: {heading}"
-            assert spec["title"] in heading, f"Expected title '{spec['title']}' in heading: {heading}"
-            assert spec["expected_duration_str"] in sub, f"Expected duration {spec['expected_duration_str']} in {sub}"
-
-            # 6.2: Ensure NO K00 content leakage
-            for forbidden in spec["must_not_contain"]:
-                assert forbidden.lower() not in heading.lower(), f"Leakage: '{forbidden}' in heading of {vid}!"
-                assert forbidden.lower() not in sub.lower(), f"Leakage: '{forbidden}' in subtitle of {vid}!"
-
-            # 6.3: Check HTML5 Video Player
-            v_el = page.locator("#vEl")
-            v_src = v_el.get_attribute("src")
-            v_poster = v_el.get_attribute("poster")
-            print(f"  Player src   : {v_src}")
-            print(f"  Player poster: {v_poster}")
-
-            assert spec["file"] in v_src, f"Expected {spec['file']} in src: {v_src}"
-            assert spec["file"].replace(".mp4", ".jpg") in v_poster, f"Poster mismatch in {v_poster}"
-
-            # 6.4: Check Chapters
-            chaps = page.locator(".vchaps").first.inner_text()
-            print(f"  Chapters: {chaps.replace(chr(10), ' | ')[:100]}...")
-            assert spec["keyword"].lower() in chaps.lower(), f"Keyword '{spec['keyword']}' missing in chapters"
-
-            # 6.5: Capture screenshot of the player
-            shot_file = screenshot_dir / f"verified_{spec['code']}_{vid}.png"
-            page.screenshot(path=str(shot_file))
-            print(f"  Captured screenshot -> {shot_file.name}")
-
-        print("\n" + "=" * 65)
-        print("🎉 ALL PLAYWRIGHT TESTS PASSED SUCCESSFULLY! (14/14 EPISODES)")
-        print("=" * 65)
+        voice = page.locator("#vEyebrow").inner_text()
+        print("[TEST] eyebrow:", voice, "· source links resolved:", refs, "· screenshots:", shots)
+        assert "Emma" in voice and "Tom" not in voice, voice
+        assert not errors, errors
         browser.close()
+    print("PASS: 14/14 videos, 4 parts, Emma only,", refs, "source links resolve")
 
 
 if __name__ == "__main__":

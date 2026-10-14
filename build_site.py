@@ -436,8 +436,9 @@ def build_home(pages: list[Page]) -> str:
         li("katalon-prep/AI-STACK-INTERVIEW-ANSWERS.md", "AI agent, vector, 61 câu luyện", "⭐"),
         li("katalon-prep/katalon-system-design/README.md", "7 họ bài, 5 trục nhận diện", "⭐"),
         li("katalon-prep/katalon-self-questions/README.md", "câu hỏi tự ghi, có code chạy"),
+        li("katalon-prep/katalon-prep-java/10-event-counting/README.md", "bài đếm sự kiện: 4 cách, code chạy thật, 20 test", "mới"),
         li("katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md", "thực chiến Kafka pipeline: 5 lỗi + fix", "mới"),
-        li("katalon-prep/README.md", "workspace code: 321 test"),
+        li("katalon-prep/README.md", "workspace code: 341 test"),
     ])
     design = "".join([
         li("katalon-prep/katalon-system-design/04-event-counting-10k.md", "bài đã hỏi thật ở Principal", "⭐"),
@@ -461,7 +462,7 @@ def build_home(pages: list[Page]) -> str:
         li("java-system-design/video-gd2/00-ke-hoach-va-lich-su.md", "23 video tiếng Anh tuần 5–10, giọng Emma: kế hoạch, nhật ký", "mới"),
         li("java-system-design/video-gd2/02-do-phu.md", "23 video giai đoạn 2: ý chính nào dạy ở phút nào", "mới"),
         li("java-system-design/video-gd2/01-bang-chu-viet-tat.md", "chữ viết tắt mới của giai đoạn 2, cách đọc"),
-        li("java-system-design/video-katalon/00-ke-hoach-va-lich-su.md", "14 video chen ngang Katalon: lý thuyết 10k–100M + thực chiến Kafka", "mới"),
+        li("java-system-design/video-katalon/00-ke-hoach-va-lich-su.md", "14 video chen ngang Katalon, giọng Emma: giải đề từng bước, dựng hệ thống, đọc code", "mới"),
         li("java-system-design/video-katalon/02-do-phu.md", "14 video chen ngang: ý chính nào dạy ở phút nào", "mới"),
         li("java-system-design/video-katalon/01-bang-chu-viet-tat.md", "chữ viết tắt mới của bộ chen ngang"),
         li("java-system-design/perf-lab/README.md", "JMH + demo, 33 test"),
