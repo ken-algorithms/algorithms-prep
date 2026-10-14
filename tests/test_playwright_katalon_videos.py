@@ -38,7 +38,10 @@ def test_video_portal():
     html_file = (ROOT / "web" / "index.html").resolve()
 
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True, args=["--allow-file-access-from-files", "--no-sandbox"])
+        # CHROMIUM=/path/to/chrome when the installed Playwright expects a browser build that isn't downloaded
+        exe = os.environ.get("CHROMIUM") or None
+        browser = pw.chromium.launch(headless=True, executable_path=exe,
+                                     args=["--allow-file-access-from-files", "--no-sandbox"])
         page = browser.new_page(viewport={"width": 1440, "height": 900})
         errors: list[str] = []
         page.on("pageerror", lambda e: errors.append(str(e)))
@@ -70,8 +73,12 @@ def test_video_portal():
             sub = page.locator("#vInfo .sub").inner_text()
             chapters = page.locator('#vInfo .vchaps button[data-act="seek"]').count()
             points = page.locator("#vInfo .vpt").count()
-            src = page.get_attribute("#vEl", "src") or ""
-            poster = page.get_attribute("#vEl", "poster") or ""
+            # a browser without H.264 (Playwright's own Chromium) swaps the <video> for a download link: accept either
+            if page.locator("#vEl").count():
+                src = page.get_attribute("#vEl", "src") or ""
+            else:
+                src = page.get_attribute("#vPlayer .miss a[download]", "href") or ""
+            poster = items.nth(i).locator("img").get_attribute("src") or ""
             ok = (heading.startswith(f"{x['code']} · ") and x["title"] in heading and mmss(x["duration"]) in sub
                   and chapters == len(x["chapters"]) and points == len(x["points"])
                   and src.endswith(f"video-katalon/lessons/{x['file']}") and poster.endswith(x["poster"]))
@@ -86,7 +93,7 @@ def test_video_portal():
 
         voice = page.locator("#vEyebrow").inner_text()
         print("[TEST] eyebrow:", voice, "· source links resolved:", refs, "· screenshots:", shots)
-        assert "Emma" in voice and "Tom" not in voice, voice
+        assert "EMMA" in voice.upper() and "TOM" not in voice.upper(), voice
         assert not errors, errors
         browser.close()
     print("PASS: 14/14 videos, 4 parts, Emma only,", refs, "source links resolve")

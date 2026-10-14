@@ -351,7 +351,13 @@ Yêu cầu: làm hết video giai đoạn 2 bằng giọng Emma `af_heart`, xong
 - `speak.py` thêm cách đọc *dedup* (trước đó Kokoro đọc `dᵻdˈʌp`, gần "đờ-đắp"); đúng một câu của Ep15 có chữ này
   ("a dedup table you must clean up").
 - Dựng lại hai video; các câu khác lấy tiếng từ bộ nhớ đệm. Ep14 4:57 → 5:04; Ep15 vẫn
-  6:08. Chi tiết ở [kế hoạch bộ chen ngang](../video-katalon/00-ke-hoach-va-lich-su.md#7-công-cụ-thay-đổi-cho-bộ-này).
+  6:08. Chi tiết ở [kế hoạch bộ chen ngang](../video-katalon/00-ke-hoach-va-lich-su.md#9-nhật-ký--lịch-sử-đã-làm).
+
+### Đợt 3 — 14/10/2026: dựng lại Ep01 (khi làm lại bộ chen ngang Katalon)
+
+- `speak.py` thêm cách đọc `IDs` → "eye-dees": Kokoro đọc `aɪdˈiː`, mất âm s số nhiều. Các câu có chữ này của Ep01
+  ("Transaction IDs", "hands out IDs"…) đọc khác đi, nên dựng lại; các câu khác lấy tiếng từ bộ nhớ đệm. Độ dài
+  không đổi (7:11). Chi tiết ở [kế hoạch bộ chen ngang](../video-katalon/00-ke-hoach-va-lich-su.md#6-phát-âm--các-chỗ-đã-kiểm).
 
 ---
 

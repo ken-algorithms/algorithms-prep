@@ -1,14 +1,14 @@
-# Video chen ngang Katalon — họ A + C: đếm sự kiện 10k → 10M → 100M request/phút: kế hoạch và nhật ký
+# Video chen ngang Katalon — giải bài đếm sự kiện từng bước, dựng hệ thống, đọc code: kế hoạch và nhật ký
 
-> Bộ video tiếng Anh **chen giữa các giai đoạn** của [lộ trình 6 tháng](../00-lo-trinh-6-thang.md), để luyện phỏng
-> vấn Katalon. Câu hỏi gốc là bài đã hỏi thật ở vòng Principal:
-> [04 — Event Counting 10k/phút](../../katalon-prep/katalon-system-design/04-event-counting-10k.md). Bộ video trả lời câu
-> follow-up *"nếu là 10 triệu request/phút thì sao? 100 triệu thì sao?"*, viết ở
-> [07 — Event Counting 10M và 100M/phút](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md).
+> Bộ video tiếng Anh **chen giữa các giai đoạn** của [lộ trình 6 tháng](../00-lo-trinh-6-thang.md), để luyện phỏng vấn
+> Katalon. Đề là bài đã hỏi thật ở vòng Principal và câu trả lời tại chỗ đã bị bác:
+> [04 — Event Counting 10k/phút](../../katalon-prep/katalon-system-design/04-event-counting-10k.md).
 >
-> **Hai giọng, dạng phỏng vấn thử:** Tom (`am_michael`, giọng của [giai đoạn 1](../video-gd1/00-ke-hoach-va-lich-su.md))
-> đóng vai interviewer; Emma (`af_heart`, giọng của [giai đoạn 2](../video-gd2/00-ke-hoach-va-lich-su.md)) là ứng viên.
-> Cùng công cụ [`tools/lesson_video/`](../../tools/lesson_video/README.md).
+> **Từ đợt 3 (14/10/2026) bộ được làm lại toàn bộ**: giải đề **từng bước** — bốn cách, ba cách bị bác và bị bác vì tiêu
+> chí nào — tới cách tốt nhất; **dựng chi tiết** hệ thống theo cách đó; **đọc code** Java chạy thật trong
+> [module 10](../../katalon-prep/katalon-prep-java/10-event-counting/README.md) (20 test trên PostgreSQL 16 thật); cuối
+> cùng mới tới câu nối tiếp 10M và 100M. **Một giọng: Emma** (`af_heart`). Cùng công cụ
+> [`tools/lesson_video/`](../../tools/lesson_video/README.md).
 >
 > File này vừa là kế hoạch, vừa là chỗ theo dõi việc đã làm: [bảng trạng thái (mục 8)](#8-bảng-trạng-thái),
 > [nhật ký (mục 9)](#9-nhật-ký--lịch-sử-đã-làm). Chữ viết tắt: [01 — Bảng chữ viết tắt](01-bang-chu-viet-tat.md) (chỉ chữ
@@ -19,209 +19,158 @@
 
 ## 0. Trả lời ngắn: bao nhiêu video, xem khi nào
 
-**14 video (K00–K13), dự kiến khoảng 65 phút**, chia ba nhóm theo thời điểm và mục đích:
+**14 video (K00–K13), 64 phút**, bốn phần:
 
-| Nhóm | Video | Cần học trước | Dài dự kiến |
-|---|---|---|---:|
-| Xem sau giai đoạn 1 (hết tuần 4) | K00–K02 | Ước lượng, thang L0–L4 và câu hỏi "× 10", Postgres, cache | 19 phút |
-| Xem sau giai đoạn 2 (hết tuần 10) | K03–K07 | Kafka (key, độ bền, giao nhận), stream window, fencing token | 35 phút |
-| **Thực chiến Code & Sửa lỗi Kafka** | **K08–K13** | **Spring Boot 3, KRaft, Producer/Consumer tuning, 5 lỗi production** | **11 phút** |
-| **Tổng** | **14** | | **≈ 65 phút** |
-
-**Thực tế: 14 video đã hoàn thiện kịch bản và dữ liệu (48:04 cho K00–K07 + kịch bản/code runnable cho K08–K13 trong `09-kafka-pipeline`).** Số từng video ở [mục 8](#8-bảng-trạng-thái).
-
-Vì sao là con số này:
-
-1. **Bốn câu hỏi, mỗi câu một cụm video:** mốc 10k (K01), leo thang × 10 và × 100 (K02), 10M (K03 thiết kế, K04 tính
-   đúng đắn), 100M (K05), họ C khi tải lớn (K06), rồi trả lời có bấm giờ và bản đồ nối với lộ trình (K07).
-2. **Mỗi video 5–8 phút**, đúng một câu interviewer có thể hỏi tiếp. Dài hơn thì khó luyện lại từng câu.
-3. **Không lặp giai đoạn 1 và 2.** Bộ này không dạy lại Kafka hay Little's Law; nó dùng chúng, rồi chỉ ra bài học gốc ở
-   slide *Built on* cuối mỗi video ([mục 5](#5-bản-đồ-video-chen-ngang--bài-học-giai-đoạn-1-và-2)).
+| Phần | Video | Nội dung | Xem sau | Dài |
+|---|---|---|---|---:|
+| **A — Giải đề** | K00–K04 | Đề, sáu tiêu chí T1–T6, bốn cách: lock + tổng chạy, raw đếm lúc hỏi, counter phút `+n` (bị bác), raw + rollup ghi đè (chọn) | Ước lượng (tuần 1) | 20:59 |
+| **B — Dựng hệ thống** | K05–K07 | Bảng và partition, đường ghi, rollup job, đường đọc, đối soát, retention | Postgres (tuần 3) | 14:32 |
+| **C — Đọc code** | K08–K10 | `IngestService`, `RollupJob`, `RangeDecomposer`, `StatsService`, các test và số đo | Java/Spring (tuần 4) | 11:26 |
+| **D — 10M và 100M** | K11–K13 | Leo × 10 tới Kafka (bác từng lựa chọn), cell theo region và tiền, bài trả lời 3 phút + 5 follow-up | Giai đoạn 2 (tuần 10) | 16:42 |
 
 ---
 
-## 1. Vì sao có bộ chen ngang này
+## 1. Vì sao làm lại
 
-Yêu cầu: luyện phỏng vấn Katalon với **họ bài thu thập và xử lý dữ liệu** trong bảy họ bài
-([README](../../katalon-prep/katalon-system-design/README.md#2-bảy-họ-bài--chữ-ký-nhận-dạng-lõi-giải-pháp-bẫy-kinh-điển)):
-họ **A** (đếm và tổng hợp theo thời gian — *xử lý*) và họ **C** (thu thập luồng sự kiện — *thu thập*). Bài event counting
-có sẵn chỉ ở mức cơ bản: 10k request/phút. Bộ video hỏi tiếp: 10M thì sao, 100M thì sao — và mỗi ý trong câu trả lời
-lấy từ bài học nào của giai đoạn 1 và 2.
+Bộ cũ (đợt 1–2) **nói nhiều lý thuyết** về 10M/100M và về sự cố Kafka, nhưng không giải chính đề đã hỏi theo cách cần
+trình bày trong phòng: *vì sao câu trả lời cũ sai, các cách khác sai ở đâu, cách đúng dựng thế nào, code ra sao*. Bộ mới:
 
-"Chen ngang" nghĩa là bộ này **không** thuộc lịch 30 video của giai đoạn 1 hay 23 video của giai đoạn 2. Xem lúc nào
-cũng được, nhưng K03–K07 dễ hiểu nhất sau tuần 10.
+1. **Một khung chấm duy nhất** (T1–T6, [module 10 §1](../../katalon-prep/katalon-prep-java/10-event-counting/README.md#1-đề-bài-và-sáu-tiêu-chí-chấm)) cho mọi cách giải.
+2. **Mỗi cách bị bác đều có code và test** cho thấy nó trượt đúng tiêu chí nào: cách 1 retry ra 60 cho 40 event thật;
+   cách 3 ra 2.420 cho 2.400; cách 2 đếm 32.460 dòng so với 337 + 60.
+3. **Cách được chọn có module chạy thật**, video đọc code từ chính file nguồn (rút gọn, không bịa).
+4. **Số đo thật, nói rõ giới hạn**: số tranh chấp là 7 lần chạy trên một máy, nói tỉ lệ chứ không nói số tuyệt đối.
+5. **Một giọng** theo yêu cầu: Emma vừa giảng vừa trả lời như ứng viên.
 
 ---
 
 ## 2. Phạm vi nguồn
 
-| File | Phần dùng | Ghi chú |
-|---|---|---|
-| [07 — Event Counting 10M và 100M/phút](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md) | **Toàn bộ** | Viết cùng đợt với bộ video: thang ước lượng, cái gì vỡ trước, kiến trúc 10M và 100M, họ C, kịch bản trả lời, bản đồ nối với lộ trình, ranh giới trung thực |
-| [04 — Event Counting 10k/phút](../../katalon-prep/katalon-system-design/04-event-counting-10k.md) | §0–4, §6.3–6.5, §7, §11 | Mốc 10k cho K01 |
-| [README họ bài](../../katalon-prep/katalon-system-design/README.md) | §1 (5 trục), §2 (7 họ) | K00 |
-| [02 — Track S](../02-ve-he-thong-100k-1m-10m.md) | §5 (năm câu trả lời "× 10") | K02 |
-| [01 — Track P](../01-java-code-cham-duoi-tai-cao.md) | §2 (số đo P01, P04, P05) | K05: chi phí mỗi request nhân với 1,67 triệu request/s |
+| Nguồn | Dùng cho |
+|---|---|
+| [Module 10 README](../../katalon-prep/katalon-prep-java/10-event-counting/README.md) (mới, viết cùng bộ video) | Sáu tiêu chí, bốn cách, dựng hệ thống, đọc code, kết quả test — nguồn chính của K00–K10 |
+| [04 — Event Counting 10k/phút](../../katalon-prep/katalon-system-design/04-event-counting-10k.md) | Đề, 4 lỗ hổng, ước lượng, data model, rollup, phân rã, late data, follow-up, kịch bản 3 phút |
+| [07 — 10M và 100M/phút](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md) | Thang × 10, kiến trúc 10M, 100M, ba hoá đơn — K11, K12 |
+| [Module 09 README](../../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md) | Số đo lệch partition, sửa "đánh dấu + cộng trong một transaction", DLT, rate limit — K11 |
 
-Mọi số trong video lấy từ các file trên. Số đo thật (P01, P04) nói rõ là "measured"; còn lại là phép nhân từ giả định
-(20 cặp/request, ~1 KB/request, 60 B/event, 0,2 ms CPU mỗi request của collector), nói rõ là "assumption".
+Phạm vi kiểm: 56 heading (`scope` trong [`points.yaml`](lessons/points.yaml)); 92 ý chính.
 
 ---
 
 ## 3. Quy ước
 
-| Hạng mục | Bộ chen ngang |
-|---|---|
-| Giọng | Kokoro-82M q8, tốc độ 0,9. **Tom** `am_michael`, vai interviewer; **Emma** `af_heart`, vai ứng viên |
-| Mã video | `K00`–`K07` (khoá `prefix: K` ở [`lessons/series.yaml`](lessons/series.yaml)); file `k0N-<slug>.yaml` |
-| Màn hình | Góc phải ghi *Java System Design · Katalon interlude*; tag `K03 · AFTER PHASE 2` nói luôn nên xem sau giai đoạn nào; thẻ mở đầu hiện cả hai người nói |
-| Dạng | Tom hỏi → đếm ngược "Pause the video and try it yourself" (nhãn *Question*, *Follow-up*, *Drill*) → Emma trả lời → slide *Built on* → recap |
-| Chữ viết tắt | Kiểm với **ba** bảng: giai đoạn 1, giai đoạn 2, và [bảng chữ mới của bộ này](01-bang-chu-viet-tat.md) |
-| Ý chính | [`lessons/points.yaml`](lessons/points.yaml): mỗi ý có chữ bắt buộc (`expect`); phạm vi theo nhóm xem (4 = sau giai đoạn 1, 10 = sau giai đoạn 2) |
+- Một người nói khai báo ở [`series.yaml`](lessons/series.yaml): `emma` (`af_heart`), `prefix: K`.
+- Cảnh `exercise` có nhãn *Question* hoặc *Follow-up*, đếm ngược 6–8 giây; ở K13 mỗi follow-up có một slide *Model answer*.
+- Code trên slide trích từ file thật của module 10 hoặc 09, được rút gọn (`...`); tên lớp, tên hàm và SQL giữ nguyên.
+- Số đo chỉ lấy từ output test đã chạy (ghi tên test ở chú thích slide).
+- Lệnh:
 
 ```bash
 cd tools
 R="uv run --with-requirements lesson_video/requirements.txt python3 -m lesson_video"
 G="--glossary ../java-system-design/video-gd1/01-bang-chu-viet-tat.md --glossary ../java-system-design/video-gd2/01-bang-chu-viet-tat.md"
-$R check ../java-system-design/video-katalon/lessons/k0*.yaml $G --glossary ../java-system-design/video-katalon/01-bang-chu-viet-tat.md
-$R build ../java-system-design/video-katalon/lessons/k03-10m-pipeline.yaml
+$R check ../java-system-design/video-katalon/lessons/k*.yaml $G --glossary ../java-system-design/video-katalon/01-bang-chu-viet-tat.md
+$R build ../java-system-design/video-katalon/lessons/k05-build-tables-and-write-path.yaml
 $R coverage ../java-system-design/video-katalon/lessons --points ../java-system-design/video-katalon/lessons/points.yaml \
    --strict --link-prefix ../ --title "Độ phủ nội dung — video chen ngang Katalon" --out ../java-system-design/video-katalon/02-do-phu.md
 ```
 
 ---
 
-## 4. Danh sách 8 video
+## 4. Danh sách 14 video
 
-Cột **Nguồn**: `07 §5.4` là mục 5.4 của file 07 (`katalon-prep/katalon-system-design/`).
+### Phần A — Giải đề: bốn cách, ba cách bị bác
 
-### Xem sau giai đoạn 1
+| Mã | Video | Kết luận |
+|---|---|---|
+| K00 | The Katalon counting question, and six tests every answer must pass | Ba cụm từ quyết định; hỏi 6 câu; 3.333 event/s; hợp đồng API; T1–T6 |
+| K01 | Approach 1: lock, add to a running total, read the last record | Câu trả lời cũ; **bác vì T1** (mất thời gian); retry 60/40; lock chậm 2,4–4,4 lần nhưng là lý do thứ hai |
+| K02 | Approach 2: store every event, count when asked | Qua 5/6; **bác vì T2** (288 triệu dòng mỗi lần hỏi); giữ raw làm sự thật và oracle |
+| K03 | Approach 3: per-minute counters, bumped as you write | Sửa được T1; **bác vì T3, T5**: atomic ≠ idempotent (2.420/2.400), không raw; Redis chỉ làm cache |
+| K04 | Approach 4: raw truth, rollups that recompute, ranges that decompose | **Chọn**: qua cả 6; bảng chấm bốn cách; chưa cần Kafka + ngưỡng |
 
-| Mã | Tên (tiếng Anh) | Nội dung chính | Nguồn | Phút |
-|---|---|---|---|---:|
-| **K00** | Katalon interlude: the question after 10k a minute | Đề đã hỏi thật và câu trả lời bị bác; 5 trục nhận họ bài; họ A (xử lý) và họ C (thu thập); ba mức tải 3.333 / 3,3 triệu / 33 triệu event/s; 8 video và khi nào xem; cách luyện (dừng và trả lời thành tiếng, nói giả định, năm câu "× 10", slide *Built on*) | README §1–2; 04 §0; 07 §0, §9 | 5 |
-| **K01** | The 10k baseline in three minutes | Ba câu hỏi trước khi vẽ; 4 lỗ hổng của câu trả lời cũ; 3.333 event/s, 288 triệu/ngày, 96 dòng cho 24 giờ; thiết kế tầng 1; ba nguyên tắc và bốn chi tiết ghi điểm; phân rã khoảng (~120 dòng thay vì 864 triệu); right-sizing và ngưỡng chuyển; bốn câu cần nhớ | 04 §0–4, §6.3–6.5, §7, §11 | 6 |
-| **K02** | Climbing the ladder: ten and a hundred times | Hỏi lại gì ở 10M–100M; thang 5 bậc (request/s, event/s, event/ngày, raw/ngày, băng thông); đường đọc không đổi (5.760 dòng/ngày ở mọi mức); cardinality là tương đối (≤ 0,5 so với 500); năm câu "× 10"; × 10 (gộp trong API) và × 100 (Kafka làm bộ đệm bền); quy luật: chỗ gộp tiến về gần nguồn | 07 §1–4.2; 02 §5 | 8 |
+### Phần B — Dựng hệ thống theo cách 4
 
-### Xem sau giai đoạn 2
+| Mã | Video | Nội dung |
+|---|---|---|
+| K05 | Build 1: the tables, the partitions and the write path | Sáu bảng; DDL raw partition theo ngày UTC; event id tất định; 5 bước ghi; 4 outcome; registry |
+| K06 | Build 2: the rollup job — recompute, replace, seal | DELETE + INSERT … SELECT; cửa sổ 30 phút; seal; event trễ (test 09:58); 4 mức trễ; đánh đổi |
+| K07 | Build 3: the read path, the reconcile, and retention | Phân rã khoảng (ví dụ của 04, lỗi đã sửa); chặn trên 529; tỉ lệ lúc đọc; đối soát; drop partition; metric; cache |
 
-| Mã | Tên (tiếng Anh) | Nội dung chính | Nguồn | Phút |
-|---|---|---|---|---:|
-| **K03** | Ten million requests a minute: the pipeline | Số mới (166.667 request/s, 3,3 triệu event/s, 1,3 Gbit/s); vỡ trước: key theo tenant làm nóng một partition, không còn bảng một dòng mỗi event; sơ đồ pipeline; một bản ghi mỗi request, key `batch_id`, số partition chọn dư, gộp hai tầng, cửa sổ theo event time; raw đóng gói 128 B/request; câu trả lời 2 phút | 07 §4.3, §5.1–5.3, §8.1 | 7 |
-| **K04** | Counting exactly once with at-least-once parts | Ba mảnh: client gửi lại cùng `batch_id`, khử trùng 15 phút (state = tốc độ × thời gian), sink ghi đè `GREATEST`; vì sao đúng khi replay và khi có consumer "xác sống"; giống fencing token của lab 10A; event trễ, đồng hồ client; đối soát mỗi giờ (`final_cnt`, `is_final`); follow-up về transaction của Kafka | 07 §5.4, §7.4, §8.3 | 7 |
-| **K05** | A hundred million a minute: physics and money | Số mới (1,67 triệu request/s, 33 triệu event/s, 13 Gbit/s); 1 µs mỗi request = 1,7 core, P01 và P04 thành ~24 và ~31 core; ba hoá đơn (mạng qua AZ, lưu raw, CPU); cell theo region cộng toàn cục; năm thay đổi so với 10M; vì sao số đếm active-active được còn tiền thì không; cái không làm; câu trả lời 2 phút | 07 §4.4, §5.5, §6, §8.2 | 8 |
-| **K06** | Collecting from sources you don't control | Bốn quy tắc họ C ở ba mức tải; backpressure năm lớp, lớp nào cũng có giới hạn; rate limit ở 1,67 triệu request/s (Redis + Lua so với token bucket cục bộ); registry key trong RAM (fingerprint 64 bit); metric thêm; drill "tenant lớn nhất gửi gấp 10" | 07 §7 | 6 |
-| **K07** | The timed answer, and where each idea comes from | Hai câu hỏi có đếm ngược 10 giây và câu trả lời mẫu; năm câu hỏi nhanh; bản đồ về giai đoạn 1 (video đã dựng và tuần 2–4 chưa dựng) và giai đoạn 2 (Kafka; stream và hệ phân tán); ranh giới trung thực | 07 §8–10 | 7 |
+### Phần C — Đọc code và test (module 10)
 
-### Phần 2: Thực chiến Code & Sửa lỗi Kafka (Spring Boot 3 + KRaft)
+| Mã | Video | Nội dung |
+|---|---|---|
+| K08 | Code 1: the module, the request, and IngestService | Thứ tự đọc; `EventClassifier`; `ingest()`; `eventId()`; controller; test idempotency |
+| K09 | Code 2: RollupJob, RangeDecomposer and StatsService | `refreshRecent`, `replace`, `decompose`, `query`, `Jobs` |
+| K10 | Code 3: the tests that prove it, and the numbers they printed | Postgres thật + đồng hồ giả + oracle; 500/500 khoảng; drift −5; tranh chấp 7 lần; cách chạy; giới hạn |
 
-| Mã | Tên (tiếng Anh) | Nội dung chính | Nguồn | Phút |
-|---|---|---|---|---:|
-| **K08** | Kafka hands-on: Ingestion API and Producer tuning | Chạy Kafka 4 KRaft độc lập không ZooKeeper; Spring Boot 3 Ingestion API (`POST /events`); KafkaTemplate gom lô `linger.ms=20`, `batch.size=65536`, `acks=all`, nén Snappy đạt 50k req/s | 09 §1, §3; 04 §9 | 2 |
-| **K09** | The skewed partition bug: custom partitioners and fixing hotspots | Tái hiện Partition Hotspot khi key theo `tenant_id` (Big Tenant chiếm 40% tải làm nghẽn 1 partition); viết `BatchIdPartitioner` chia theo `batch_id`, tải chia đều 25% | 09 §2 (lỗi 1); 07 §5.1 | 2 |
-| **K10** | Fixing consumer lag and the P20 rebalance storm | Tái hiện P20: xử lý đồng bộ từng message tốn 10s vượt `max.poll.interval.ms` gây `CommitFailedException` và storm; sửa: `BatchEventConsumer` nhận `List<ConsumerRecord>` và batch update DB | 09 §2 (lỗi 2); 01 P20 | 2 |
-| **K11** | Poison pill isolation and non-blocking dead letter topics | Tái hiện Poison Pill làm sập Consumer và nghẽn partition (Head-of-Line Blocking); sửa: `ErrorHandlingDeserializer` + `DeadLetterPublishingRecoverer` đẩy tự động sang `.DLT` | 09 §2 (lỗi 3); 20 §8.5 | 2 |
-| **K12** | Idempotent consumer: deduplication store and GREATEST upserts | Tái hiện đếm trùng khi client retry 40 batch do timeout mạng; sửa bằng bảng `processed_batch` và SQL upsert `GREATEST`; kiểm chứng `reconcile_drift = 0` | 09 §2 (lỗi 4); 07 §5.4 | 2 |
-| **K13** | Backpressure, buffer limits, and live debugging drills | Chống tràn RAM buffer của Kafka Producer (`BufferExhaustedException`) bằng Token Bucket rate limiter (HTTP 429); drill 4 bước xử lý sự cố lag qua JMX metric và consumer group | 09 §2 (lỗi 5); 07 §7.2 | 2 |
+### Phần D — Câu nối tiếp 10M và 100M
+
+| Mã | Video | Nội dung |
+|---|---|---|
+| K11 | “What about 10 million a minute?” — step by step to a Kafka pipeline | Leo × 10; 5 lựa chọn bị bác; lệch partition đo được 53,2% vs 25,4%; pipeline; sửa module 09; DLT, 429 |
+| K12 | “And 100 million?” — when the problem becomes physics and money | 5 lựa chọn bị bác; 5 thay đổi; ba hoá đơn; vì sao số đếm active-active được còn ví tiền thì không |
+| K13 | The whole answer in three minutes, and a follow-up drill | Khung 3 phút; bài nói mẫu kể như câu chuyện; 5 follow-up có đáp án mẫu; giới hạn phải nói trước |
 
 ---
 
-## 5. Bản đồ: video chen ngang ↔ bài học giai đoạn 1 và 2
+## 5. Bản đồ: bộ chen ngang ↔ bài học giai đoạn 1 và 2
 
-**Trả lời ngắn cho câu "bộ này liên quan gì tới giai đoạn 1 và 2":** bộ chen ngang **không có kiến thức mới**. Giai đoạn 1
-cho cách ước lượng, khung "× 10" năm câu và tư duy chi phí mỗi request (Track P). Giai đoạn 2 cho Kafka (key, thứ tự, độ
-bền, giao nhận, consumer group), stream processing (window, event time, watermark), khử trùng, fencing token và CRDT.
-Câu hỏi 10M/100M chỉ bắt ghép chúng lại, dưới áp lực thời gian. Bảng đầy đủ theo từng ý ở
-[07 §9](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#9-bản-đồ-nối-với-giai-đoạn-1-và-giai-đoạn-2).
-
-Ký hiệu: video giai đoạn 1 từ Ep07 trở đi **chưa dựng** (*kế hoạch*); khi đó dẫn tới tuần và mục tài liệu.
+Bộ này **không dạy lại** nền tảng; nó dùng chúng. Video giai đoạn 1 từ Ep07 trở đi chưa dựng: dẫn tới tuần của lộ trình.
 
 | Video | Dựa trên giai đoạn 1 | Dựa trên giai đoạn 2 |
 |---|---|---|
-| K00 | Ep00 (cách xem video, "Pause and try it yourself") · Ep06 (luật của thang) | — |
-| K01 | Ep01–Ep03 (ước lượng) · Ep06 (chỉ lên bậc khi có thứ vỡ) · tuần 2: [idempotency key](../10-implement-gd1-nen-tang.md#24-idempotency-key--4-quy-tắc) (Ep10 *kế hoạch*) · tuần 4: [ba bệnh của cache](../10-implement-gd1-nen-tang.md#42-ba-bệnh-của-cache) (Ep21 *kế hoạch*) | — |
-| K02 | Ep01 (quy đổi) · Ep06 và [02 §5](../02-ve-he-thong-100k-1m-10m.md#5-câu-hỏi-tải-tăng-10-lần-thì-sao--cách-trả-lời) (năm câu "× 10") · tuần 3: [B-tree hay LSM-tree](../10-implement-gd1-nen-tang.md#31-b-tree-hay-lsm-tree) (Ep13 *kế hoạch*) | Ep12 (acks, bản sao, bộ đệm bền) |
-| K03 | Ep06 ("chưa làm" ở mọi bậc) | Ep03 (partition nóng) · Ep12 (thứ tự chỉ trong partition, đổi số partition) · Ep17 (window, event time, watermark; đề ad click cùng họ A) |
-| K04 | Ep01 (Little's Law: state = tốc độ × thời gian) · tuần 2: idempotency key giữ lâu hơn cửa sổ retry | Ep08 (idempotency ở ba tầng) · Ep13, Ep15 (at-least-once + sink idempotent; transaction chỉ bao Kafka) · Ep19 (đồng hồ nói dối) · Ep20 (fencing token) |
-| K05 | Ep04, Ep05 (Track P: µs × request/s ra core) · [L4 cell-based](../02-ve-he-thong-100k-1m-10m.md#35-l4--vượt-10m-chỉ-cần-nói-được-không-cần-vẽ-chi-tiết) (Ep25 *kế hoạch*) | Ep01 (multi-leader, CRDT) · Ep07 (không 2PC) · Ep12–Ep13 (idempotent producer: producer id + sequence) |
-| K06 | [P13](../01-java-code-cham-duoi-tai-cao.md#p13--hàng-đợi-không-giới-hạn-khi-quá-tải) (hàng đợi có giới hạn) · tuần 2: [lab 2 rate limiter](../10-implement-gd1-nen-tang.md#lab-2--rate-limiter-phân-tán-trong-spring-boot-thứ-bảy-34-giờ) và V3 (Ep08, Ep11 *kế hoạch*) | Ep12 (key, compacted topic) · Ep13 (backpressure) · Ep16 (P20) · đề Katalon [01](../../katalon-prep/katalon-system-design/01-truetest-journey-mining.md) (PII ở client) |
-| K07 | Toàn bộ cột trái, ghép lại | Toàn bộ cột trái, ghép lại |
-
-**Ngược lại — bài nào của lộ trình được "dùng thật" ở bộ này:** giai đoạn 1 cả 7 video đã dựng (Ep00–Ep06); giai đoạn 2
-11/23 video: Ep01, Ep03, Ep07, Ep08, Ep12, Ep13, Ep15, Ep16, Ep17, Ep19, Ep20.
-
-### Ghi chú thiết kế nội dung
-
-- **Câu "đường đọc không đổi" là trục của cả bộ.** Rollup lớn theo *nhóm × bucket*, không theo event/s, nên K01 giữ
-  nguyên ở 10M và 100M; mọi video sau chỉ nói về đường ghi. Nói được câu này là tránh được lỗi vẽ lại cả hệ thống.
-- **Không dùng sketch cho số tổng.** Lỗi hay gặp ở 100M là nhảy sang Count-Min Sketch cho mọi thứ; tổng 4 outcome mỗi
-  bucket là 4 số nguyên — đếm chính xác rẻ ở mọi quy mô (K05, K07).
-- **`GREATEST` thay cho mọi cơ chế exactly-once.** Chọn vì nó nối thẳng về fencing token của lab 10A giai đoạn 2, và
-  vì giới hạn của nó (không hạ được số quá cao) dẫn tự nhiên tới batch đối soát (K04).
+| K00 | Ep01–Ep03 (ước lượng), Ep06 (luật của thang) | — |
+| K01–K03 | Tuần 2: idempotency key; tuần 3: lab 3A lost update (lock, MVCC); Track P (đo trước khi sửa) | Ep08 (idempotency ba tầng) |
+| K04 | Ep06 (right-sizing, câu hỏi "× 10") | — |
+| K05–K07 | Tuần 3: database sâu (index, partition, vacuum); tuần 4: lab 4 cache hai tầng và stampede (single-flight) | Ep17 (window, event time, watermark) |
+| K08–K10 | Tuần 2: lab 2 Spring Boot; tuần 3: lab 3A, 3C (test chạy trên database thật) | — |
+| K11 | Ep04, Ep05 (Track P: µs × request/s = core) | Ep03 (partition nóng), Ep12–Ep13 (key, acks, DLT), Ep15 (consumer idempotent), Ep16 (P20), Ep20 (fencing) |
+| K12 | L4 cell-based (tuần 4) | Ep01 (multi-leader, CRDT), Ep07 (không 2PC), Ep12–Ep13 (idempotent producer) |
+| K13 | Toàn bộ | Toàn bộ |
 
 ---
 
 ## 6. Phát âm — các chỗ đã kiểm
 
-Mọi câu có số, ký hiệu hay chữ viết tắt đã qua `speak.py` rồi phiên âm bằng bộ tách âm của Kokoro (`phon`).
-
-| Chữ | Kokoro đọc nếu để nguyên | Cách xử lý |
-|---|---|---|
-| `K01`…`K07` | *K zero one* | Quy tắc mới trong `speak.py`: `K01` → *K 1* (như `P01` → *P 1*) |
-| `13 Gbit/s` | *13 G-bit per second* | Đơn vị mới: *gigabits per second* |
-| `1 µs` | *1 microseconds* | Số ít cho `1` + đơn vị (trừ phần lẻ thập phân: *0 point 1 milliseconds*) |
-| PII | *pee-eye* | `speak.py`: *P I I* |
-| dedup | *đờ-đắp* (`dᵻdˈʌp`) | `speak.py`: *dee-doop*; từ ghép `dedups`, `deduplicate` giữ nguyên |
-| `202`, `429`, `503` | đọc như số thường | `say`: *two oh two*, *four twenty-nine*, *five oh three* |
-| `p99` | không rõ | `say`: *p ninety-nine* |
-| problem `04`, lab `10A` | *zero four*, *ten eigh* | `say`: *problem four*, *lab ten A* |
-| `5 × 10⁻¹³` | bỏ dấu mũ âm | `say`: *five times ten to the minus thirteen* |
-| `$6,900`, `$110k` | ký hiệu tiền | chỉ trên slide; lời đọc viết *dollars* |
-
-Đã kiểm đúng sẵn: `batch_id` (*batch eye-dee*), GREATEST, HyperLogLog, RocksDB, TimescaleDB, Parquet, OLAP, SDK, CRDT,
-LSM, anycast, Count-Min Sketch, `P13`, `P20`, `L4`.
-
-**Ảnh hưởng tới hai bộ cũ:** quy tắc `dedup` làm đổi đúng một câu của
-[Ep15 giai đoạn 2](../video-gd2/lessons/ep15-lab8-consumer-tests.yaml) ("a dedup table you must clean up") — đã dựng lại.
-Các quy tắc khác không đổi câu nào trong 969 câu của 30 video cũ (đã so lời đọc cũ và mới từng câu).
+Kiểm bằng bộ tách âm của Kokoro (`phon` và tokenizer): UTC (`jˌuːtˌiːsˈiː`), Postgres, upsert, idempotent
+(`idem-potent`), reconciler, Parquet, jitter, `acks all`, Retry-After, MockMvc, JDK, `K03` → "K three", dedup →
+"dee-doop" (từ đợt 1). **Sửa mới:** `IDs` trước đây đọc `aɪdˈiː` (mất âm s) → `speak.py` đổi thành "eye-dees"
+(`ˈaɪdˈiːz`), có test. Số như `1,080–1,367/s` và `2.4–4.4×` để `speak.py` đọc; 2PC viết bằng `say` ("two P C").
 
 ---
 
-## 7. Công cụ: thay đổi cho bộ này
+## 7. Công cụ: thay đổi cho đợt 3
 
 | Thay đổi | Vì sao |
 |---|---|
-| Khoá `prefix` (series.yaml) và `Lesson.code`: mã `K03` trên màn hình, trong `lessons.json` (`code`), bảng độ phủ và web | Hai bộ trước dùng `Ep`; bộ chen ngang cần mã riêng để không lẫn "Ep03 của bộ nào" |
-| `lesson_paths()`: mọi `.yaml` trong `lessons/` trừ `points.yaml`, `series.yaml` | Trước đây chỉ đọc `ep*.yaml` |
-| Thẻ mở đầu hiện hai, ba người nói; chữ trong thẻ không vẽ tràn khỏi khung | Bộ này có Tom và Emma; bản đầu tràn chữ ở 7/8 video |
-| Cảnh `exercise` có `label` (*Question*, *Follow-up*, *Drill*, *Problem*) | "Exercise K03" đọc như bài tập của lab |
-| Kiểm chữ viết tắt cả trong các dòng của cảnh `compare` | Trước đây bỏ sót. Lộ ra 3 chỗ ở bộ cũ: **NAB**, **MVP** ở Ep00 giai đoạn 1 và **WAL** ở Ep14 giai đoạn 2 hiện trên slide mà thẻ không giải thích — đã thêm vào thẻ và dựng lại hai video |
-| Bỏ qua từ khoá SQL `GREATEST`, `COALESCE`, `EXCLUDED`… và động từ HTTP `GET`, `POST`… khi kiểm chữ viết tắt | Không phải chữ viết tắt |
-| Test: mỗi bộ kiểm với đúng các bảng chữ viết tắt nó dựa vào; độ phủ 100% của bộ chen ngang | Giữ mức đã đạt khi sửa kịch bản về sau |
-| Web: chuẩn hoá đường dẫn `../katalon-prep/…` khi mở mục nguồn; hiện mã `K03`; workflow Pages copy mọi bộ `video-*` | Nguồn của bộ này nằm ngoài `java-system-design/` |
+| Slide code chừa chỗ dưới cùng bằng chiều cao nhãn mục cao nhất | Nhãn mục (`t` của item) che dòng code cuối ở 4 slide; chừa cố định nên code không nhảy giữa các bước |
+| `speak.py`: `IDs` → "eye-dees" | Kokoro bỏ âm s số nhiều |
+| `series.yaml` chỉ còn `emma` | Theo yêu cầu một giọng; thẻ mở đầu tự hiện một người nói |
 
 ---
 
 ## 8. Bảng trạng thái
 
-| Mã | Nhóm | Trạng thái | Dài | MB | Chương | Kiểm | Ghi chú |
-|---|---|---|---|---|---|---|---|
-| K00 | sau GĐ1 | **Chờ duyệt** | 4:44 | 4,1 | 9 | 7 ý chính · 1 chữ viết tắt | |
-| K01 | sau GĐ1 | **Chờ duyệt** | 5:32 | 4,7 | 12 | 10 ý chính · 2 chữ viết tắt | 2 mẫu +2,2 dBFS lúc 2:51 (nhật ký đợt 1) |
-| K02 | sau GĐ1 | **Chờ duyệt** | 6:37 | 5,7 | 12 | 9 ý chính · 4 chữ viết tắt | |
-| K03 | sau GĐ2 | **Chờ duyệt** | 6:19 | 5,6 | 11 | 8 ý chính · 9 chữ viết tắt | |
-| K04 | sau GĐ2 | **Chờ duyệt** | 5:47 | 4,9 | 12 | 8 ý chính · 5 chữ viết tắt | |
-| K05 | sau GĐ2 | **Chờ duyệt** | 7:21 | 6,8 | 13 | 12 ý chính · 10 chữ viết tắt | |
-| K06 | sau GĐ2 | **Chờ duyệt** | 5:34 | 4,8 | 10 | 6 ý chính · 6 chữ viết tắt | |
-| K07 | sau GĐ2 | **Chờ duyệt** | 6:09 | 5,7 | 9 | 8 ý chính · 8 chữ viết tắt | |
-| K08 | thực chiến | **Đã dựng MP4** | 7:03 | 6,1 | 11 | 1 ý chính · 9 chữ viết tắt | KRaft + Spring Boot Ingest API + Producer Tuning |
-| K09 | thực chiến | **Đã dựng MP4** | 6:11 | 5,4 | 12 | 1 ý chính · 8 chữ viết tắt | Partition Skew -> BatchIdPartitioner |
-| K10 | thực chiến | **Đã dựng MP4** | 5:39 | 4,7 | 12 | 1 ý chính · 5 chữ viết tắt | P20 storm -> BatchEventConsumer |
-| K11 | thực chiến | **Đã dựng MP4** | 5:23 | 4,6 | 12 | 1 ý chính · 5 chữ viết tắt | Poison Pill -> ErrorHandlingDeserializer + DLT |
-| K12 | thực chiến | **Đã dựng MP4** | 5:16 | 4,5 | 12 | 1 ý chính · 6 chữ viết tắt | Deduplication -> processed_batch + GREATEST |
-| K13 | thực chiến | **Đã dựng MP4** | 5:30 | 4,8 | 12 | 1 ý chính · 11 chữ viết tắt | Buffer overflow -> TokenBucket + Triage drill |
+| Mã | Phần | Trạng thái | Dài | MB | Chương | Kiểm |
+|---|---|---|---|---|---|---|
+| K00 | A | **Chờ duyệt** | 5:05 | 4,4 | 10 | 6 ý chính · 4 chữ viết tắt |
+| K01 | A | **Chờ duyệt** | 4:21 | 3,8 | 11 | 7 ý chính · 1 chữ viết tắt |
+| K02 | A | **Chờ duyệt** | 3:03 | 2,5 | 9 | 5 ý chính · 3 chữ viết tắt |
+| K03 | A | **Chờ duyệt** | 4:14 | 3,6 | 11 | 7 ý chính · 3 chữ viết tắt |
+| K04 | A | **Chờ duyệt** | 4:16 | 3,6 | 10 | 6 ý chính · 3 chữ viết tắt |
+| K05 | B | **Chờ duyệt** | 5:06 | 4,3 | 10 | 6 ý chính · 5 chữ viết tắt |
+| K06 | B | **Chờ duyệt** | 4:17 | 3,6 | 9 | 5 ý chính · 2 chữ viết tắt |
+| K07 | B | **Chờ duyệt** | 5:09 | 4,5 | 12 | 9 ý chính · 2 chữ viết tắt |
+| K08 | C | **Chờ duyệt** | 4:01 | 3,7 | 9 | 6 ý chính · 8 chữ viết tắt |
+| K09 | C | **Chờ duyệt** | 3:08 | 3,1 | 8 | 5 ý chính · 2 chữ viết tắt |
+| K10 | C | **Chờ duyệt** | 4:18 | 3,9 | 11 | 8 ý chính · 3 chữ viết tắt |
+| K11 | D | **Chờ duyệt** | 6:04 | 5,4 | 11 | 8 ý chính · 6 chữ viết tắt |
+| K12 | D | **Chờ duyệt** | 4:55 | 4,3 | 9 | 6 ý chính · 9 chữ viết tắt |
+| K13 | D | **Chờ duyệt** | 5:43 | 4,6 | 11 | 8 ý chính · 3 chữ viết tắt |
 
-**Tổng cộng 14/14 video (K00–K13): 8 video lý thuyết design (48:04) + 6 video thực chiến chuyên sâu (35:02) = 83 phút 06 giây bài giảng video hoàn chỉnh.**
+**Đã dựng 14/14 video, 63:39 (≈ 64 phút), 55 MB — chờ duyệt. Đã duyệt 0/14.**
 
 ---
 
@@ -233,7 +182,7 @@ Các quy tắc khác không đổi câu nào trong 969 câu của 30 video cũ (
   làm nguồn; thêm vào README của folder system design; sửa số họ bài (7) và số trục (5) ở README, 04, 06 và file chiến lược.
 - Chốt 8 video, hai nhóm xem, dạng phỏng vấn hai giọng (mục 0, 3, 4).
 
-### Đợt 1 — 08/10/2026: dựng cả 8 video
+### Đợt 1 — 08/10/2026: dựng cả 8 video — đã thay ở đợt 3
 
 Yêu cầu: làm video chen ngang để luyện phỏng vấn Katalon với họ bài thu thập và xử lý dữ liệu. Bài event counting có
 sẵn mới ở mức 10k request/phút; câu hỏi là 10M thì sao, 100M thì sao, và các video liên quan gì tới giai đoạn 1 và 2.
@@ -273,7 +222,7 @@ sẵn mới ở mức 10k request/phút; câu hỏi là 10M thì sao, 100M thì 
   nhanh vì tiếng đã nằm trong bộ nhớ đệm.
 - Commit trên nhánh `claude/wizardly-pascal-9yhum5`.
 
-### Đợt 2 — 10/10/2026: mở rộng thực chiến Kafka & bộ code runnable (K08–K13)
+### Đợt 2 — 10/10/2026: mở rộng thực chiến Kafka & bộ code runnable (K08–K13) — đã thay ở đợt 3
 
 Yêu cầu: 8 video đầu tiên thuần lý thuyết phỏng vấn ("trên giấy"). Cần hướng dẫn chuyên sâu tích hợp Kafka,
 build code chạy thật và tái hiện/fix trực tiếp 5 sự cố production kinh điển.
@@ -292,17 +241,59 @@ build code chạy thật và tái hiện/fix trực tiếp 5 sự cố productio
 - **Web App**: `web/build.py` cập nhật `total: 14`, chia 3 nhóm tuần (Phần 1A, Phần 1B, Phần 2).
   `lessons.json` cập nhật đủ 14 bài với chapters và points điều hướng chi tiết.
 
+### Đợt 3 — 14/10/2026: làm lại toàn bộ — giải từng bước, dựng hệ thống, đọc code, một giọng Emma
+
+Yêu cầu: review lại cả bộ chen ngang; bộ hiện tại nhiều lý thuyết, chưa thực tiễn giảng giải bài toán Katalon đang
+cần. Muốn giải từng bước, từng cách bị bác cho tới cách tốt nhất, chi tiết cách dựng hệ thống theo cách tốt nhất, có
+hướng dẫn code; chỉ dùng giọng Emma (`af_heart`); dựng lại hết, commit, push.
+
+- **Review bộ cũ (K00–K13)**: K00–K07 chủ yếu thiết kế 10M/100M trên giấy, không giải lại chính đề 10k theo từng cách;
+  K08–K13 có số không nguồn (ví dụ "12,000 req/s stalled", "65,000+ req/s") và giải thích code module 09 có lỗi (xem dưới).
+  Xoá cả 14 kịch bản và media cũ; viết mới 14 kịch bản (mục 4).
+- **Code mới: [module 10 `10-event-counting`](../../katalon-prep/katalon-prep-java/10-event-counting/README.md)**:
+  Spring Boot 3.3 + Java 21 + PostgreSQL 16 thuần. Ba cách bị bác viết thành code thật (`rejected/`) để test chứng
+  minh chúng trượt; cách được chọn đủ đường ghi, rollup ghi đè, phân rã khoảng, đối soát, retention. **20 test** trên
+  Postgres 16 thật (zonky embedded, không Docker), gồm 500 khoảng ngẫu nhiên so với `COUNT(*)` trên raw.
+- **Lỗi tìm thấy và đã sửa**:
+  - [04 §6.3](../../katalon-prep/katalon-system-design/04-event-counting-10k.md#63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ):
+    hàm Python `decompose` đi tiếp cùng tầng tới hết khoảng — ví dụ của chính tài liệu đọc 4.824 bucket phút thay vì
+    84 + 31 + 2. Đã sửa, chạy lại ví dụ; test Java khoá đúng ví dụ này.
+  - Module 09: đánh dấu `processed_batch` và cộng số đếm ở **hai transaction** — consumer chết ở giữa là batch bị đánh
+    dấu nhưng không được đếm, lần gửi lại bị bỏ qua. Nay `applyBatchOnce` làm cả hai trong một transaction. Partitioner
+    dùng `murmur2` + `toPositive` thay cho `Math.abs(hashCode())` (ra số âm khi `hashCode() == Integer.MIN_VALUE`).
+    8/8 test của module 09 vẫn qua. README của module 09 ghi đúng cơ chế (trước ghi `GREATEST` nhưng code cộng dồn).
+- **Số đo tranh chấp**: chạy `ContentionDemoTest` 7 lần; số dao động (cách 1: 1.080–1.367, cách 3: 4.094–5.986, cách 4:
+  3.334–5.488 batch/s). Video và README ghi khoảng, không ghi số của một lần chạy.
+- **Kịch bản**: 14 file, 352 câu, 9.026 từ, một người nói. `points.yaml` viết lại: **92 ý chính, 56 heading**;
+  `check` với ba bảng chữ viết tắt và `coverage --strict` sạch ([02 — Độ phủ](02-do-phu.md)). Bảng chữ viết tắt của bộ
+  nay chỉ còn chữ mới thật sự dùng: UTC, SDK.
+- **Soát bố cục** (ảnh cuối mọi cảnh, ghép 4 ảnh một tấm), đã sửa: nhãn mục che dòng code cuối (sửa trong `slides.py`,
+  mục 7); nhãn mũi tên bị cắt ở sơ đồ K04, K11 (dãn hộp); hộp flow K05, K06 chật chữ (rút tiêu đề); code của slide lỗi
+  Python (K07) và `refreshRecent` (K09) chữ nhỏ (rút dòng); follow-up K13 có đáp án dài trong phụ đề → tách slide
+  *Model answer*.
+- **Phát âm** (mục 6): thêm `IDs` → "eye-dees" vào `speak.py`. Thay đổi này làm câu của
+  [Ep01 giai đoạn 2](../video-gd2/00-ke-hoach-va-lich-su.md) có chữ IDs đọc khác, nên dựng lại Ep01 (Đợt 3 của kế hoạch
+  giai đoạn 2).
+- **Dựng**: Kokoro `af_heart`, tốc độ 0,9, hai tiến trình song song. Tổng 63:39 (≈ 64 phút), 55 MB;
+  độ to từng file từ −15,8 đến −16,7 LUFS. Đỉnh mẫu sau mã hoá AAC: K02 +0,4 dBFS, K06 +0,1 dBFS (tiếng gốc đã được `loudnorm` chặn ở −1,5 dBTP; như K01 cũ và Ep12, Ep14 giai đoạn 2, giữ nguyên); 12 video còn lại dưới 0 dBFS. Một script so lời đọc hiện tại của từng câu với tiếng file mp4 đã dùng: cả 44 video của ba bộ dùng lời đọc mới nhất.
+- **App, Pages, test**: `web/build.py` đổi giọng thành Emma, `total: 14`, bốn nhóm (Phần A–D);
+  [`tests/test_playwright_katalon_videos.py`](../../tests/test_playwright_katalon_videos.py) viết lại theo 14 video mới.
+  Playwright (Chromium): 14/14 video khớp `lessons.json` (mã, tiêu đề, độ dài, số chương, số ý chính, ảnh bìa, file mp4); bốn nhóm A–D đúng thứ tự; chỉ giọng Emma; **146 liên kết nguồn** mở đúng heading, kể cả README module 10; bài test cũ cho cả ba bộ (44 video) vẫn qua: tua theo chương và ý chính đúng giây, giữ lựa chọn bộ sau khi tải lại, 390 px không tràn ngang, không lỗi JavaScript.
+- **Chưa làm**: chưa có người nghe lại toàn bộ — đó là bước duyệt. Sửa một slide hay một câu dựng lại 1–3 phút vì
+  tiếng đã nằm trong bộ nhớ đệm.
+
 ---
 
 ## 10. Quyết định đã chọn mặc định (đổi được khi duyệt)
 
 | Quyết định | Chọn | Lý do |
 |---|---|---|
-| Giọng | Tom hỏi, Emma trả lời | Dùng lại hai giọng đã quen của giai đoạn 1 và 2; hỏi–đáp giống phòng phỏng vấn hơn một người đọc |
-| Ngôn ngữ | Tiếng Anh, tài liệu tiếng Việt | Như hai bộ trước; phỏng vấn Katalon vòng system design bằng tiếng Anh |
-| Đếm ngược | 5–10 giây | Đủ để bấm dừng; muốn luyện thật thì dừng 2 phút và nói thành tiếng |
-| Nhóm trên web | Ba nhóm: Sau GĐ1 (K00–K02), Sau GĐ2 (K03–K07), Thực chiến Kafka (K08–K13) | Tách rõ phần luyện nói lý thuyết và phần thực hành code |
-| Video giai đoạn 1 chưa dựng | Dẫn tới tuần và mục tài liệu, ghi *kế hoạch* | Không hứa một video chưa có |
+| Giọng | Một giọng: Emma (`af_heart`) | Theo yêu cầu đợt 3 |
+| Thứ tự | Bác từng cách trước, rồi mới dựng | Đúng cách trình bày trong phòng: lý do của thiết kế nằm ở các cách bị bác |
+| Code | Module 10 riêng, Postgres thuần, không TimescaleDB | Thấy được cơ chế (ghi đè, seal); test chạy không cần Docker; Timescale là bản dựng sẵn cùng ý tưởng |
+| 10M/100M | Gói vào phần D (3 video) thay vì 8 video | Câu nối tiếp, không phải đề chính; giữ số và lập luận của 07 |
+| Nhóm trên web | Phần A (tuần 2), B (tuần 3), C (tuần 4), D (tuần 10) | Mỗi phần cần nền tảng của tuần đó |
+| Đếm ngược | 6–8 giây | Đủ để bấm dừng; luyện thật thì dừng lâu hơn và nói thành tiếng |
 
 ---
 
@@ -310,8 +301,10 @@ build code chạy thật và tái hiện/fix trực tiếp 5 sự cố productio
 
 | Điều | Trạng thái |
 |---|---|
-| Số trong video | Phép nhân từ giả định (20 cặp/request, ~1 KB/request, 60 B/event, 0,2 ms CPU mỗi request), như [07 §10](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#10-ranh-giới-trung-thực). Số đo thật duy nhất là P01, P04 của Track P |
-| Giá AWS | Giá niêm yết tại lúc viết, chỉ để ra bậc độ lớn; dịch vụ được quản lý tính khác |
-| Kiến trúc 10M, 100M (K03–K07) | Thiết kế trên giấy, **không có demo** ở mức tải này; video nói rõ "I would build and measure it like this" |
-| **Pipeline thực chiến (K08–K13)** | **ĐÃ CHẠY THẬT VÀ PASS 100% TEST**: mã nguồn Java 21 / Spring Boot 3 trong `katalon-prep-java/09-kafka-pipeline`, kiểm chứng thật về Skew, P20 storm, Poison Pill DLT, Deduplication và Rate Limiter |
-| Phát âm | Kiểm bằng bộ tách âm của Kokoro, chưa có người nghe lại toàn bộ — đó là bước duyệt |
+| Đúng đắn của cách 4 (retry, khoảng bất kỳ, event trễ, đối soát, retention) | ✅ Test trên PostgreSQL 16 thật, 20/20 |
+| Cách 1–3 trượt đúng tiêu chí nói trong video | ✅ `RejectedApproachesTest`, `ContentionDemoTest` |
+| Số tranh chấp | 🟡 7 lần chạy, một máy, Postgres embedded mặc định — video nói "quote the ratio" |
+| Tải 10k request/phút liên tục nhiều giờ | ⚠️ Chưa load test kéo dài |
+| Cache "24 giờ qua", advisory lock khi nhiều instance | ⚠️ Thiết kế, chưa code — video nói rõ |
+| 10M, 100M (K11, K12) | Thiết kế trên giấy từ [07](../../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md); số lệch partition là số đo thật của module 09; giá AWS là giá niêm yết để ra bậc độ lớn |
+| Phát âm | Kiểm bằng bộ tách âm của Kokoro, chưa có người nghe lại toàn bộ |
