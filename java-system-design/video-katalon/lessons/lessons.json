@@ -661,6 +661,103 @@
      "section": "04-event-counting-10k · 66-phân-loại-fake-key"
     }
    ]
+  },
+  {
+   "id": "k06-build-rollup-job",
+   "ep": 6,
+   "code": "K06",
+   "week": 3,
+   "title": "Build 2: the rollup job — recompute, replace, seal",
+   "subtitle": "Three tiers from one query shape, a 30-minute window for late events, and the seal the reads rely on",
+   "file": "k06-build-rollup-job.mp4",
+   "poster": "k06-build-rollup-job.jpg",
+   "source": "k06-build-rollup-job.yaml",
+   "duration": 257.0,
+   "bytes": 3583321,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 16.1,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 22.6,
+     "title": "Replace"
+    },
+    {
+     "t": 68.7,
+     "title": "Every minute"
+    },
+    {
+     "t": 105.1,
+     "title": "A late event"
+    },
+    {
+     "t": 127.2,
+     "title": "Measured"
+    },
+    {
+     "t": 160.8,
+     "title": "Later still"
+    },
+    {
+     "t": 186.0,
+     "title": "Trade-offs"
+    },
+    {
+     "t": 238.6,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#33-rollup-job-tính-lại-rồi-ghi-đè",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#62-time-bucket-và-rollup-nhiều-tầng",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#65-late-arriving-data-và-watermark"
+   ],
+   "points": [
+    {
+     "id": "b2-replace",
+     "t": 22.6,
+     "text": "Một cửa sổ: DELETE rồi INSERT … SELECT count(*) theo date_bin gốc UTC trong một transaction; giờ từ phút, ngày từ giờ; rồi dời seal",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#33-rollup-job-tính-lại-rồi-ghi-đè",
+     "section": "README · 33-rollup-job-tính-lại-rồi-ghi-đè"
+    },
+    {
+     "id": "b2-refresh-recent",
+     "t": 68.7,
+     "text": "refreshRecent: to = đầu phút hiện tại (không seal phút đang chạy), from = to − 30 phút; sealed_until = to",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#33-rollup-job-tính-lại-rồi-ghi-đè",
+     "section": "README · 33-rollup-job-tính-lại-rồi-ghi-đè"
+    },
+    {
+     "id": "b2-late-measured",
+     "t": 127.2,
+     "text": "Test: batch event time 09:58:10 tới lúc 10:05:30 → bucket 09:58 là 0 trước lần chạy kế, 20 sau lần chạy lúc 10:06:30",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#35-đối-soát-và-event-trễ",
+     "section": "README · 35-đối-soát-và-event-trễ"
+    },
+    {
+     "id": "b2-late-levels",
+     "t": 160.8,
+     "text": "Trễ ≤ 30 phút: lần rollup kế; ≤ 24 giờ: đối soát hằng giờ; ≤ 7 ngày: backfill; > 7 ngày: 422 + metric",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#65-late-arriving-data-và-watermark",
+     "section": "04-event-counting-10k · 65-late-arriving-data-và-watermark"
+    },
+    {
+     "id": "b2-tradeoffs",
+     "t": 186.0,
+     "text": "Lựa chọn: vì sao 30 phút; vì sao delete + insert thay vì upsert; hai bản job chạy cùng lúc → advisory lock; TimescaleDB continuous aggregate là cùng ý tưởng",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#62-time-bucket-và-rollup-nhiều-tầng",
+     "section": "04-event-counting-10k · 62-time-bucket-và-rollup-nhiều-tầng"
+    }
+   ]
   }
  ]
 }
