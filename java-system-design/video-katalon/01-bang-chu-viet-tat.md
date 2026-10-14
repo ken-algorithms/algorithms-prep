@@ -13,6 +13,5 @@
 
 | Viết tắt | Đầy đủ | Nghĩa | Đọc | Video |
 |---|---|---|---|---|
-| **PII** | Personally Identifiable Information | Dữ liệu định danh cá nhân (email, tên, số điện thoại). Bẫy của họ C: dữ liệu này rời client trước khi được redact | ✓ | K00 |
-| **SDK** | Software Development Kit | Thư viện phía client gửi sự kiện: gom lô, sinh `batch_id`, retry có backoff + jitter, buffer có giới hạn | ✓ | K03 |
-| **JMX** | Java Management Extensions | Chuẩn giám sát metric thời gian thực của JVM và Kafka (vd consumer lag, thread, memory) | ✓ | K13 |
+| **UTC** | Coordinated Universal Time | Giờ chuẩn quốc tế. Mọi bucket và partition cắt theo UTC (`date_bin` với gốc `+00`), giờ Việt Nam là UTC+7 | ✓ | K05 |
+| **SDK** | Software Development Kit | Thư viện phía client gửi sự kiện: sinh `batch_id`, gom lô, retry có backoff + jitter, buffer có giới hạn | ✓ | K11 |

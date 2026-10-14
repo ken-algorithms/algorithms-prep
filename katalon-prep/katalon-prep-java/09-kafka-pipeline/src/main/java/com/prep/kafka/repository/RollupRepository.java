@@ -3,8 +3,10 @@ package com.prep.kafka.repository;
 import com.prep.kafka.model.Outcome;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Map;
 
@@ -12,9 +14,36 @@ import java.util.Map;
 public class RollupRepository {
 
     private final JdbcTemplate jdbc;
+    private final TransactionTemplate tx;
 
     public RollupRepository(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
+        this.tx = jdbc == null ? null : new TransactionTemplate(new DataSourceTransactionManager(jdbc.getDataSource()));
+    }
+
+    /**
+     * Danh dau batch + cong bo dem trong CUNG MOT transaction: ca hai, hoac khong gi ca.
+     *
+     * <p>Ban cu goi {@link #tryRecordBatch} roi moi {@link #recordAggregates}, hai transaction rieng: consumer chet o
+     * giua thi batch da bi danh dau "da xu ly" nhung so dem chua cong, va lan doc lai se BO QUA no (mat so lieu).
+     *
+     * @return true neu batch duoc ap dung lan nay, false neu da ap dung truoc do (retry hoac Kafka gui lai)
+     */
+    public boolean applyBatchOnce(String batchId, String tenantId, long bucketMinute, Map<Outcome, Long> counts) {
+        try {
+            return Boolean.TRUE.equals(tx.execute(s -> {
+                int marked = jdbc.update("INSERT INTO processed_batch (batch_id, tenant_id) "
+                        + "SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM processed_batch WHERE batch_id = ?)",
+                        batchId, tenantId, batchId);
+                if (marked == 0) {
+                    return false;
+                }
+                recordAggregates(tenantId, bucketMinute, counts);
+                return true;
+            }));
+        } catch (DuplicateKeyException race) {
+            return false; // hai consumer cung xu ly mot batch luc rebalance: transaction thua da rollback toan bo
+        }
     }
 
     /**
@@ -35,7 +64,7 @@ public class RollupRepository {
 
     /**
      * Cap nhat bo dem rollup theo phut.
-     * Ho tro ca cong don (counter increment) va GREATEST de chong duyet trung.
+     * Cong don (cnt = cnt + n): KHONG idempotent mot minh, nen chi duoc goi tu {@link #applyBatchOnce}.
      */
     @Transactional
     public void recordAggregates(String tenantId, long bucketMinute, Map<Outcome, Long> counts) {

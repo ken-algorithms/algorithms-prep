@@ -1,0 +1,171 @@
+id: k12-100m-cells-and-money
+ep: 12
+week: 10
+tag: "K12 · FOLLOW-UP · 100M"
+title: "“And 100 million?” — when the problem becomes physics and money"
+subtitle: "Regional cells summed globally, dedup by client sequence, and three bills you must estimate"
+covers:
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#44--10000--100m-requestphút
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#6-kiến-trúc-ở-100m-requestphút
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#63-ba-thứ-phải-tính-tiền-ra-được
+  - ../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: problem 07 §4.4, §6"}
+      - {t: "Builds on: K11 · phase 2 replication, CRDTs, no 2PC"}
+    lines:
+      - emma: "Ten thousand times the original load. At a hundred million requests a minute, no single component is the problem anymore. The problem is physics and money: microseconds of processor time, bytes crossing networks, and a region that can fail."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: CPU, full: "central processing unit", vi: "bộ xử lý"}
+      - {abbr: AZ, full: "availability zone", vi: "vùng sẵn sàng trong một region"}
+      - {abbr: S3, full: "Amazon Simple Storage Service", vi: "object storage của AWS"}
+      - {abbr: AWS, full: "Amazon Web Services", vi: "đám mây của Amazon"}
+      - {abbr: CRDT, full: "conflict-free replicated data type", vi: "kiểu dữ liệu gộp được không xung đột"}
+      - {abbr: 2PC, full: "two-phase commit", vi: "commit hai pha xuyên hệ thống"}
+      - {abbr: API, full: "application programming interface", vi: "hợp đồng giữa client và collector"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng văn bản; tốn băng thông ở 100M"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "CPU is the processor. An AZ is an availability zone inside a region. S3 is Amazon's object storage, on AWS."
+        focus: 3
+      - emma: "A CRDT is a conflict-free replicated data type, and 2PC is two-phase commit across systems."
+        say: "A CRDT is a conflict-free replicated data type, and two P C is two-phase commit across systems."
+        focus: 5
+      - emma: "API is the contract between client and collector, JSON its text format, and ID means identifier."
+        focus: 8
+
+  - kind: stats
+    chapter: "Numbers"
+    heading: "Numbers first: 100M requests a minute"
+    points: [d2-numbers]
+    items:
+      - {v: "1.67M/s", l: "requests", s: "peaks ~5M/s"}
+      - {v: "33M/s", l: "events", s: "2,880 billion a day"}
+      - {v: "~13 Gbit/s", l: "into the collectors", s: "~40 at peak"}
+      - {v: "1 µs = 1.7 cores", l: "per request, all day", s: "1.67M requests/s × 1 µs"}
+    lines:
+      - emma: "One point six seven million requests a second, thirty-three million events a second, about thirteen gigabits a second of incoming traffic."
+        focus: 2
+      - emma: "And the number that changes how you write code: every single microsecond you add to a request costs one point seven processor cores, all day. A careless object mapper created per request costs dozens of cores."
+        focus: 3
+
+  - kind: table
+    chapter: "Rejected"
+    heading: "At 100M: options that get rejected"
+    points: [d2-rejected]
+    columns: ["Option", "Rejected because"]
+    widths: [0.38, 0.62]
+    build: true
+    rows:
+      - ["One global Kafka cluster", "every byte crosses regions; one cluster down = every customer down"]
+      - ["Exactly-once across regions (2PC)", "counts add up, so each cell being right is enough; phase 2 taught: no 2PC"]
+      - ["Sketches or sampling for the totals", "totals are 4 integers per bucket: exact counting is cheap at any scale"]
+      - ["Keep dedup by batch_id", "15 min × 1.67M/s = 1.5 billion keys of state"]
+      - ["One row per event anywhere", "2,880 billion rows a day"]
+    lines:
+      - emma: "Rejected options first. One global Kafka cluster: every byte crosses regions, and one bad cluster takes down every customer."
+        focus: 0
+      - emma: "Exactly-once across regions, with two-phase commit. Counts simply add up, so it's enough for each cell to be right on its own. Phase two already taught the rule: no two-phase commit across services."
+        focus: 1
+      - emma: "Sketches for the totals. This is the classic over-reach. A total is four integers per bucket. Counting exactly is cheap at any scale. Sketches are for distinct counts and top-K, never for these."
+        focus: 2
+      - emma: "Dedup by batch ID: fifteen minutes at this rate is one and a half billion keys. And one row per event, anywhere, is almost three trillion rows a day."
+        focus: 4
+
+  - kind: table
+    chapter: "Five changes"
+    heading: "Five changes from the 10M design"
+    points: [d2-five-changes]
+    columns: ["Change", "Why", "Trade-off"]
+    widths: [0.30, 0.38, 0.32]
+    build: true
+    rows:
+      - ["Cells per region, summed globally", "counts commute: each cell keeps its part, like a G-counter", "global totals final only when the slowest cell's watermark passes"]
+      - ["Dedup by (client_id, seq)", "state per active client, not per request: like Kafka's idempotent producer", "clients keep a sequence; a restart bumps an epoch"]
+      - ["Binary wire format + compression", "1 KB JSON × 1.67M/s = 13 Gbit/s", "a new API contract"]
+      - ["Packed raw stays in its region", "~18 TB/day packed vs 173 TB at 60 B/event", "reconcile runs per region"]
+      - ["Sketches for distinct and top-K only", "HyperLogLog ~12 KB, ~0.81% error, mergeable", "never for billing"]
+    lines:
+      - emma: "Five changes. One: a cell per region, each running the whole ten million pipeline, and only finished counts travel globally. Counts commute, so the global total is just a sum, like a grow-only counter, a CRDT."
+        focus: 0
+      - emma: "Two: dedup by client ID and sequence number, the way Kafka's idempotent producer dedups with producer ID and sequence. State grows with active clients, not with requests."
+        focus: 1
+      - emma: "Three: a binary wire format with compression, because a kilobyte of JSON at this rate is thirteen gigabits a second. Four: packed raw stays in its region."
+        focus: 3
+      - emma: "Five: sketches, but only where the question is approximate by nature: distinct users, top keys. Never for totals, never for billing."
+        focus: 4
+
+  - kind: table
+    chapter: "Three bills"
+    heading: "Three bills you must estimate out loud"
+    points: [d2-bills]
+    columns: ["Bill", "Arithmetic", "Order of magnitude"]
+    widths: [0.20, 0.50, 0.30]
+    mono: [1]
+    rows:
+      - ["Cross-AZ traffic", "173,000 GB/day × 2 copies × $0.02/GB", "≈ $6,900 a day, unpacked"]
+      - ["Raw storage, 30 days", "5,200 TB unpacked vs ~540 TB packed", "≈ $110k vs $12k a month"]
+      - ["CPU per request", "1 µs × 1.67M/s", "1.7 cores per microsecond"]
+    note: "List prices at the time of writing, for orders of magnitude only — not a quote."
+    lines:
+      - emma: "Three bills to estimate out loud. Cross-zone traffic: self-managed Kafka copies each byte to two other zones. Unpacked raw at a hundred seventy-three terabytes a day is about sixty-nine hundred dollars a day, just for internal network. Packing before sending isn't an optimisation, it's mandatory."
+        focus: 0
+      - emma: "Storage: thirty days of unpacked raw is five petabytes, around a hundred ten thousand dollars a month on standard object storage. Packed, it's about twelve thousand."
+        focus: 1
+      - emma: "And processor time: one point seven cores for every microsecond per request. That's where phase one's careful Java pays real money. These are list prices, for orders of magnitude, and I'd say so."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Counts vs money"
+    heading: "Why counts can be active-active, and a wallet can't"
+    points: [d2-counts-vs-money]
+    items:
+      - {t: "A count has no invariant across cells", s: "each region adds its part; the sum is the answer"}
+      - {t: "A balance has one: it must never go negative", s: "needs a single writer or consensus per account"}
+      - {t: "That is why “counting” and “money” are different problem families", s: "same scale, opposite designs"}
+    lines:
+      - emma: "Why can counts run active-active in every region, when a wallet can't? A count has no invariant across cells. Each region adds its part, and the sum is the answer."
+        focus: 0
+      - emma: "A balance has an invariant: it must never go negative. That needs one writer per account, or consensus. Same scale, opposite designs. Saying this shows you know which family a question belongs to."
+        focus: 2
+
+  - kind: speech
+    chapter: "One minute"
+    heading: "The 100M answer in under a minute"
+    points: [d2-say-it]
+    items:
+      - {t: "“At 100M a minute the bottleneck is physics and money: 1 µs per request is 1.7 cores, and every byte crossing a zone is billed.”"}
+      - {t: "“I'd run the 10M pipeline as a cell per region, and only summed counts go global — counts commute, so no cross-region transactions.”"}
+      - {t: "“Dedup moves to (client_id, seq), the wire goes binary, raw stays packed in its region.”"}
+      - {t: "“Totals stay exact; sketches only for distinct and top-K.”"}
+    lines:
+      - read: emma
+        focus: 0
+        say: "At a hundred million a minute the bottleneck is physics and money: one microsecond per request is one point seven cores, and every byte crossing a zone is billed."
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+        say: "Dedup moves to client ID and sequence, the wire goes binary, raw stays packed in its region."
+      - read: emma
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "Rejected: global cluster, cross-region 2PC, sketches for totals"}
+      - {t: "Cells per region, summed globally; dedup by (client_id, seq)"}
+      - {t: "Estimate three bills: cross-AZ, storage, CPU"}
+      - {t: "Counts commute; balances don't"}
+    lines:
+      - emma: "Recap. Reject the global cluster, cross-region transactions, and sketches for totals. Run cells per region and sum them. Estimate the three bills out loud. And remember why counts can do this while money can't. Last video: the whole answer, timed."
+        focus: 3

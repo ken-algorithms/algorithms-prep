@@ -1,0 +1,192 @@
+id: k03-approach3-minute-counters
+ep: 3
+week: 2
+tag: "K03 · APPROACH 3 · REJECTED"
+title: "Approach 3: per-minute counters, bumped as you write"
+subtitle: "Fixes the range query, fast enough — and still rejected: atomic is not idempotent"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#23-cách-3--counter-theo-phút-cộng-ngay-lúc-ghi
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §2.3 · problem 04 §6.4"}
+      - {t: "Code: rejected/SyncMinuteCounter.java · RejectedApproachesTest"}
+    lines:
+      - emma: "Approach three is the one most strong candidates reach. It fixes the fatal flaw of approach one by counting per time bucket. It is fast. And it still gets rejected. Knowing exactly why is what separates a senior answer from a Principal one."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: TTL, full: "time to live", vi: "thời gian sống của một khoá Redis"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "SQL is the query language. TTL is time to live, how long a Redis key survives before it expires. And ID means identifier."
+        focus: 2
+
+  - kind: code
+    chapter: "The idea"
+    heading: "One row per tenant, minute and outcome — add as you write"
+    points: [a3-idea]
+    code: |
+      CREATE TABLE sync_agg_1m (tenant_id text, bucket timestamptz, outcome smallint,
+                                cnt bigint, PRIMARY KEY (tenant_id, bucket, outcome));
+
+      -- per request: count its 20 items by outcome, then for each outcome:
+      INSERT INTO sync_agg_1m (tenant_id, bucket, outcome, cnt)
+      VALUES (?, date_bin('1 minute', ?, TIMESTAMPTZ '2000-01-01+00'), ?, ?)
+      ON CONFLICT (tenant_id, bucket, outcome)
+      DO UPDATE SET cnt = sync_agg_1m.cnt + EXCLUDED.cnt;        -- add n
+
+      -- any minute-aligned range:
+      SELECT outcome, sum(cnt) FROM sync_agg_1m
+       WHERE tenant_id = ? AND bucket >= ? AND bucket < ? GROUP BY outcome;
+    items:
+      - {lines: [1, 2], t: "four rows per tenant per minute, whatever the traffic", lang: sql}
+      - {lines: [4, 8], t: "bucket by event time; on conflict, add this request's count"}
+      - {lines: [10, 12], t: "a range = the sum of its minutes"}
+    lines:
+      - emma: "The table has one row per tenant, per minute, per outcome. Four rows a minute, however busy it gets."
+        focus: 0
+      - emma: "Each request counts its twenty items by outcome, finds the minute of its event time, and adds to that row with an upsert: on conflict, count equals count plus n."
+        focus: 1
+      - emma: "A range is the sum of its minutes. The time that approach one threw away is kept, one minute at a time."
+        focus: 2
+
+  - kind: table
+    chapter: "It works"
+    heading: "What it fixes"
+    points: [a3-fixes]
+    columns: ["Test", "Result", "Evidence"]
+    widths: [0.30, 0.12, 0.58]
+    accent: [1]
+    rows:
+      - ["T1 any range", "✓", "test: 09:30–10:30 equals COUNT(*) on raw"]
+      - ["T2 cheap reads", "✓", "a year = 525,600 minutes × 4 rows; hour and day tiers shrink it"]
+      - ["T4 late events", "✓", "bucketed by event time, not arrival time"]
+      - ["T6 no shared lock", "~", "4 hot rows per minute; measured fast at this load"]
+    lines:
+      - emma: "And it works. In the test, a range from nine thirty to ten thirty equals counting the raw rows exactly. Test one, passed."
+        focus: 0
+      - emma: "Reads are cheap, and coarser tiers would make them cheaper. Late events land in the right minute, because the bucket comes from the event time."
+        focus: 2
+      - emma: "Even the writes are fine. Every request touches the same four rows of the current minute, but each update is tiny."
+        focus: 3
+
+  - kind: exercise
+    chapter: "Test T3"
+    label: "Question"
+    q: "A client sends a batch of 20 items. The server commits, but the response is lost; the client times out and sends the same batch again. What do the counters say?"
+    items:
+      - {t: "Each upsert is atomic: no lost update between concurrent writers"}
+    lines:
+      - emma: "Now test three. A client sends a batch. The server commits it, but the response is lost on the way back. The client times out and sends the same batch again. What do the counters say?"
+      - wait: 7
+        note: "Atomic means no update is lost. Does it mean no update is applied twice?"
+
+  - kind: pattern
+    chapter: "Retry"
+    heading: "Atomic is not idempotent"
+    points: [a3-retry]
+    bad_label: "Add n — what approach 3 does"
+    good_label: "Replace with a recount — approach 4"
+    bad: |
+      cnt = cnt + 20      -- first try
+      cnt = cnt + 20      -- the retry
+      -- 40 for 20 events, and no raw
+      -- row exists to notice it
+    good: |
+      -- raw insert of a retry is a no-op;
+      -- then the bucket is recomputed:
+      cnt = (SELECT count(*) FROM raw ...)
+      -- run it twice: still 20
+    stats_columns: ["Measured in RejectedApproachesTest", "Approach 3", "Truth", "Error"]
+    stats:
+      - ["120 batches, then one retry", "2,420", "2,400", "+20, silent"]
+    lines:
+      - emma: "Each upsert is atomic, so no update is ever lost between two writers. But the retry is a second, perfectly valid update. Count plus twenty, twice. Atomic is not the same as idempotent."
+        focus: 0
+      - emma: "The fix is not a smarter increment. It's to stop incrementing. Store the raw rows, where the retry is a no-op, and recompute the bucket from them. Run that twice and you still get twenty."
+        focus: 1
+      - emma: "Measured: a hundred twenty batches, then one retry. Approach three says two thousand four hundred twenty. The truth is two thousand four hundred. Off by twenty, silently."
+        focus: 2
+
+  - kind: bullets
+    chapter: "No raw"
+    heading: "Worse than wrong: unknowable"
+    points: [a3-no-raw]
+    items:
+      - {t: "No raw table: nothing to compare the counters with", s: "T5 fails — you can't even detect the +20"}
+      - {t: "A bug in classification? A changed definition?", s: "the old minutes can never be recomputed"}
+      - {t: "Dedup the retries in front of it?", s: "a table of seen batch ids = raw data by another name, and two writes that must commit together"}
+    lines:
+      - emma: "It gets worse. With no raw table, there is nothing to compare the counters against. You cannot even detect the extra twenty. Test five fails."
+        focus: 0
+      - emma: "If classification had a bug last week, or the definition of malformed changes, the old minutes can never be recomputed."
+        focus: 1
+      - emma: "And if you add a table of seen batch IDs to drop retries, you have rebuilt raw data under another name, plus two writes that must commit together. We'll meet that exact bug in part D."
+        focus: 2
+
+  - kind: bullets
+    chapter: "Redis"
+    heading: "The Redis version has the same flaw"
+    points: [a3-redis]
+    items:
+      - {t: "One hash per tenant per hour; add to a field per outcome", s: "24 hours = 25 reads in one pipeline, under 2 ms"}
+      - {t: "Same increment, same double count on retry", s: "plus: lost on restart unless persisted"}
+      - {t: "Good as a hot cache, never as the truth", s: "if it dies, rebuild it from the rollups"}
+    lines:
+      - emma: "The Redis version is the same design in memory: one hash per tenant per hour, a field per outcome, with an expiry, a TTL of two days. The last twenty-four hours is twenty-five reads in one pipeline."
+        focus: 0
+      - emma: "Same increment, same double count on retry, and it can lose everything on a restart."
+        focus: 1
+      - emma: "So Redis is fine as a hot cache in front of the real numbers. Never as the truth. If it dies, you rebuild it."
+        focus: 2
+
+  - kind: stats
+    chapter: "Not speed"
+    heading: "Speed is not why it is rejected"
+    points: [a3-speed]
+    items:
+      - {v: "4,094–5,986/s", l: "approach 3: minute counters", s: "16 writers, 4,000 batches, seven runs"}
+      - {v: "3,334–5,488/s", l: "accepted design: append raw", s: "same batches, same machine"}
+    note: "Seven runs on one machine (ContentionDemoTest). At this load, approach 3 is at least as fast as the accepted design."
+    lines:
+      - emma: "Measured on the same contention test, seven runs, approach three was never slower than the accepted design. Four to six thousand batches a second, against three and a half to five and a half thousand."
+        focus: 0
+      - emma: "So don't reject it for speed. Reject it for correctness. That is the more convincing argument, because it's true."
+        focus: 1
+
+  - kind: table
+    chapter: "Scorecard"
+    heading: "Approach 3 against the six tests"
+    points: [a3-scorecard]
+    columns: ["Test", "Result"]
+    widths: [0.60, 0.40]
+    accent: [1]
+    rows:
+      - ["T1 any range", "✓ (by the minute)"]
+      - ["T2 cheap reads", "✓"]
+      - ["T3 retries", "✗ +20 per retry, silent"]
+      - ["T4 late events", "✓"]
+      - ["T5 find and fix", "✗ no raw"]
+      - ["T6 no shared lock", "✓ at this load"]
+    lines:
+      - emma: "Four out of six. It fails retries and fixing, and those two are must-haves when the numbers have to be exact. Rejected."
+        focus: 4
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "Counting per minute bucket fixes the range query"}
+      - {t: "cnt = cnt + n is atomic, not idempotent: a retry adds twice"}
+      - {t: "No raw: the error can't be seen or repaired"}
+      - {t: "Redis counters: a cache, never the truth"}
+    lines:
+      - emma: "Recap. Per-minute buckets fix the range query. But count plus n is atomic, not idempotent, and with no raw the error can't be seen or repaired. Approach two had the truth, approach three had the fast reads. Next, approach four joins them with one rule."
+        focus: 3

@@ -24,6 +24,8 @@ WORDS = {
     "Tết": "Tet",
     # video chen ngang Katalon (kiểm phiên âm 08/10/2026): PII đọc "pee-eye", dedup đọc "đờ-đắp"
     "PII": "P I I", "dedup": "dee-doop", "Dedup": "Dee-doop",
+    # bộ chen ngang làm lại (14/10/2026): Kokoro đọc "IDs" thành "aɪdˈiː", mất âm s số nhiều
+    "IDs": "eye-dees",
 }
 UNITS = {
     "ns/op": "nanoseconds per op", "B/op": "bytes per op", "req/s": "requests per second",

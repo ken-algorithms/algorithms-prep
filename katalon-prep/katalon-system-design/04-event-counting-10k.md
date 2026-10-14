@@ -449,21 +449,27 @@ def decompose(t1: datetime, t2: datetime) -> list[tuple[str, datetime, datetime]
     """Phân rã [t1, t2) thành ít mảnh nhất, mỗi mảnh nằm trọn trong một tầng rollup."""
     parts, cur = [], t1
     while cur < t2:
-        for tier, step in TIERS:
+        for tier, step in TIERS:              # mỗi lần chỉ đi MỘT bucket, chọn lại tầng thô nhất
             if floor_to(cur, step) == cur and cur + step <= t2:
-                start, n = cur, 0
-                while floor_to(cur, step) == cur and cur + step <= t2:
-                    cur += step
-                    n += 1
-                parts.append((tier, start, cur))
+                nxt = cur + step
                 break
         else:
             # chưa thẳng biên phút (hoặc còn < 1 phút ở đuôi) → đọc raw đoạn ngắn
+            tier = "raw_events"
             nxt = min(t2, floor_to(cur, timedelta(minutes=1)) + timedelta(minutes=1))
-            parts.append(("raw_events", cur, nxt))
-            cur = nxt
+        if parts and parts[-1][0] == tier and parts[-1][2] == cur:
+            parts[-1] = (tier, parts[-1][1], nxt)   # gộp với mảnh liền trước cùng tầng
+        else:
+            parts.append((tier, cur, nxt))
+        cur = nxt
     return parts
 ```
+
+> **Đã sửa một lỗi (14/10/2026).** Bản trước có vòng `while` bên trong đi tiếp *trong cùng tầng* tới hết khoảng:
+> chạm biên phút ở 03:18 là đọc **4.824 bucket phút** liền tới 11:42, không bao giờ lên tầng giờ hay ngày. Kết quả
+> vẫn đúng (nên khó thấy), chỉ là mất hết lợi ích của rollup nhiều tầng. Bản Java ở
+> [`10-event-counting`](../katalon-prep-java/10-event-counting/README.md) có test khoá đúng ví dụ này (84 phút + 31 giờ
+> + 2 ngày) và 20.000 khoảng ngẫu nhiên.
 
 **Chặn trên số mảnh** — nói được con số này là ghi điểm:
 

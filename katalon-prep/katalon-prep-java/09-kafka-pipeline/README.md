@@ -28,7 +28,7 @@ mvn -pl 09-kafka-pipeline test    # Chạy 7 unit/integration tests kiểm chứ
       ▼                              ▼
 [Batch Consumer Worker]       [Dead Letter Topic: .DLT]
       │                              │
-      ├─ Dedup qua processed_batch   └─ Lưu audit / cảnh báo PagerDuty
+      ├─ Dedup qua processed_batch + cộng số đếm trong 1 transaction   └─ Lưu audit / cảnh báo PagerDuty
       ├─ Phân loại: TRUE, FALSE, FAKE_KEY, MALFORMED
       ▼
 [Database: PostgreSQL / H2]
@@ -44,7 +44,7 @@ mvn -pl 09-kafka-pipeline test    # Chạy 7 unit/integration tests kiểm chứ
 | **1** | **Partition Hotspot (Skew)** | Key theo `tenant_id` khiến Big Tenant (40% tải) dồn hết vào 1 partition | Đổi partition key sang **`batch_id`** qua [`BatchIdPartitioner`](src/main/java/com/prep/kafka/producer/BatchIdPartitioner.java) $\rightarrow$ Tải chia đều 25% mỗi partition | [`PartitionSkewTest`](src/test/java/com/prep/kafka/PartitionSkewTest.java) |
 | **2** | **Consumer Lag & Rebalance Storm (P20)** | Consumer gọi downstream đồng bộ từng message ($500 \times 20\text{ms} = 10\text{s} > \text{max.poll.interval.ms}$) | Chuyển sang **Batch Listener** [`BatchEventConsumer`](src/main/java/com/prep/kafka/consumer/BatchEventConsumer.java) gộp DB update $\rightarrow$ xử lý 500 records trong <50ms | [`BatchProcessingVsSlowConsumerTest`](src/test/java/com/prep/kafka/BatchProcessingVsSlowConsumerTest.java) |
 | **3** | **Poison Pill Message làm sập Consumer** | Client gửi JSON sai format làm Deserializer crash lặp vô tận (Head-of-Line Blocking) | Cấu hình [`PoisonPillConfig`](src/main/java/com/prep/kafka/resilience/PoisonPillConfig.java) với `ErrorHandlingDeserializer` + `DeadLetterPublishingRecoverer` đẩy tự động sang `.DLT` | [`PoisonPillDltTest`](src/test/java/com/prep/kafka/PoisonPillDltTest.java) |
-| **4** | **Duplicate Delivery (Đếm trùng)** | Client timeout hoặc Kafka retry làm gửi lại batch cũ $\rightarrow$ counter bị tăng khống | [`RollupRepository`](src/main/java/com/prep/kafka/repository/RollupRepository.java) lưu bảng `processed_batch` và cập nhật lũy kế `GREATEST` $\rightarrow$ `reconcile_drift = 0` | [`IdempotentDeduplicationTest`](src/test/java/com/prep/kafka/IdempotentDeduplicationTest.java) |
+| **4** | **Duplicate Delivery (Đếm trùng)** | Client timeout hoặc Kafka redeliver làm batch cũ tới lần nữa $\rightarrow$ counter bị tăng khống | [`RollupRepository.applyBatchOnce`](src/main/java/com/prep/kafka/repository/RollupRepository.java) ghi dấu `processed_batch` **và** cộng số đếm trong **một transaction**: cả hai hoặc không gì (bản cũ tách hai transaction → consumer chết ở giữa là mất số) | [`IdempotentDeduplicationTest`](src/test/java/com/prep/kafka/IdempotentDeduplicationTest.java) |
 | **5** | **Producer Buffer Exhaustion** | Tải đột biến làm tràn RAM buffer của Kafka Producer (`BufferExhaustedException`) | Tích hợp [`ProducerRateLimiter`](src/main/java/com/prep/kafka/resilience/ProducerRateLimiter.java) theo thuật toán Token Bucket ở tầng REST Ingest API | [`ProducerRateLimitingTest`](src/test/java/com/prep/kafka/ProducerRateLimitingTest.java) |
 
 ---

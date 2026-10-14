@@ -1,0 +1,164 @@
+id: k06-build-rollup-job
+ep: 6
+week: 3
+tag: "K06 · BUILD 2"
+title: "Build 2: the rollup job — recompute, replace, seal"
+subtitle: "Three tiers from one query shape, a 30-minute window for late events, and the seal the reads rely on"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#33-rollup-job-tính-lại-rồi-ghi-đè
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#62-time-bucket-và-rollup-nhiều-tầng
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#65-late-arriving-data-và-watermark
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §3.3 · problem 04 §6.2, §6.5"}
+      - {t: "Code: rollup/RollupJob.java"}
+    lines:
+      - emma: "The write path only appends. Something still has to count. This video builds that something: a job that runs every minute and turns raw rows into minute, hour and day buckets, without ever adding to a counter."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: UTC, full: "Coordinated Universal Time", vi: "giờ chuẩn quốc tế"}
+    lines:
+      - emma: "SQL is the query language, and UTC is coordinated universal time."
+        focus: 1
+
+  - kind: code
+    chapter: "Replace"
+    heading: "One window, replaced in one transaction"
+    points: [b2-replace]
+    code: |
+      BEGIN;
+      DELETE FROM agg_1m WHERE bucket >= :from AND bucket < :to;
+      INSERT INTO agg_1m (tenant_id, bucket, outcome, cnt)
+      SELECT tenant_id,
+             date_bin('1 minute', ts, TIMESTAMPTZ '2000-01-01 00:00:00+00'),
+             outcome,
+             count(*)
+        FROM raw_events
+       WHERE ts >= :from AND ts < :to
+       GROUP BY 1, 2, 3;
+      -- the same shape twice more: agg_1h from agg_1m, agg_1d from agg_1h (sum instead of count)
+      UPDATE rollup_state SET sealed_until = GREATEST(sealed_until, :to);
+      COMMIT;
+    items:
+      - {lines: [2, 2], t: "throw the window's buckets away…", lang: sql}
+      - {lines: [3, 10], t: "…and recount them from raw: replace, never add"}
+      - {lines: [5, 5], t: "date_bin on a fixed UTC origin: no time-zone surprises"}
+      - {lines: [11, 12], t: "hours from minutes, days from hours; then move the seal"}
+    lines:
+      - emma: "Here is the whole idea in one transaction. Delete the buckets of a window."
+        focus: 0
+      - emma: "Then recount them from raw: group by tenant, minute and outcome, and insert. That's replace, not add. Run it twice, run it after a consumer replayed a batch, and the numbers are the same."
+        focus: 1
+      - emma: "The minute comes from date bin on a fixed UTC origin. Date trunc on a timestamp with time zone uses the session's zone, and a half-hour time zone would shift every hour bucket."
+        focus: 2
+      - emma: "The same shape runs twice more, hours from minutes and days from hours, with sum instead of count. Then the seal moves forward. Readers see the old buckets until commit, then the new ones, never a half-built window."
+        focus: 3
+
+  - kind: flow
+    chapter: "Every minute"
+    heading: "refreshRecent(): what runs every minute"
+    points: [b2-refresh-recent]
+    build: true
+    items:
+      - {t: "to = this minute's start", s: "the running minute is still filling: never seal it"}
+      - {t: "from = to − 30 min", s: "the recompute window: late events inside it are fixed for free"}
+      - {t: "Replace 3 tiers", s: "minutes [from, to), then the hours and days that touch them"}
+      - {t: "sealed_until = to", s: "reads use buckets before it, raw after it", tone: ok}
+    lines:
+      - emma: "Every minute, the job picks its window. The end is the start of the current minute. Never the current minute itself, because it's still filling."
+        focus: 0
+      - emma: "The start is thirty minutes earlier. That's the recompute window. Every bucket in it is recounted thirty times, once a minute, so anything that arrives up to thirty minutes late is fixed for free."
+        focus: 1
+      - emma: "It replaces those minutes, then the hours and days that touch them, each from the tier below."
+        focus: 2
+      - emma: "And it moves the seal. Before the seal, reads use buckets. After it, at most a minute or two, reads go to raw."
+        focus: 3
+
+  - kind: exercise
+    chapter: "A late event"
+    label: "Question"
+    q: "It is 10:05:30. The seal is at 10:05. A batch arrives whose event time is 09:58:10. Where is it counted, and when does a query for 09:58–09:59 include it?"
+    items:
+      - {t: "The bucket 09:58 was sealed several minutes ago"}
+    lines:
+      - emma: "Test it with a late event. It's ten oh five and thirty seconds, sealed up to ten oh five. A batch arrives whose event time is nine fifty-eight. Where is it counted, and when does the query for that minute see it?"
+      - wait: 7
+        note: "Which minute? Inside or outside the recompute window?"
+
+  - kind: table
+    chapter: "Measured"
+    heading: "The late batch, step by step (test output)"
+    points: [b2-late-measured]
+    columns: ["Time", "What happens", "Bucket 09:58"]
+    widths: [0.16, 0.62, 0.22]
+    mono: [2]
+    build: true
+    rows:
+      - ["10:05:30", "batch with event time 09:58:10 is inserted into raw", "0"]
+      - ["10:05:30", "query 09:58–09:59: sealed, so read from the bucket", "0 (stale)"]
+      - ["10:06:30", "the job recomputes 09:36–10:06, which contains 09:58", "20"]
+    note: "RollupAndQueryTest.aLateEventInsideTheWindowMovesToItsBucketOnTheNextRun"
+    lines:
+      - emma: "Here's the test output. At ten oh five thirty, the twenty items go into raw with their event time, nine fifty-eight."
+        focus: 0
+      - emma: "A query right now still says zero for that minute. The bucket is sealed, and it hasn't been recounted yet. That's the staleness the two oh two promised: at most one job period."
+        focus: 1
+      - emma: "At ten oh six thirty, the job recounts the window from nine thirty-six, and the bucket becomes twenty. Counted by event time, in nine fifty-eight, not in ten oh five where it arrived."
+        focus: 2
+
+  - kind: table
+    chapter: "Later still"
+    heading: "How late can an event be?"
+    points: [b2-late-levels]
+    columns: ["Late by", "Who fixes the bucket", "How"]
+    widths: [0.20, 0.30, 0.50]
+    rows:
+      - ["≤ 30 minutes", "the next rollup run", "inside the recompute window: automatic"]
+      - ["30 min – 24 h", "the hourly reconcile", "counts differ → recompute that hour (K07)"]
+      - ["1 – 7 days", "a backfill you call", "refresh(from, to): raw is still there"]
+      - ["> 7 days", "nobody: refused", "422 + rejectedTooLate metric, never silent"]
+    lines:
+      - emma: "So how late can an event be? Up to thirty minutes, the next run fixes it."
+        focus: 0
+      - emma: "Up to a day, the hourly reconcile notices the mismatch and recomputes that hour. That's the next video."
+        focus: 1
+      - emma: "Up to seven days, raw is still there, so you can call a backfill for the range. Older than that, raw is gone, so the request is refused, and a metric counts it, never silently."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Trade-offs"
+    heading: "Choices to defend"
+    points: [b2-tradeoffs]
+    items:
+      - {t: "Why 30 minutes?", s: "longer = more late events fixed for free, but each run recounts more raw rows"}
+      - {t: "Why delete + insert, not upsert with cnt = new?", s: "an upsert never removes a bucket that should now be empty; delete + insert does"}
+      - {t: "Two copies of the job at once?", s: "numbers stay right (it only replaces), work is wasted: guard with pg_try_advisory_lock"}
+      - {t: "Why not TimescaleDB continuous aggregates?", s: "same idea, built in: a refresh window and real-time union. Plain Postgres shows the mechanism"}
+    lines:
+      - emma: "Four choices you should be able to defend. Why thirty minutes? Longer fixes more late events for free, but every run recounts more raw. Mobile clients that go offline for hours would push me to a separate, slower backfill rather than a longer window."
+        focus: 0
+      - emma: "Why delete and insert, rather than an upsert that sets the new count? Because an upsert never removes a bucket that should now be empty. Delete and insert replaces the whole window."
+        focus: 1
+      - emma: "What if two copies of the job run at once? The numbers stay right, because it only replaces. The work is wasted, so guard it with a Postgres advisory lock."
+        focus: 2
+      - emma: "And TimescaleDB continuous aggregates are the same idea built in, with a refresh window and a real-time union. Plain Postgres just makes the mechanism visible."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "Delete + recount in one transaction: replace, never add"}
+      - {t: "Every minute: window [now − 30 min, start of this minute)"}
+      - {t: "Late ≤ 30 min fixed by the next run; later by reconcile or backfill"}
+      - {t: "The seal: buckets before it, raw after it"}
+    lines:
+      - emma: "Recap. The job deletes and recounts a window in one transaction, every minute, over the last thirty minutes. Late events are fixed by the next run, the reconcile, or a backfill. And the seal tells readers where buckets end. Next, the read path."
+        focus: 3

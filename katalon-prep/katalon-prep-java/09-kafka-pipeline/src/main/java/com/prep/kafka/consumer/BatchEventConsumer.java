@@ -47,15 +47,7 @@ public class BatchEventConsumer {
             EventBatch batch = record.value();
             if (batch == null) continue;
 
-            // 1. Kiem tra tinh Idempotency (chong dem trung)
-            boolean isNew = rollupRepo.tryRecordBatch(batch.batchId(), batch.tenantId());
-            if (!isNew) {
-                batchSkipped++;
-                skippedDuplicates.incrementAndGet();
-                continue;
-            }
-
-            // 2. Phan loai va gom bo dem theo phut cua event
+            // 1. Phan loai va gom bo dem theo phut cua EVENT time
             long bucketMinute = (batch.timestamp() != null)
                     ? batch.timestamp().getEpochSecond() / 60
                     : System.currentTimeMillis() / 60000;
@@ -66,8 +58,12 @@ public class BatchEventConsumer {
                 counts.put(outcome, counts.getOrDefault(outcome, 0L) + 1);
             }
 
-            // 3. Cap nhat vao Database
-            rollupRepo.recordAggregates(batch.tenantId(), bucketMinute, counts);
+            // 2. Danh dau batch va cong so dem trong MOT transaction (chong dem trung, khong mat khi crash)
+            if (!rollupRepo.applyBatchOnce(batch.batchId(), batch.tenantId(), bucketMinute, counts)) {
+                batchSkipped++;
+                skippedDuplicates.incrementAndGet();
+                continue;
+            }
             batchApplied++;
             appliedBatches.incrementAndGet();
             totalEventsProcessed.addAndGet(batch.items().size());

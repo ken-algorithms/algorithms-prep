@@ -1,0 +1,210 @@
+id: k09-code-rollup-and-query
+ep: 9
+week: 4
+tag: "K09 · CODE 2"
+title: "Code 2: RollupJob, RangeDecomposer and StatsService"
+subtitle: "The counting side and the answering side, line by line"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#33-rollup-job-tính-lại-rồi-ghi-đè
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#34-đường-đọc-phân-rã-khoảng-bất-kỳ
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §3.3, §3.4, §4"}
+      - {t: "Files: rollup/RollupJob · query/RangeDecomposer · query/StatsService · Jobs"}
+    lines:
+      - emma: "This video reads the two halves that replace approach three's counters: the job that counts, and the code that answers a range."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: UTC, full: "Coordinated Universal Time", vi: "giờ chuẩn quốc tế"}
+    lines:
+      - emma: "SQL is the query language, and UTC is coordinated universal time."
+        focus: 1
+
+  - kind: code
+    chapter: "refreshRecent"
+    heading: "RollupJob.refreshRecent(): the scheduled call"
+    points: [c2-refresh]
+    code: |
+      public Instant refreshRecent() {
+          Instant to = floor(clock.instant(), MINUTE);   // never seal the running minute
+          Instant from = to.minus(RECOMPUTE_WINDOW);     // 30 minutes
+          tx.executeWithoutResult(s -> {
+              replaceAll(from, to);
+              jdbc.update("UPDATE rollup_state"
+                      + " SET sealed_until = GREATEST(sealed_until, ?) WHERE id = 1", utc(to));
+          });
+          return to;
+      }
+
+      private void replaceAll(Instant from, Instant to) {   // each tier reads the one below
+          replace("agg_1m", "1 minute", "raw_events", "ts", "count(*)", from, to);
+          replace("agg_1h", "1 hour", "agg_1m", "bucket", "sum(cnt)",
+                  floor(from, HOUR), ceil(to, HOUR));
+          replace("agg_1d", "1 day", "agg_1h", "bucket", "sum(cnt)",
+                  floor(from, DAY), ceil(to, DAY));
+      }
+    items:
+      - {lines: [1, 3], t: "the window: [start of this minute − 30 min, start of this minute)"}
+      - {lines: [4, 8], t: "replace and seal in ONE transaction"}
+      - {lines: [12, 18], t: "minutes from raw; hours from minutes; days from hours"}
+    lines:
+      - emma: "Refresh recent is what the scheduler calls every minute. The window ends at the start of the current minute and begins thirty minutes earlier. The clock is injected, so tests can move time by hand."
+        focus: 0
+      - emma: "Replacing the buckets and moving the seal happen in one transaction. A reader never sees a seal that points past buckets that aren't there yet."
+        focus: 1
+      - emma: "Replace all calls one method three times. Minutes from raw with count, hours from minutes with sum, days from hours with sum. The hour and day windows widen to whole hours and days that touch the minute window."
+        focus: 2
+
+  - kind: code
+    chapter: "replace"
+    heading: "RollupJob.replace(): delete, then recount"
+    points: [c2-replace]
+    code: |
+      private void replace(String target, String width, String source, String timeCol,
+                           String count, Instant from, Instant to) {
+          jdbc.update("DELETE FROM " + target + " WHERE bucket >= ? AND bucket < ?",
+                  utc(from), utc(to));
+          jdbc.update("INSERT INTO " + target + " (tenant_id, bucket, outcome, cnt) "
+                  + "SELECT tenant_id, date_bin('" + width + "', " + timeCol + ", " + ORIGIN + "), "
+                  + "outcome, " + count + " FROM " + source
+                  + " WHERE " + timeCol + " >= ? AND " + timeCol + " < ? GROUP BY 1, 2, 3",
+                  utc(from), utc(to));
+      }
+
+      public void refresh(Instant from, Instant to) {   // backfill or repair; keeps the seal
+          tx.executeWithoutResult(s -> replaceAll(floor(from, MINUTE), ceil(to, MINUTE)));
+      }
+    items:
+      - {lines: [3, 4], t: "delete the target buckets of the window"}
+      - {lines: [5, 9], t: "recount them from the source: count(*) or sum(cnt)"}
+      - {lines: [12, 14], t: "the same code repairs any closed window"}
+    lines:
+      - emma: "Replace is two statements. Delete the target's buckets in the window."
+        focus: 0
+      - emma: "Then insert, select, grouped by tenant, bucket and outcome, with date bin on the fixed UTC origin. Table names are constants in this class, never user input, so the string building is safe."
+        focus: 1
+      - emma: "And refresh, the public twin, reuses it for any closed window, without moving the seal. That's what a backfill calls, and what the reconciler calls to repair an hour."
+        focus: 2
+
+  - kind: code
+    chapter: "Decompose"
+    heading: "RangeDecomposer.decompose()"
+    points: [c2-decompose]
+    code: |
+      public static List<Part> decompose(Instant from, Instant to, Instant sealedUntil) {
+          List<Part> parts = new ArrayList<>();
+          Instant rolledEnd = clamp(sealedUntil, from, to);  // buckets only before the seal
+          Instant cur = from;
+          while (cur.isBefore(rolledEnd)) {
+              Tier tier = coarsestFitting(cur, rolledEnd);    // DAY, else HOUR, else MINUTE
+              Instant next = tier != null
+                      ? cur.plus(tier.step)                   // exactly ONE bucket
+                      : min(rolledEnd, floor(cur, MINUTE).plus(MINUTE));   // raw edge
+              add(parts, tier != null ? tier : Tier.RAW, cur, next);      // merges equal tiers
+              cur = next;
+          }
+          if (rolledEnd.isBefore(to)) {
+              add(parts, Tier.RAW, rolledEnd, to);            // not sealed yet: read it live
+          }
+          return parts;
+      }
+    items:
+      - {lines: [3, 3], t: "buckets are only trusted before sealed_until"}
+      - {lines: [6, 9], t: "re-choose the tier at every step; one bucket at a time"}
+      - {lines: [10, 10], t: "add() extends the previous piece when the tier is the same"}
+      - {lines: [13, 15], t: "the tail after the seal comes from raw"}
+    lines:
+      - emma: "The decomposer is pure Java, no database, which makes it easy to test hard. Buckets are only trusted up to the seal."
+        focus: 0
+      - emma: "In the loop, the tier is chosen again at every step: the coarsest bucket that starts here and fits. One bucket per step. This is the line the old Python got wrong."
+        focus: 1
+      - emma: "Add extends the previous piece when the tier matches, so the output is a handful of pieces, not hundreds."
+        focus: 2
+      - emma: "And whatever lies after the seal is read live from raw."
+        focus: 3
+
+  - kind: code
+    chapter: "Stats"
+    heading: "StatsService.query(): sum the pieces"
+    points: [c2-stats]
+    code: |
+      List<Part> parts = RangeDecomposer.decompose(from, to, rollup.sealedUntil());
+      long[] counts = new long[4];                       // indexed by outcome code
+      for (Part p : parts) {
+          if (p.tier() == Tier.RAW) {
+              jdbc.query("SELECT outcome, count(*) FROM raw_events"
+                       + " WHERE tenant_id = ? AND ts >= ? AND ts < ? GROUP BY outcome",
+                       rs -> { counts[rs.getInt(1)] += rs.getLong(2); }, tenantId, ...);
+          } else {
+              jdbc.query("SELECT outcome, sum(cnt), count(*) FROM " + p.tier().table
+                       + " WHERE tenant_id = ? AND bucket >= ? AND bucket < ? GROUP BY outcome",
+                       rs -> { counts[rs.getInt(1)] += rs.getLong(2); }, tenantId, ...);
+          }
+      }
+      return Stats.of(counts, parts.size(), bucketRows, rawRows);
+      // Stats.of: successRate = true / (true + false), computed here, never stored
+    items:
+      - {lines: [1, 2], t: "one array of four counts"}
+      - {lines: [4, 7], t: "raw pieces: count rows"}
+      - {lines: [8, 12], t: "bucket pieces: sum counts (and count rows read, for the proof)"}
+      - {lines: [14, 15], t: "the rate is divided at read time"}
+    lines:
+      - emma: "Stats service asks for the seal, decomposes, and keeps one array of four counts, indexed by outcome code."
+        focus: 0
+      - emma: "Raw pieces are counted. Bucket pieces are summed, and the number of bucket rows read is recorded too, so tests can prove the read cost stays small."
+        focus: 2
+      - emma: "Stats of divides true by true plus false right here, at read time. The rate is never stored."
+        focus: 3
+
+  - kind: code
+    chapter: "Wiring"
+    heading: "Jobs: the four schedules"
+    points: [c2-jobs]
+    code: |
+      @Scheduled(fixedDelay = 60_000)
+      public void reloadKeys() { registry.replace(Set.copyOf(jdbc.queryForList(...))); }
+
+      @Scheduled(fixedDelay = 60_000, initialDelay = 5_000)
+      public void rollup() { log.info("sealed until {}", rollup.refreshRecent()); }
+
+      @Scheduled(cron = "0 5 * * * *")                  // five past every hour
+      public void reconcile() { reconciler.reconcileLastHours(24); }
+
+      @Scheduled(fixedDelay = 3_600_000, initialDelay = 0)
+      public void partitions() {
+          for (int d = -7; d <= 1; d++) partitions.ensureDay(today.plusDays(d));
+          partitions.dropBefore(today.minus(IngestService.RAW_RETENTION));
+      }
+    items:
+      - {lines: [1, 2], t: "swap in a fresh registry every minute"}
+      - {lines: [4, 5], t: "count every minute"}
+      - {lines: [7, 8], t: "prove every hour"}
+      - {lines: [10, 14], t: "create partitions ahead; drop the ones past retention"}
+    lines:
+      - emma: "The Spring layer adds four schedules. Reload the key registry every minute."
+        focus: 0
+      - emma: "Roll up every minute."
+        focus: 1
+      - emma: "Reconcile the last twenty-four hours at five past every hour."
+        focus: 2
+      - emma: "And manage partitions: create today and its neighbours ahead of time, drop the days older than retention. With several instances, wrap these in an advisory lock so only one runs them."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "refreshRecent: window, replace, seal — one transaction"}
+      - {t: "replace: delete + insert … select, three times"}
+      - {t: "decompose: one bucket per step, merge, raw after the seal"}
+      - {t: "query: sum the pieces, divide the rate at read time"}
+    lines:
+      - emma: "Recap. Refresh recent replaces a window and seals it in one transaction. Replace is delete plus insert select, three times. Decompose takes one bucket per step. Query sums the pieces and divides at read time. Next: the tests that prove all of it."
+        focus: 3

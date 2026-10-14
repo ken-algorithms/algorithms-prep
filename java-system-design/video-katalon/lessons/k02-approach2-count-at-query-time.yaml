@@ -1,0 +1,152 @@
+id: k02-approach2-count-at-query-time
+ep: 2
+week: 2
+tag: "K02 · APPROACH 2 · REJECTED"
+title: "Approach 2: store every event, count when asked"
+subtitle: "Correct on five tests out of six — rejected for the read path, kept as the source of truth"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#22-cách-2--lưu-mọi-event-đếm-lúc-hỏi
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#61-data-model
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §2.2 · problem 04 §3, §6.1"}
+      - {t: "Code: rejected/RawScanStats.java · RejectedApproachesTest"}
+    lines:
+      - emma: "Approach one lost time. So approach two keeps everything: one row per key-value item, with its event time, and counts when someone asks. It turns out to be half of the right answer."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã 128 bit; ở đây sinh tất định từ batch"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "SQL is the query language. UUID is a universally unique identifier, a hundred twenty-eight bits, and ID simply means identifier."
+        focus: 2
+
+  - kind: code
+    chapter: "The idea"
+    heading: "One row per item, counted on demand"
+    points: [a2-idea]
+    code: |
+      CREATE TABLE raw_events (
+          event_id   uuid        NOT NULL,   -- same id on every retry of the same batch
+          ts         timestamptz NOT NULL,   -- event time, sent by the client
+          tenant_id  text        NOT NULL,
+          key_name   text        NOT NULL,
+          outcome    smallint    NOT NULL,   -- 0 false, 1 true, 2 fake key, 3 malformed
+          PRIMARY KEY (event_id, ts));
+
+      INSERT INTO raw_events VALUES (...), (...)  ON CONFLICT (event_id, ts) DO NOTHING;
+
+      -- the answer, for any range:
+      SELECT outcome, count(*) FROM raw_events
+       WHERE tenant_id = ? AND ts >= ? AND ts < ?  GROUP BY outcome;
+    items:
+      - {lines: [1, 7], t: "one row per item: event time and one of four outcomes", lang: sql}
+      - {lines: [9, 9], t: "a retried batch produces the same ids: the insert is a no-op"}
+      - {lines: [11, 13], t: "any range, exact, by counting"}
+    lines:
+      - emma: "Every key-value item becomes a row: an event ID, the event time sent by the client, the tenant, the key, and one of four outcomes."
+        focus: 0
+      - emma: "The event ID is the same on every retry of the same batch. So a retried insert hits the primary key and does nothing. Retries are harmless."
+        focus: 1
+      - emma: "And any range is answered exactly, by counting rows between two instants. Test one, passed."
+        focus: 2
+
+  - kind: table
+    chapter: "Five passes"
+    heading: "Approach 2 against the six tests"
+    points: [a2-scorecard]
+    columns: ["Test", "Result", "Why"]
+    widths: [0.30, 0.12, 0.58]
+    accent: [1]
+    rows:
+      - ["T1 any range", "✓", "WHERE ts >= from AND ts < to"]
+      - ["T2 cheap reads", "✗", "cost grows with the data in the range"]
+      - ["T3 retries", "✓", "deterministic event id + ON CONFLICT DO NOTHING"]
+      - ["T4 late events", "✓", "the row carries its event time"]
+      - ["T5 find and fix", "✓", "the raw rows are the truth itself"]
+      - ["T6 no shared lock", "✓", "plain appends; nobody updates a shared row"]
+    lines:
+      - emma: "Score it. Any range, yes. Retries, yes, through the deterministic ID. Late events, yes: each row carries its own event time."
+        focus: 3
+      - emma: "Find and fix, yes: the rows are the truth itself. And no shared lock: everyone just appends."
+        focus: 5
+      - emma: "Five out of six. The one it fails is test two, cheap reads. Let's measure how badly."
+        focus: 1
+
+  - kind: exercise
+    chapter: "Test T2"
+    label: "Question"
+    q: "A dashboard shows “last 24 hours” and refreshes every 10 seconds. How many rows does approach 2 count per refresh? And for “last year”?"
+    items:
+      - {t: "3,333 events a second, 20 per request"}
+    lines:
+      - emma: "Your turn. A dashboard shows the last twenty-four hours and refreshes every ten seconds. How many rows does each refresh count? And for the last year?"
+      - wait: 7
+        note: "3,333 × 86,400 = ?"
+
+  - kind: stats
+    chapter: "The cost"
+    heading: "What one question costs"
+    points: [a2-read-cost]
+    items:
+      - {v: "288M", l: "rows per “last 24 hours”", s: "3,333/s × 86,400 s, on every refresh"}
+      - {v: "105 billion", l: "rows per “last year”", s: "288M × 365"}
+      - {v: "an index won't save it", l: "still one index entry per event", s: "the work grows with the range, not the answer"}
+    lines:
+      - emma: "Two hundred eighty-eight million rows, counted on every refresh. A year is a hundred five billion."
+        focus: 1
+      - emma: "An index on time doesn't change the shape. It still visits one entry per event in the range. The work grows with the data, while the answer stays four numbers."
+        focus: 2
+
+  - kind: table
+    chapter: "Measured"
+    heading: "Measured: one range of 5 hours 25 minutes"
+    points: [a2-measured]
+    columns: ["Read path", "Rows read", "Answer"]
+    widths: [0.46, 0.30, 0.24]
+    mono: [1]
+    rows:
+      - ["Approach 2: count raw rows", "32,460", "same four numbers"]
+      - ["Accepted design: buckets + raw edges", "337 + 60", "same four numbers"]
+    note: "RejectedApproachesTest.approach2CountsEveryRowTheBestReadsBuckets, on 6 hours of test traffic (1,800 batches)"
+    lines:
+      - emma: "Measured in the test suite, on six hours of test traffic. One range of five hours twenty-five minutes: approach two counts thirty-two thousand raw rows."
+        focus: 0
+      - emma: "The accepted design gives the same four numbers from three hundred thirty-seven bucket rows, plus sixty raw rows at the ragged edges. At real volume the gap is a factor of thousands."
+        focus: 1
+
+  - kind: bullets
+    chapter: "Keep half"
+    heading: "Rejected for reads — but keep the raw table"
+    points: [a2-keep-raw]
+    items:
+      - {t: "Raw rows are the source of truth", s: "approach 4 keeps this table exactly"}
+      - {t: "Idempotency lives here, at the bottom", s: "event id + ON CONFLICT: a retry can't double anything above it"}
+      - {t: "It is the oracle in every test", s: "always right, so every faster answer must equal it"}
+      - {t: "Retention: 7 days of raw", s: "~120 GB before compression; old days are dropped whole"}
+    lines:
+      - emma: "So we reject approach two as a read path, but we keep its table. Raw rows are the source of truth, and idempotency lives here, at the bottom, where a retry can't double anything above it."
+        focus: 1
+      - emma: "It also becomes the oracle. Because counting raw is always right, every test of the faster design compares against it."
+        focus: 2
+      - emma: "We keep seven days of it, about a hundred twenty gigabytes before compression, and drop old days whole."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "One row per item + deterministic id: five tests out of six"}
+      - {t: "Fails T2: 288M rows counted per “last 24 hours”"}
+      - {t: "Measured: 32,460 rows vs 337 + 60 for the same answer"}
+      - {t: "Keep it as the truth and the oracle"}
+    lines:
+      - emma: "Recap. Store every item with a deterministic ID and you pass five tests. You fail cheap reads by a factor of thousands. Keep the table as the truth and the oracle. Next, approach three counts ahead of time, per minute, to fix the reads."
+        focus: 3

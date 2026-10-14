@@ -67,6 +67,8 @@ multi-module Maven với `${revision}` · Strategy + Facade · `CompletableFutur
 | **06** | [`06-distributed-resilience/`](06-distributed-resilience/) | **19** | Retry + backoff + **jitter** (thundering herd), Kafka simulator: partition/ordering/hot partition, consumer group + **rebalance**, at-least-once → idempotent, **DLQ** |
 | **07** | [`07-dsa-drill/`](07-dsa-drill/) | 3 + 18 ⏸ | Harness luyện **20 bài on-domain**, tắt Copilot, bấm giờ. Test `@Disabled` sẵn — bỏ annotation khi bắt đầu |
 | **08** | [`08-system-design/`](08-system-design/) | **24** | **System design chạy được.** Bin-packing LPT (**3.81×**), weighted fair queueing, token bucket, circuit breaker 3 pha, idempotency + bẫy TTL |
+| **09** | [`09-kafka-pipeline/`](09-kafka-pipeline/) | **8** | Spring Kafka: lệch partition (key tenant vs batch_id), consumer theo lô, poison pill → DLT, đánh dấu batch + cộng số trong **một** transaction, token bucket |
+| **10** | [`10-event-counting/`](10-event-counting/) | **20** | **Bài đếm sự kiện đã hỏi thật, giải từng bước.** Ba cách bị bác viết thành code để test cho thấy chúng trượt; cách được chọn (raw + rollup ghi đè + phân rã khoảng + đối soát) trên **PostgreSQL 16 thật**: 500 khoảng ngẫu nhiên khớp `COUNT(*)` |
 
 ## Sáu bug thật, tất cả chỉ lộ khi CHẠY
 

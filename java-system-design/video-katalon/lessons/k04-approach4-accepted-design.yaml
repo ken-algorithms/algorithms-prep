@@ -1,0 +1,186 @@
+id: k04-approach4-accepted-design
+ep: 4
+week: 2
+tag: "K04 · APPROACH 4 · ACCEPTED"
+title: "Approach 4: raw truth, rollups that recompute, ranges that decompose"
+subtitle: "Take the good half of approaches 2 and 3, join them with one rule, and pass all six tests"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#24-cách-4--raw--rollup-tính-lại--phân-rã-khoảng-cách-được-chọn
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#25-bảng-chấm-cả-bốn-cách
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#7-chọn-tech-stack--3-phương-án-và-ngưỡng-chuyển
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §2.4, §2.5 · problem 04 §4, §7"}
+      - {t: "Part A, last step: the design that survives"}
+    lines:
+      - emma: "Approach two had the truth, but slow reads. Approach three had fast reads, but no truth and no idempotency. Approach four takes the good half of each and joins them with a single rule."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: API, full: "application programming interface", vi: "giao diện lập trình: POST /events, GET /stats"}
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+    lines:
+      - emma: "API is the application programming interface, our two endpoints. SQL is the query language, and ID means identifier."
+        focus: 2
+
+  - kind: bullets
+    chapter: "The rule"
+    heading: "Two halves and one rule"
+    points: [a4-rule]
+    items:
+      - {t: "From approach 2: raw rows are the truth", s: "deterministic event id, insert or ignore → retries are harmless at the bottom"}
+      - {t: "From approach 3: count ahead, per time bucket", s: "minute, hour and day tiers → cheap reads for any range"}
+      - {t: "The rule: a bucket is recomputed from its source and replaced", s: "never cnt = cnt + n; running it twice gives the same number"}
+      - {t: "And: writing is separate from counting", s: "the request appends and returns 202; a job counts every minute"}
+    lines:
+      - emma: "From approach two, keep the raw rows as the truth, with the deterministic ID that makes retries harmless."
+        focus: 0
+      - emma: "From approach three, keep counting ahead of time, per bucket: minutes, hours and days."
+        focus: 1
+      - emma: "And join them with one rule. A bucket is never incremented. It is recomputed from its source, and replaced. Run the job twice, or after a replay, and you get the same number."
+        focus: 2
+      - emma: "That also separates writing from counting. A request only appends, and returns two oh two. A job counts, every minute."
+        focus: 3
+
+  - kind: diagram
+    chapter: "The design"
+    heading: "The accepted design"
+    points: [a4-diagram]
+    nodes:
+      - {id: c, label: "Client", sub: "batchId + event time", x: 100, y: 60, w: 180, h: 70, shape: user}
+      - {id: api, label: "Ingest", sub: "validate · classify · 202", x: 430, y: 60, w: 220, h: 70}
+      - {id: raw, label: "raw_events", sub: "truth · a partition a day", x: 800, y: 60, w: 230, h: 70, shape: db, tone: ok}
+      - {id: job, label: "RollupJob", sub: "every minute: last 30 min", x: 800, y: 200, w: 240, h: 70, at: 1}
+      - {id: agg, label: "agg_1m · 1h · 1d", sub: "derived, replaceable", x: 1045, y: 330, w: 220, h: 70, shape: db, at: 1}
+      - {id: q, label: "Stats", sub: "decompose · sum", x: 700, y: 330, w: 210, h: 70, at: 2}
+      - {id: rec, label: "Reconciler", sub: "hourly: raw = rollup?", x: 360, y: 250, w: 220, h: 70, at: 3, tone: warn}
+    edges:
+      - {a: c, b: api, label: "POST /events"}
+      - {a: api, b: raw, label: "append"}
+      - {a: raw, b: job, at: 1}
+      - {a: job, b: agg, label: "replace", at: 1}
+      - {a: agg, b: q, label: "buckets", at: 2}
+      - {a: raw, b: q, label: "edges", dashed: true, at: 2}
+      - {a: rec, b: raw, label: "count", dashed: true, at: 3}
+      - {a: rec, b: agg, label: "sum", dashed: true, at: 3}
+    lines:
+      - emma: "The client posts a batch. Ingest validates it, classifies each item, appends raw rows without any lock, and answers two oh two."
+        focus: 0
+      - emma: "Every minute, the rollup job recomputes the last thirty minutes of buckets from raw, and replaces them: minutes from raw, hours from minutes, days from hours."
+        focus: 1
+      - emma: "A question splits its range into the fewest buckets, coarse in the middle and fine at the edges, and sums them. Only the ragged edges, and the last minute or so not yet rolled up, are read from raw."
+        focus: 2
+      - emma: "And every hour, a reconciler checks that counting raw equals summing the rollup, hour by hour. If not, it raises an alert and recomputes that hour."
+        focus: 3
+
+  - kind: table
+    chapter: "Scorecard"
+    heading: "All four approaches, six tests"
+    points: [a4-scorecard]
+    columns: ["Approach", "T1 range", "T2 reads", "T3 retry", "T4 late", "T5 fix", "T6 writes", "Verdict"]
+    widths: [0.30, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.22]
+    accent: [7]
+    build: true
+    rows:
+      - ["1 · lock + running total", "✗", "✓", "✗", "✗", "✗", "✗", "rejected (T1)"]
+      - ["2 · raw, count on demand", "✓", "✗", "✓", "✓", "✓", "✓", "rejected (T2) · keep raw"]
+      - ["3 · minute counters + n", "✓", "✓", "✗", "✓", "✗", "✓", "rejected (T3, T5)"]
+      - ["4 · raw + recomputed rollups", "✓", "✓", "✓", "✓", "✓", "✓", "accepted"]
+    lines:
+      - emma: "Here is the whole of part A on one slide. Approach one fails the range, fatally."
+        focus: 0
+      - emma: "Approach two fails cheap reads, but its raw table survives into the answer."
+        focus: 1
+      - emma: "Approach three fails retries and fixing."
+        focus: 2
+      - emma: "Approach four passes all six. Each tick has a test behind it in the code, which part C walks through."
+        focus: 3
+
+  - kind: table
+    chapter: "Why each passes"
+    heading: "How approach 4 passes each test"
+    points: [a4-why]
+    columns: ["Test", "Mechanism"]
+    widths: [0.26, 0.74]
+    rows:
+      - ["T1 any range", "minute / hour / day buckets + raw for edges under a minute"]
+      - ["T2 cheap reads", "a one-year range reads at most 529 buckets, whatever the write rate"]
+      - ["T3 retries", "same event id → insert ignored; buckets are recounts, not increments"]
+      - ["T4 late events", "bucket by event time; the last 30 minutes are recomputed every minute"]
+      - ["T5 find and fix", "raw kept 7 days; hourly reconcile compares and repairs"]
+      - ["T6 no shared lock", "writers only append; the job is the only writer of buckets"]
+    lines:
+      - emma: "Any range comes from buckets plus raw for the edges. Reads stay bounded: a full year is at most five hundred twenty-nine buckets."
+        focus: 1
+      - emma: "Retries are ignored at the raw insert, and buckets are recounts, so nothing above can double. Late events are fixed by recomputing the last thirty minutes every minute."
+        focus: 3
+      - emma: "Raw is kept for seven days, so the reconciler can find and repair any bucket. And writers never touch a shared row: the job is the only writer of buckets."
+        focus: 5
+
+  - kind: exercise
+    chapter: "Kafka?"
+    label: "Question"
+    q: "The job description mentions Kafka. Do you put Kafka in this design at 10,000 requests a minute?"
+    items:
+      - {t: "3,333 events a second"}
+      - {t: "One PostgreSQL node takes tens of thousands of batched inserts a second"}
+    lines:
+      - emma: "A trap question. The job description mentions Kafka. Do you put Kafka into this design, at ten thousand requests a minute?"
+      - wait: 7
+        note: "What would Kafka buy you here, and what would it cost to run?"
+
+  - kind: table
+    chapter: "Right-size"
+    heading: "Not yet — and say exactly when"
+    points: [a4-right-size]
+    columns: ["Move to a log + stream processor when…", "Why"]
+    widths: [0.52, 0.48]
+    rows:
+      - ["> ~50k events/s, sustained", "one PostgreSQL node starts to struggle (order of magnitude)"]
+      - ["a breakdown per key with > ~10k keys", "the most common real reason: rollup rows explode"]
+      - ["replay further back than 7 days of raw", "to recompute under a new metric definition"]
+      - ["several independent consumers of the stream", "alerting, billing, machine learning on the same events"]
+    lines:
+      - emma: "Not yet. Three thousand events a second is a small fraction of one Postgres node. Kafka would add systems to run, in exchange for capacity nobody uses."
+      - emma: "But don't just say no. Name the thresholds. Above about fifty thousand events a second, sustained. A breakdown per key with more than ten thousand keys, which is the most common real reason."
+        focus: 1
+      - emma: "Replay further back than raw retention. Or several independent consumers of the same stream. Saying when is the senior signal. Part D does exactly that move, at ten million a minute."
+        focus: 3
+
+  - kind: speech
+    chapter: "Four sentences"
+    heading: "If you remember only four sentences"
+    points: [a4-four-sentences]
+    items:
+      - {t: "“Writing is separate from counting: the request appends and returns 202; a job counts.”"}
+      - {t: "“Count per time bucket, not in one total, because the question asks for any range.”"}
+      - {t: "“Raw is the truth and buckets are recomputed, never incremented, so retries and replays can't double anything.”"}
+      - {t: "“This load doesn't need Kafka yet, and here is the exact threshold where it would.”"}
+    lines:
+      - read: emma
+        focus: 0
+      - read: emma
+        focus: 1
+      - read: emma
+        focus: 2
+      - read: emma
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap and what's next"
+    style: check
+    items:
+      - {t: "Raw truth + per-bucket counting, joined by recompute-and-replace"}
+      - {t: "Passes T1–T6; each pass has a test in part C"}
+      - {t: "One PostgreSQL is enough; name the thresholds for more"}
+      - {t: "Next, part B: build it, table by table"}
+    lines:
+      - emma: "Recap. Raw truth plus per-bucket counting, joined by recompute and replace. It passes all six tests on one Postgres, and you can name the thresholds for more. Next, part B builds it, table by table."
+        focus: 3

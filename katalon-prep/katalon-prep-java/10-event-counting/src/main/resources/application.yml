@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/stats}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:dev}
+  sql:
+    init:
+      mode: always          # schema.sql is idempotent: safe on every start
+server:
+  port: 8080

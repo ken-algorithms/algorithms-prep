@@ -128,14 +128,15 @@
   {
    "id": "ep01-replication",
    "ep": 1,
+   "code": "Ep01",
    "week": 5,
    "title": "Replication: leaders, followers, and lag",
    "subtitle": "Three models, synchronous or asynchronous, the anomalies of lag, and a dangerous failover",
    "file": "ep01-replication.mp4",
    "poster": "ep01-replication.jpg",
    "source": "ep01-replication.yaml",
-   "duration": 430.7,
-   "bytes": 6058280,
+   "duration": 431.0,
+   "bytes": 6061757,
    "engine": "kokoro",
    "voices": [
     "Emma (narrator) — Kokoro af_heart"
@@ -166,7 +167,7 @@
      "title": "Exercise 5.3"
     },
     {
-     "t": 401.5,
+     "t": 401.7,
      "title": "Interview line"
     }
    ],
@@ -223,7 +224,7 @@
     },
     {
      "id": "ex53",
-     "t": 352.8,
+     "t": 352.9,
      "text": "BT 5.3: follower trễ 2 s được đẩy lên, sequence bigserial cấp lại ID đã dùng → hai giao dịch cùng ID, có thể lộ dữ liệu khách này cho khách khác (sự cố GitHub ở DDIA ch. 5); chống: ID không phụ thuộc DB (Snowflake, UUID), không tự failover sang replica trễ cho dữ liệu tiền, đối soát sau failover",
      "src": "20-implement-gd2-du-lieu-phan-tan.md#bài-tập-tuần-56",
      "section": "20 · Bài tập tuần 5–6"

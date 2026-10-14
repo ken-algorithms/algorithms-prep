@@ -1,0 +1,188 @@
+id: k00-question-and-six-tests
+ep: 0
+week: 2
+tag: "K00 · THE QUESTION"
+title: "The Katalon counting question, and six tests every answer must pass"
+subtitle: "Read the question, ask before you draw, do the numbers, then judge every design the same way"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#1-đề-bài-và-sáu-tiêu-chí-chấm
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#0-đề-bài-và-những-gì-đề-bài-không-nói
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#2-trước-khi-vẽ-6-câu-hỏi-phải-hỏi-interviewer
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#3-ước-lượng-tải--con-số-quyết-định-kiến-trúc
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §1 · problem 04 §0, §2, §3"}
+      - {t: "Part A of 4: solve it one approach at a time"}
+    lines:
+      - emma: "This series solves one real question from a Katalon Principal interview: count true, false and fake keys, for any time range. The first answer given in that room was rejected."
+      - emma: "So we will do it the way you should do it in the room. One approach at a time. Test each one against the same six requirements, reject the ones that fail and say exactly why, then build the one that survives, and read its code."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: API, full: "application programming interface", vi: "giao diện lập trình; ở đây là hai endpoint HTTP"}
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "giao thức của web; mã 202, 400, 422"}
+      - {abbr: JSON, full: "JavaScript Object Notation", vi: "định dạng thân request"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh; batch ID do client tự sinh"}
+    lines:
+      - emma: "Four acronyms. API, the application programming interface: here, two HTTP endpoints. HTTP is the web's protocol, JSON is the format of the request body, and ID means identifier."
+        focus: 3
+
+  - kind: exercise
+    chapter: "The question"
+    label: "Question"
+    points: [k-question]
+    q: "About 10,000 requests a minute. Each request carries a list of key-value pairs: the value is true or false, and the key may be a fake key. At any moment, answer: how many true, how many false, how many fake keys, in the last 24 hours, or in any time range."
+    items:
+      - {t: "Roughly half the values are true"}
+      - {t: "Before you draw anything: what would you ask the interviewer?"}
+    lines:
+      - emma: "Here is the question, as it was asked. About ten thousand requests a minute. Each request carries a list of key-value pairs. The value is true or false, and the key may be fake. At any moment, answer how many true, how many false, and how many fake keys, in the last twenty-four hours, or in any time range."
+      - emma: "Pause here. Before you draw a single box, what would you ask?"
+      - wait: 8
+        note: "Write down three questions. Each one should change the design."
+
+  - kind: table
+    chapter: "Three phrases"
+    heading: "Three phrases that decide the design"
+    points: [k-three-phrases]
+    columns: ["Phrase in the question", "What it really demands"]
+    widths: [0.36, 0.64]
+    rows:
+      - ["“at any moment”", "Reads must be cheap and steady. No batch job, no scanning raw data per question"]
+      - ["“or any time range”", "An arbitrary half-open range [from, to). The hardest part, and where the first answer broke"]
+      - ["“a list of key-value pairs”", "The unit of work is the item, not the request. One request = N events"]
+    lines:
+      - emma: "Three phrases decide everything. At any moment means reads must be cheap and steady. No batch job, and no scanning raw data for each question."
+        focus: 0
+      - emma: "Or any time range is the hard part. Not just a running total, but any range from one instant to another. This is exactly where the first answer broke."
+        focus: 1
+      - emma: "And a list of key-value pairs means the unit of work is the item, not the request. Ten thousand requests a minute tells you nothing until you know how many items each one carries."
+        focus: 2
+
+  - kind: table
+    chapter: "Ask first"
+    heading: "Ask before you draw — and the answers we assume"
+    points: [k-ask-first]
+    columns: ["Question", "Assumed answer", "If the answer were different"]
+    widths: [0.34, 0.24, 0.42]
+    rows:
+      - ["How many pairs per request?", "about 20", "~1,000 → 167k events/s: a stream layer from day one"]
+      - ["Totals, or a breakdown per key?", "totals", "Per key → rollup rows explode with the number of keys"]
+      - ["How many valid keys? Do they change?", "thousands, rarely", "Millions → Bloom filter in front of a store"]
+      - ["How fresh must the numbers be?", "within a minute", "Exact to the second → also read the unsealed tail"]
+      - ["Longest range anyone asks for?", "one year", "Two years → keep the day tier, plan retention"]
+      - ["Dashboard or billing?", "exact counts", "Approximate → sketches become allowed"]
+    lines:
+      - emma: "Ask before you draw. Each of these six questions changes the design, so each answer is worth asking for."
+      - emma: "The first one matters most. How many pairs per request? We assume about twenty. If it were a thousand, you would need a stream layer from day one."
+        focus: 0
+      - emma: "Totals, or a breakdown per key? We assume totals. A breakdown per key multiplies the rollup rows by the number of keys, and can end up larger than the raw data."
+        focus: 1
+      - emma: "Then, thousands of valid keys that rarely change. Numbers fresh within a minute. Ranges up to a year. And exact counts, as if someone might bill from them."
+        focus: 5
+
+  - kind: stats
+    chapter: "The numbers"
+    heading: "Do the numbers out loud"
+    points: [k-numbers]
+    items:
+      - {v: "167/s", l: "requests", s: "10,000 a minute"}
+      - {v: "3,333/s", l: "events (items)", s: "× 20 pairs per request"}
+      - {v: "288M", l: "events a day", s: "~17 GB of raw a day at ~60 B each"}
+      - {v: "96 rows", l: "to read for “last 24 hours”", s: "hourly buckets × 4 outcomes"}
+    lines:
+      - emma: "Now the numbers, out loud. Ten thousand a minute is a hundred sixty-seven requests a second."
+        focus: 0
+      - emma: "Times twenty pairs is three thousand three hundred thirty-three events a second."
+        focus: 1
+      - emma: "That is two hundred eighty-eight million events a day, about seventeen gigabytes of raw data. So no design may scan raw data to answer a question."
+        focus: 2
+      - emma: "But the answer itself is tiny. Hourly buckets times four outcomes is ninety-six rows for the last twenty-four hours. Writes are huge, reads are small. Hold on to that contrast."
+        focus: 3
+
+  - kind: code
+    chapter: "The contract"
+    heading: "The contract we will build"
+    points: [k-contract]
+    code: |
+      POST /events
+      { "tenantId": "t1", "batchId": "b-42", "ts": "2026-08-29T09:58:10Z",
+        "items": [ {"key": "checkout_v2", "value": true},
+                   {"key": "nope",        "value": true},
+                   {"key": "dark_mode",   "value": "yes"} ] }
+      → 202 {"received": 3, "inserted": 3, "duplicates": 0}
+
+      GET /stats?tenant=t1&from=2026-08-26T03:17:30Z&to=2026-08-29T11:42:10Z
+      → {"trueCount": 1, "falseCount": 0, "fakeKey": 1, "malformed": 1, "successRate": 1.0}
+    items:
+      - {lines: [1, 2], t: "batchId: chosen by the client, reused on every retry · ts: event time", lang: text}
+      - {lines: [3, 5], t: "a fake key, and a value that is not a boolean: malformed"}
+      - {lines: [6, 6], t: "202 Accepted: stored, not counted yet"}
+      - {lines: [8, 9], t: "any range, down to the second"}
+    lines:
+      - emma: "Here is the contract we will build. The client sends a batch with a tenant, a batch ID it picks itself and reuses on every retry, and a timestamp: the event time, when the items happened."
+        focus: 0
+      - emma: "Items can have a fake key, or a value that is not a boolean at all. We will count that as a fourth outcome, malformed, instead of hiding it inside false."
+        focus: 1
+      - emma: "The answer is two oh two, accepted. Stored, but not counted yet."
+        focus: 2
+      - emma: "And the read side takes any range, down to the second."
+        focus: 3
+
+  - kind: table
+    chapter: "Six tests"
+    heading: "Six tests every approach must pass"
+    points: [k-six-tests]
+    columns: ["#", "Test", "Why it is required"]
+    widths: [0.08, 0.40, 0.52]
+    accent: [0]
+    rows:
+      - ["T1", "Answers any range [from, to)", "The hardest phrase of the question"]
+      - ["T2", "Reads stay cheap as data grows", "“At any moment” = a dashboard that refreshes"]
+      - ["T3", "A client retry is not counted twice", "Every system with retries is at-least-once"]
+      - ["T4", "A late event lands in its own minute", "Clients batch, networks stall"]
+      - ["T5", "A wrong number can be found and fixed", "Without raw data you cannot even check"]
+      - ["T6", "Writes don't queue behind one lock", "A hot row is a hard ceiling on growth"]
+    lines:
+      - emma: "Every approach in this series is judged by the same six tests. One: it answers any range. Two: reads stay cheap as data grows."
+        focus: 1
+      - emma: "Three: a client retry is not counted twice. Every system with retries is at least once, so this is not optional."
+        focus: 2
+      - emma: "Four: an event that arrives late is still counted in the minute it happened. Five: a wrong number can be found and fixed."
+        focus: 4
+      - emma: "Six: writes don't all queue behind one lock. Fail a must-have test, and the approach is rejected, with that test as the reason."
+        focus: 5
+
+  - kind: flow
+    chapter: "The plan"
+    heading: "How this series is built"
+    build: true
+    items:
+      - {t: "Part A · K01–K04", s: "four approaches; three rejected, one accepted", f: "a scorecard against T1–T6"}
+      - {t: "Part B · K05–K07", s: "build the accepted design: tables, write path, rollup, read path"}
+      - {t: "Part C · K08–K10", s: "read the Java code and the tests that prove it, run on real PostgreSQL 16"}
+      - {t: "Part D · K11–K13", s: "the follow-up: 10M and 100M a minute; the timed answer", tone: ok}
+    lines:
+      - emma: "Part A tries four approaches. Three get rejected, one survives, and a scorecard shows why."
+        focus: 0
+      - emma: "Part B builds the survivor in detail. Part C reads its Java code and the tests that prove each property, run on a real PostgreSQL sixteen."
+        focus: 2
+      - emma: "Part D answers the follow-up every interviewer asks next: what if it were ten million a minute, or a hundred million? And it ends with the full answer, timed."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "The unit is the item: 3,333 events/s, 288M a day"}
+      - {t: "“Any time range” is the hard part"}
+      - {t: "Writes are huge, answers are tiny: never scan raw to answer"}
+      - {t: "Six tests, T1–T6, judge every approach"}
+    lines:
+      - emma: "Recap. The unit is the item, three thousand three hundred events a second. Any time range is the hard part. Writes are huge and answers are tiny, so never scan raw data to answer. And six tests judge every approach. Next, approach one: the answer that was rejected."
+        focus: 3

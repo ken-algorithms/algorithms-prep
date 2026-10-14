@@ -52,13 +52,14 @@ JSD_SERIES = [
      "total": 30, "coverage": "02-do-phu-tuan-1.md"},
     {"id": "video-gd2", "title": "Giai đoạn 2 · Dữ liệu và hệ phân tán (tuần 5–10)", "voice": "Emma · Kokoro af_heart",
      "total": 23, "coverage": "02-do-phu.md", "weeks": {"5": "Tuần 5–6", "8": "Tuần 8–9"}},  # khối hai tuần
-    # bộ chen ngang: mã video K00…; "tuần" là mốc nên xem (sau tuần 4 = hết giai đoạn 1, sau tuần 10 = hết giai đoạn 2);
+    # bộ chen ngang: mã video K00…; "tuần" là mốc nên xem (phần A sau tuần 1… phần D sau tuần 10 = hết giai đoạn 2);
     # nguồn nằm ở katalon-prep/ nên covers có dạng ../katalon-prep/… (chuẩn hoá đường dẫn trước khi tra tài liệu)
-    {"id": "video-katalon", "title": "Chen ngang Katalon · họ A + C: 10k → 10M → 100M request/phút",
-     "voice": "Tom hỏi (am_michael), Emma trả lời (af_heart)", "total": 14, "coverage": "02-do-phu.md", "prefix": "K",
-     "weeks": {"4": "Phần 1A: Sau giai đoạn 1 (Ước lượng & 10k)",
-               "10": "Phần 1B: Sau giai đoạn 2 (Kiến trúc 10M–100M)",
-               "11": "Phần 2: Thực chiến Code & Sửa lỗi Kafka (K08–K13)"}},
+    {"id": "video-katalon", "title": "Chen ngang Katalon · bài đếm sự kiện: từ cách bị bác tới code chạy thật",
+     "voice": "Emma (af_heart)", "total": 14, "coverage": "02-do-phu.md", "prefix": "K",
+     "weeks": {"2": "Phần A · Giải đề: 4 cách, 3 cách bị bác (sau tuần 1)",
+               "3": "Phần B · Dựng hệ thống theo cách tốt nhất (sau tuần 3)",
+               "4": "Phần C · Đọc code và test, PostgreSQL thật (sau tuần 4)",
+               "10": "Phần D · Câu hỏi 10M và 100M (sau giai đoạn 2)"}},
 ]
 
 

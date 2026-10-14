@@ -1,0 +1,195 @@
+id: k05-build-tables-and-write-path
+ep: 5
+week: 3
+tag: "K05 · BUILD 1"
+title: "Build 1: the tables, the partitions and the write path"
+subtitle: "Deterministic event ids, four outcomes, one insert per batch, and an honest 202"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#3-dựng-hệ-thống-theo-cách-4
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#31-bảng-và-partition
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#32-đường-ghi
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#66-phân-loại-fake-key
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#610-backpressure-khi-burst
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §3.1, §3.2 · problem 04 §6.1, §6.6, §6.10"}
+      - {t: "Part B of 4: build the accepted design"}
+    lines:
+      - emma: "Part B builds approach four for real. This video covers the tables, the partitions, and the write path: everything that happens between the client's request and the two oh two."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: HTTP, full: "Hypertext Transfer Protocol", vi: "mã trả về 202, 400, 422"}
+      - {abbr: UUID, full: "universally unique identifier", vi: "mã 128 bit; sinh tất định từ batch"}
+      - {abbr: ID, full: "identifier", vi: "mã định danh"}
+      - {abbr: UTC, full: "Coordinated Universal Time", vi: "giờ chuẩn quốc tế; mọi bucket cắt theo UTC"}
+      - {abbr: RAM, full: "random-access memory", vi: "bộ nhớ trong; registry key nằm ở đây"}
+    lines:
+      - emma: "HTTP gives us the status codes. UUID is a universally unique identifier, and ID means identifier."
+        focus: 2
+      - emma: "UTC is coordinated universal time: every bucket and partition is cut in UTC. And RAM is memory, where the key registry lives."
+        focus: 4
+
+  - kind: table
+    chapter: "Tables"
+    heading: "Six tables, two roles"
+    points: [b1-tables]
+    columns: ["Table", "Key", "Role", "Kept"]
+    widths: [0.24, 0.30, 0.30, 0.16]
+    mono: [0, 1]
+    rows:
+      - ["raw_events", "(event_id, ts)", "the truth: one row per item", "7 days"]
+      - ["agg_1m", "(tenant_id, bucket, outcome)", "derived: per minute", "30 days"]
+      - ["agg_1h", "(tenant_id, bucket, outcome)", "derived: per hour", "1 year"]
+      - ["agg_1d", "(tenant_id, bucket, outcome)", "derived: per day", "forever"]
+      - ["rollup_state", "id = 1", "sealed_until: rolled up before this", "—"]
+      - ["valid_keys", "key_name", "the registry; copied into memory", "—"]
+    lines:
+      - emma: "Six tables in two roles. Raw events is the truth, one row per item, kept seven days."
+        focus: 0
+      - emma: "Three derived tiers share one shape: tenant, bucket, outcome, count. Minutes for thirty days, hours for a year, days forever. A day bucket is four rows per tenant, so forever is cheap."
+        focus: 3
+      - emma: "One row of state records how far the rollup has sealed. And the registry of valid keys, which the service keeps in memory."
+        focus: 5
+
+  - kind: code
+    chapter: "Raw table"
+    heading: "schema.sql: the raw table, partitioned by day"
+    points: [b1-raw-ddl]
+    code: |
+      CREATE TABLE IF NOT EXISTS raw_events (
+          event_id   uuid        NOT NULL,  -- deterministic: (tenant, batchId, index)
+          ts         timestamptz NOT NULL,  -- event time from the client, never now()
+          tenant_id  text        NOT NULL,
+          key_name   text        NOT NULL,
+          outcome    smallint    NOT NULL,  -- 0 false, 1 true, 2 fake_key, 3 malformed
+          PRIMARY KEY (event_id, ts)        -- must contain the partition column
+      ) PARTITION BY RANGE (ts);
+
+      CREATE INDEX IF NOT EXISTS raw_events_tenant_ts ON raw_events (tenant_id, ts);
+
+      -- PartitionManager, once per UTC day:
+      CREATE TABLE raw_events_20260829 PARTITION OF raw_events
+        FOR VALUES FROM ('2026-08-29 00:00:00+00')
+                   TO   ('2026-08-30 00:00:00+00');
+    items:
+      - {lines: [1, 8], t: "outcome is a smallint: 288M rows a day, every byte counts", lang: sql}
+      - {lines: [7, 8], t: "partitioned by event time; the key must include ts"}
+      - {lines: [10, 10], t: "for the short raw reads: edges and the unsealed tail"}
+      - {lines: [12, 15], t: "bounds carry +00: a bare date means the session's time zone"}
+    lines:
+      - emma: "Here is the raw table. Six columns. Outcome is a small integer, because at two hundred eighty-eight million rows a day, every byte counts."
+        focus: 0
+      - emma: "It is partitioned by event time, one partition per UTC day. Postgres then requires the primary key to contain the partition column, so the key is event ID plus timestamp. That has a consequence: the timestamp must be the client's event time, identical on every retry, never now."
+        focus: 1
+      - emma: "An index on tenant and time serves the few raw reads we allow: the edges of a range, and the last minute that isn't rolled up yet."
+        focus: 2
+      - emma: "Partitions are created ahead of time, one per day. Notice the plus zero zero on the bounds. A bare date would be read in the session's time zone, and your days would shift."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Event id"
+    heading: "The event id is computed, not generated"
+    points: [b1-event-id]
+    items:
+      - {t: "event_id = name-based UUID of “tenant/batchId/index”", s: "UUID.nameUUIDFromBytes — same input, same id"}
+      - {t: "The client picks batchId once and reuses it on every retry", s: "so a retried batch maps to the same 20 ids"}
+      - {t: "INSERT … ON CONFLICT (event_id, ts) DO NOTHING", s: "a retry inserts 0 rows: measured inserted=20, then 0"}
+      - {t: "A server-side random id would count every retry", s: "that is approach 3's bug, moved one layer down"}
+    lines:
+      - emma: "The event ID is computed, never generated. It's a name-based UUID of tenant, batch ID and position in the batch. Same input, same ID."
+        focus: 0
+      - emma: "The client picks the batch ID once, and reuses it on every retry, so a retried batch maps to the same twenty IDs."
+        focus: 1
+      - emma: "Insert on conflict do nothing, and the retry inserts zero rows. The test shows twenty inserted, then zero inserted and twenty duplicates."
+        focus: 2
+      - emma: "If the server generated a random ID instead, every retry would look new. That is approach three's bug, just moved down one layer."
+        focus: 3
+
+  - kind: flow
+    chapter: "Write path"
+    heading: "IngestService: five steps, no lock, no counting"
+    points: [b1-write-path]
+    build: true
+    items:
+      - {t: "Validate", s: "ids and ts present · 1 to 1,000 items", f: "else 400"}
+      - {t: "Check time", s: "> 7 days old: refuse · > 5 min ahead: refuse", f: "422 / 400, counted"}
+      - {t: "Classify", s: "key first, then value: four outcomes"}
+      - {t: "One insert", s: "multi-row VALUES … ON CONFLICT DO NOTHING", f: "one round trip"}
+      - {t: "Answer 202", s: "{received, inserted, duplicates}", tone: ok}
+    lines:
+      - emma: "The write path is five steps. Validate: a tenant, a batch ID, a timestamp, and one to a thousand items. The cap stops a giant payload before it reaches the database."
+        focus: 0
+      - emma: "Check the event time. Older than seven days, raw is already gone, so we refuse with four twenty-two, and count it in a metric. Never drop silently. More than five minutes in the future is a broken clock: four hundred."
+        focus: 1
+      - emma: "Classify each item, then write the whole batch with one multi-row insert. One round trip for twenty rows."
+        focus: 3
+      - emma: "And answer two oh two, with received, inserted and duplicates. Notice what's missing: no lock, no counter, no aggregation. The write path only appends."
+        focus: 4
+
+  - kind: table
+    chapter: "Four outcomes"
+    heading: "EventClassifier: key first, then value"
+    points: [b1-classify]
+    columns: ["Item", "Outcome", "Why"]
+    widths: [0.36, 0.20, 0.44]
+    mono: [0]
+    rows:
+      - ["{\"key\": \"nope\", \"value\": true}", "fake_key", "key not in the registry, whatever the value"]
+      - ["{\"key\": \"dark_mode\", \"value\": true}", "true", "valid key, boolean true"]
+      - ["{\"key\": \"dark_mode\", \"value\": \"false\"}", "false", "string booleans are accepted"]
+      - ["{\"key\": \"dark_mode\", \"value\": \"yes\"}", "malformed", "1, \"yes\", null: a client bug made visible"]
+    lines:
+      - emma: "Classification checks the key first. A key that's not in the registry is fake, whatever its value."
+        focus: 0
+      - emma: "A valid key with true or false, as a boolean or a string, is true or false."
+        focus: 2
+      - emma: "Anything else, a number, the word yes, a null, is malformed. The question only named three outcomes, but folding these into false would hide a broken client. Counting them separately makes it visible."
+        focus: 3
+
+  - kind: table
+    chapter: "Registry"
+    heading: "Where the registry of valid keys lives"
+    points: [b1-registry]
+    columns: ["Valid keys", "Structure", "Note"]
+    widths: [0.20, 0.38, 0.42]
+    rows:
+      - ["< 100k", "HashSet in memory, swapped whole every 60 s", "our case: no lock on reads; ≤ 60 s stale"]
+      - ["100k – 10M", "Redis set, one pipelined lookup per batch", "one round trip for 20 keys"]
+      - ["> 10M", "Bloom filter in front of a store", "“definitely not” → fake; “maybe” → ask the store"]
+    lines:
+      - emma: "The registry is a set in memory, reloaded every minute by swapping in a new set, so readers never lock. A new key works within sixty seconds."
+        focus: 0
+      - emma: "Millions of keys would move it to Redis, one pipelined lookup per batch. Tens of millions, to a Bloom filter in front of a store."
+        focus: 1
+      - emma: "Use the Bloom filter the right way round. It never says no by mistake, so a no means fake, for sure. A maybe must still be checked."
+        focus: 2
+
+  - kind: exercise
+    chapter: "202"
+    label: "Question"
+    q: "Why does POST /events answer 202 Accepted, not 200 OK? And what must the client do when it gets no answer at all?"
+    items:
+      - {t: "The counts are updated by a job, within about a minute"}
+    lines:
+      - emma: "Two quick questions. Why two oh two, and not two hundred? And what must a client do when it gets no answer at all?"
+      - wait: 6
+        note: "What does the 202 promise, and what makes a retry safe?"
+      - emma: "Two oh two says the truth: stored, not counted yet. The numbers appear within a minute. And with no answer, the client retries with the same batch ID. That's safe by construction, because the IDs are deterministic."
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "Raw partitioned by UTC day; key = (event_id, ts)"}
+      - {t: "event id = name-based UUID of tenant/batch/index → retries insert 0 rows"}
+      - {t: "Write path: validate, check time, classify, one insert, 202"}
+      - {t: "Four outcomes: malformed is counted, not hidden"}
+    lines:
+      - emma: "Recap. Raw is partitioned by UTC day, keyed by event ID and time. The event ID is computed, so retries insert nothing. The write path validates, checks time, classifies, inserts once, and answers two oh two. Next, the job that does the counting."
+        focus: 3

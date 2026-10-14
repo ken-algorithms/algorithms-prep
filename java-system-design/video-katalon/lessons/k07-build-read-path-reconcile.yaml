@@ -1,0 +1,237 @@
+id: k07-build-read-path-reconcile
+ep: 7
+week: 3
+tag: "K07 · BUILD 3"
+title: "Build 3: the read path, the reconcile, and retention"
+subtitle: "Split any range into the fewest buckets, prove the numbers every hour, and delete old data in O(1)"
+covers:
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#34-đường-đọc-phân-rã-khoảng-bất-kỳ
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#35-đối-soát-và-event-trễ
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#36-retention
+  - ../katalon-prep/katalon-prep-java/10-event-counting/README.md#37-bốn-job-nền
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#63-thuật-toán-phân-rã-khoảng-thời-gian-bất-kỳ
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#68-tỉ-lệ-50--đừng-bao-giờ-lưu-tỉ-lệ
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#69-cache-và-thundering-herd
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#611-retention-và-chi-phí-lưu-trữ
+  - ../katalon-prep/katalon-system-design/04-event-counting-10k.md#612-observability--6-metric-phải-có
+scenes:
+  - kind: title
+    chapter: "Intro"
+    items:
+      - {t: "Source: module 10 §3.4–§3.7 · problem 04 §6.3, §6.8, §6.9, §6.11, §6.12"}
+      - {t: "Code: query/RangeDecomposer · StatsService · rollup/Reconciler"}
+    lines:
+      - emma: "The buckets exist. Now answer the question: any range, down to the second, cheaply. Then prove the numbers are right, every hour. And delete old data without hurting anyone."
+
+  - kind: acronyms
+    chapter: "Acronyms in this video"
+    heading: "Acronyms in this video"
+    items:
+      - {abbr: SQL, full: "Structured Query Language", vi: "ngôn ngữ truy vấn"}
+      - {abbr: TTL, full: "time to live", vi: "thời gian sống của một khoá cache"}
+    lines:
+      - emma: "SQL is the query language, and TTL is time to live, how long a cache entry lasts."
+        focus: 1
+
+  - kind: table
+    chapter: "Decompose"
+    heading: "03:17:30 → three days later 11:42:10"
+    points: [b3-example]
+    columns: ["Piece", "From", "To", "Read from"]
+    widths: [0.10, 0.30, 0.30, 0.30]
+    mono: [1, 2]
+    build: true
+    rows:
+      - ["1", "Aug 26 03:17:30", "Aug 26 03:18", "raw: 30 seconds"]
+      - ["2", "Aug 26 03:18", "Aug 26 04:00", "42 minute buckets"]
+      - ["3", "Aug 26 04:00", "Aug 27 00:00", "20 hour buckets"]
+      - ["4", "Aug 27 00:00", "Aug 29 00:00", "2 day buckets"]
+      - ["5", "Aug 29 00:00", "Aug 29 11:00", "11 hour buckets"]
+      - ["6", "Aug 29 11:00", "Aug 29 11:42", "42 minute buckets"]
+      - ["7", "Aug 29 11:42", "Aug 29 11:42:10", "raw: 10 seconds"]
+    note: "84 minute + 31 hour + 2 day buckets, and 40 seconds of raw (RangeDecomposerTest.theWorkedExampleFromDoc04)"
+    lines:
+      - emma: "Take a nasty range: from three seventeen and thirty seconds, to three days later at eleven forty-two and ten seconds. The first thirty seconds don't fill a minute, so they're read from raw."
+        focus: 0
+      - emma: "Then forty-two minute buckets, up to the hour. Twenty hour buckets, up to midnight."
+        focus: 2
+      - emma: "Two whole days, from the day tier."
+        focus: 3
+      - emma: "Then back down: eleven hours, forty-two minutes, and ten seconds of raw. A hundred seventeen buckets and forty seconds of raw, instead of nearly a billion raw rows."
+        focus: 6
+
+  - kind: bullets
+    chapter: "Algorithm"
+    heading: "RangeDecomposer: one step at a time"
+    points: [b3-algorithm]
+    items:
+      - {t: "At the current instant, take the coarsest bucket that starts here and still fits", s: "day, else hour, else minute"}
+      - {t: "Not on a minute boundary, or under a minute left: raw up to the next minute"}
+      - {t: "Merge with the previous piece when it is the same tier"}
+      - {t: "After sealed_until: raw, because those buckets are not final yet"}
+    lines:
+      - emma: "The algorithm is greedy, one step at a time. At the current instant, take the coarsest bucket that starts exactly here and still fits inside the range. A day, else an hour, else a minute."
+        focus: 0
+      - emma: "If the instant isn't on a minute boundary, or less than a minute is left, read raw up to the next minute."
+        focus: 1
+      - emma: "Merge each step into the previous piece when it's the same tier. And anything after the seal comes from raw, because those buckets aren't final."
+        focus: 3
+
+  - kind: pattern
+    chapter: "A real bug"
+    heading: "The bug the Java port found in the Python notes"
+    points: [b3-bug]
+    bad_label: "Old: walk the chosen tier to the end"
+    good_label: "Fixed: re-choose the tier at every step"
+    bad: |
+      # fits: aligned at cur, ends by t2
+      for tier, step in TIERS:
+          if fits(cur, step):
+              while fits(cur, step):
+                  cur += step  # to the end
+              break
+    good: |
+      for tier, step in TIERS:
+          if fits(cur, step):
+              nxt = cur + step  # one
+              break
+      # merge equal neighbours
+    stats_columns: ["Same example range", "Old", "Fixed", "Answer"]
+    stats:
+      - ["buckets read", "4,824 minutes", "84 + 31 + 2", "identical"]
+    lines:
+      - emma: "A real bug, worth telling in an interview. The Python version in my notes picked a tier, then kept stepping in that tier while it fit. At three eighteen it picked minutes, and walked minutes all the way to the end."
+        focus: 0
+      - emma: "The fix re-chooses the tier at every single step, then merges equal neighbours."
+        focus: 1
+      - emma: "Same example: four thousand eight hundred twenty-four minute buckets, against a hundred seventeen. The answer was identical, which is why nobody noticed. A test pinned to the worked example found it the moment I ported it to Java."
+        focus: 2
+
+  - kind: stats
+    chapter: "Bounded"
+    heading: "The read cost has a ceiling"
+    points: [b3-bounds]
+    items:
+      - {v: "≤ 2", l: "raw pieces", s: "the two edges, or one edge + the unsealed tail"}
+      - {v: "≤ 118 + 46", l: "minute + hour buckets", s: "59 and 23 on each side, at most"}
+      - {v: "≤ 529", l: "buckets for any range up to a year", s: "× 4 outcomes, per tenant"}
+      - {v: "507", l: "most seen in 20,000 random ranges", s: "RangeDecomposerTest: no gap, no overlap"}
+    lines:
+      - emma: "Because each tier only fills the gap to the next boundary, the cost has a ceiling. At most two raw pieces. At most a hundred eighteen minute buckets and forty-six hour buckets."
+        focus: 1
+      - emma: "Add one bucket per whole day, and any range up to a year reads at most five hundred twenty-nine buckets, whatever the write rate."
+        focus: 2
+      - emma: "The test throws twenty thousand random ranges at it, checks there's no gap and no overlap, and the most it ever saw was five hundred seven."
+        focus: 3
+
+  - kind: table
+    chapter: "Rates"
+    heading: "Store counts. Compute the rate when you read."
+    points: [b3-rate]
+    columns: ["", "true", "valid (true + false)", "rate"]
+    widths: [0.34, 0.18, 0.28, 0.20]
+    mono: [1, 2, 3]
+    rows:
+      - ["minute 1", "90", "100", "90%"]
+      - ["minute 2", "10", "1,000", "1%"]
+      - ["average of the rates", "", "", "45.5%  ✗"]
+      - ["rate of the sums", "100", "1,100", "9.1%  ✓"]
+    lines:
+      - emma: "The question mentions a fifty percent success rate. Never store a rate. Minute one: ninety out of a hundred. Minute two: ten out of a thousand."
+        focus: 1
+      - emma: "Averaging the rates says forty-five and a half percent. The truth is a hundred out of eleven hundred, nine point one percent."
+        focus: 3
+      - emma: "So the buckets hold counts, and StatsService divides when it reads: true over true plus false. The same reason forbids storing averages or percentiles in a rollup."
+
+  - kind: code
+    chapter: "Reconcile"
+    heading: "Reconciler: count raw, sum the rollup, per hour"
+    points: [b3-reconcile]
+    code: |
+      WITH r AS (SELECT tenant_id, outcome, count(*) AS n FROM raw_events
+                  WHERE ts >= :hour AND ts < :hour + 1h GROUP BY 1, 2),
+           a AS (SELECT tenant_id, outcome, sum(cnt) AS n FROM agg_1m
+                  WHERE bucket >= :hour AND bucket < :hour + 1h GROUP BY 1, 2)
+      SELECT COALESCE(r.tenant_id, a.tenant_id), COALESCE(r.outcome, a.outcome),
+             COALESCE(r.n, 0) AS raw_n, COALESCE(a.n, 0) AS agg_n
+        FROM r FULL OUTER JOIN a ON a.tenant_id = r.tenant_id AND a.outcome = r.outcome
+       WHERE COALESCE(r.n, 0) <> COALESCE(a.n, 0);
+      -- any row → reconcile_drift alert, then refresh(hour) and check again
+    items:
+      - {lines: [1, 4], t: "the truth and the rollup, for one closed hour", lang: sql}
+      - {lines: [5, 8], t: "full outer join: a row missing on either side is a drift too"}
+      - {lines: [9, 9], t: "repair = recompute that hour; then check it is empty"}
+    lines:
+      - emma: "Every hour, for each of the last twenty-four closed hours, the reconciler counts raw and sums the minute tier."
+        focus: 0
+      - emma: "A full outer join, so a row missing on either side counts as a drift too. It should return nothing."
+        focus: 1
+      - emma: "If it returns anything, that's the reconcile drift metric, an alert, and a repair: recompute that hour and check again. In the test, I added five to one bucket by hand. It found a drift of minus five, repaired it, and the check came back empty."
+        focus: 2
+
+  - kind: table
+    chapter: "Retention"
+    heading: "Deleting old raw: drop a partition, never delete rows"
+    points: [b3-retention]
+    columns: ["", "DELETE … WHERE ts < now() − 7 days", "Drop the day's partition"]
+    widths: [0.20, 0.42, 0.38]
+    rows:
+      - ["Work", "288M rows a day marked dead", "unlink one table's files"]
+      - ["Side effect", "vacuum storm, bloat, slower everything", "none"]
+      - ["Rollups", "untouched", "untouched: old days still answer"]
+    note: "RetentionTest: 2 old days dropped; a query for a dropped day still returns its 20 events from agg_1h / agg_1d"
+    lines:
+      - emma: "Retention. Deleting old raw rows marks two hundred eighty-eight million rows a day as dead, and autovacuum chokes on them. Many systems die of retention, not of load."
+        focus: 1
+      - emma: "Dropping the day's partition just unlinks files, in constant time. And the rollups are separate tables, so a dropped day still answers from its hour and day buckets. The test checks exactly that."
+        focus: 2
+
+  - kind: table
+    chapter: "Watch it"
+    heading: "Six metrics, and four background jobs"
+    points: [b3-metrics-jobs]
+    columns: ["Metric", "Means trouble when…"]
+    widths: [0.40, 0.60]
+    rows:
+      - ["ingest events/s", "the real load: events, not requests"]
+      - ["event-time lag p99", "clients or networks are falling behind"]
+      - ["seal lag (now − sealed_until)", "> 2 minutes: the rollup job isn't keeping up"]
+      - ["rejectedTooLate · lateBeyondWindow", "rising: a broken client, never dropped silently"]
+      - ["reconcile_drift", "anything but 0: lost or double-counted events"]
+      - ["query latency p99, by range length", "a slow 1-hour query is a bug; a slow 1-year one is normal"]
+    note: "Jobs: reload keys (1 min) · rollup (1 min) · reconcile (hourly) · partitions (create ahead, drop > 7 days)"
+    lines:
+      - emma: "Six metrics. The most valuable is reconcile drift: the other five measure health, this one measures correctness. It must be zero."
+        focus: 4
+      - emma: "And four background jobs: reload the key registry, roll up every minute, reconcile every hour, and manage partitions. With several instances, only one runs them, guarded by an advisory lock."
+        focus: 5
+
+  - kind: bullets
+    chapter: "Cache"
+    heading: "The hottest question: “last 24 hours”"
+    points: [b3-cache]
+    items:
+      - {t: "Cache key includes the last sealed minute", s: "stats:t1:24h:<sealed> — a new seal is a new key, so no stale TTL guess"}
+      - {t: "Single-flight on a miss", s: "one request recomputes; the others wait and read the cache"}
+      - {t: "This lock is on the read path, for one expensive query", s: "not on the write path, for every request"}
+      - {t: "Not coded in module 10 yet", s: "the design is in problem 04 §6.9"}
+    lines:
+      - emma: "The hottest question is the last twenty-four hours. Cache it, but don't guess a TTL. Put the last sealed minute in the cache key, so a new seal simply means a new key."
+        focus: 0
+      - emma: "When everyone misses at once, let one request recompute while the others wait. That's a lock again, but on the read path, for one expensive query. Same word as the rejected answer, opposite place."
+        focus: 2
+      - emma: "To be honest: this cache is designed, not coded in the module yet."
+        focus: 3
+
+  - kind: bullets
+    chapter: "Recap"
+    heading: "Recap"
+    style: check
+    items:
+      - {t: "Decompose greedily, one bucket per step, merge equal tiers"}
+      - {t: "≤ 529 buckets for a year; the rate is computed at read time"}
+      - {t: "Reconcile hourly: count raw = sum rollup, or repair"}
+      - {t: "Retention = drop a partition; rollups survive"}
+    lines:
+      - emma: "Recap. Decompose greedily, one bucket per step. A year costs at most five hundred twenty-nine buckets, and the rate is computed when you read. Reconcile every hour, and retain by dropping partitions. Part C opens the code."
+        focus: 3
