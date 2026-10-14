@@ -3,6 +3,115 @@
  "note": "Sinh bởi tools/lesson_video từ các file .yaml cùng thư mục — sửa kịch bản rồi chạy lại `python -m lesson_video build`, không sửa tay file này hay file .mp4.",
  "lessons": [
   {
+   "id": "k00-question-and-six-tests",
+   "ep": 0,
+   "code": "K00",
+   "week": 2,
+   "title": "The Katalon counting question, and six tests every answer must pass",
+   "subtitle": "Read the question, ask before you draw, do the numbers, then judge every design the same way",
+   "file": "k00-question-and-six-tests.mp4",
+   "poster": "k00-question-and-six-tests.jpg",
+   "source": "k00-question-and-six-tests.yaml",
+   "duration": 305.3,
+   "bytes": 4357188,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 29.1,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 45.7,
+     "title": "The question"
+    },
+    {
+     "t": 78.6,
+     "title": "Three phrases"
+    },
+    {
+     "t": 112.4,
+     "title": "Ask first"
+    },
+    {
+     "t": 152.1,
+     "title": "The numbers"
+    },
+    {
+     "t": 187.5,
+     "title": "The contract"
+    },
+    {
+     "t": 220.6,
+     "title": "Six tests"
+    },
+    {
+     "t": 255.8,
+     "title": "The plan"
+    },
+    {
+     "t": 284.6,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#1-đề-bài-và-sáu-tiêu-chí-chấm",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#0-đề-bài-và-những-gì-đề-bài-không-nói",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#2-trước-khi-vẽ-6-câu-hỏi-phải-hỏi-interviewer",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#3-ước-lượng-tải--con-số-quyết-định-kiến-trúc"
+   ],
+   "points": [
+    {
+     "id": "k-question",
+     "t": 45.7,
+     "text": "Đề Katalon: ~10.000 request/phút, mỗi request một list key-value, value true/false, key có thể giả; bất kỳ lúc nào trả lời số true/false/fake key cho 24 giờ qua hoặc khoảng bất kỳ",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#1-đề-bài-và-sáu-tiêu-chí-chấm",
+     "section": "README · 1-đề-bài-và-sáu-tiêu-chí-chấm"
+    },
+    {
+     "id": "k-three-phrases",
+     "t": 78.6,
+     "text": "Ba cụm từ quyết định thiết kế: 'bất kỳ lúc nào' (đọc rẻ, không job nền), 'khoảng bất kỳ' (phần khó), 'list key-value' (đơn vị là item)",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#0-đề-bài-và-những-gì-đề-bài-không-nói",
+     "section": "04-event-counting-10k · 0-đề-bài-và-những-gì-đề-bài-không-nói"
+    },
+    {
+     "id": "k-ask-first",
+     "t": 112.4,
+     "text": "Hỏi trước khi vẽ: số cặp mỗi request, tổng hay theo key, số key hợp lệ, độ tươi, khoảng xa nhất, dashboard hay billing — mỗi câu đổi thiết kế",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#2-trước-khi-vẽ-6-câu-hỏi-phải-hỏi-interviewer",
+     "section": "04-event-counting-10k · 2-trước-khi-vẽ-6-câu-hỏi-phải-hỏi-interviewer"
+    },
+    {
+     "id": "k-numbers",
+     "t": 152.1,
+     "text": "Ước lượng: 167 request/s × 20 = 3.333 event/s, 288 triệu/ngày, ~17 GB raw/ngày; '24 giờ qua' chỉ 96 dòng → không bao giờ quét raw",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#3-ước-lượng-tải--con-số-quyết-định-kiến-trúc",
+     "section": "04-event-counting-10k · 3-ước-lượng-tải--con-số-quyết-định-kiến-trúc"
+    },
+    {
+     "id": "k-contract",
+     "t": 187.5,
+     "text": "Hợp đồng: POST /events {tenantId, batchId do client sinh và dùng lại khi retry, ts = event time, items} → 202; GET /stats?tenant&from&to",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#1-đề-bài-và-sáu-tiêu-chí-chấm",
+     "section": "README · 1-đề-bài-và-sáu-tiêu-chí-chấm"
+    },
+    {
+     "id": "k-six-tests",
+     "t": 220.6,
+     "text": "Sáu tiêu chí T1–T6: khoảng bất kỳ, đọc rẻ, retry không đếm trùng, event trễ đúng phút, sai sửa được, ghi không xếp hàng sau lock",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#1-đề-bài-và-sáu-tiêu-chí-chấm",
+     "section": "README · 1-đề-bài-và-sáu-tiêu-chí-chấm"
+    }
+   ]
+  },
+  {
    "id": "k01-approach1-lock-running-total",
    "ep": 1,
    "code": "K01",
