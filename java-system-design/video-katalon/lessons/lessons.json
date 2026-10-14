@@ -442,6 +442,115 @@
      "section": "README · 23-cách-3--counter-theo-phút-cộng-ngay-lúc-ghi"
     }
    ]
+  },
+  {
+   "id": "k04-approach4-accepted-design",
+   "ep": 4,
+   "code": "K04",
+   "week": 2,
+   "title": "Approach 4: raw truth, rollups that recompute, ranges that decompose",
+   "subtitle": "Take the good half of approaches 2 and 3, join them with one rule, and pass all six tests",
+   "file": "k04-approach4-accepted-design.mp4",
+   "poster": "k04-approach4-accepted-design.jpg",
+   "source": "k04-approach4-accepted-design.yaml",
+   "duration": 255.6,
+   "bytes": 3577499,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 14.4,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 24.7,
+     "title": "The rule"
+    },
+    {
+     "t": 59.6,
+     "title": "The design"
+    },
+    {
+     "t": 104.7,
+     "title": "Scorecard"
+    },
+    {
+     "t": 126.4,
+     "title": "Why each passes"
+    },
+    {
+     "t": 158.6,
+     "title": "Kafka?"
+    },
+    {
+     "t": 174.8,
+     "title": "Right-size"
+    },
+    {
+     "t": 213.4,
+     "title": "Four sentences"
+    },
+    {
+     "t": 239.2,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#24-cách-4--raw--rollup-tính-lại--phân-rã-khoảng-cách-được-chọn",
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#25-bảng-chấm-cả-bốn-cách",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#7-chọn-tech-stack--3-phương-án-và-ngưỡng-chuyển"
+   ],
+   "points": [
+    {
+     "id": "a4-rule",
+     "t": 24.7,
+     "text": "Cách 4: raw là sự thật (từ cách 2) + đếm trước theo bucket (từ cách 3), nối bằng quy tắc tính lại và ghi đè, không cộng dồn; ghi tách khỏi đếm",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#24-cách-4--raw--rollup-tính-lại--phân-rã-khoảng-cách-được-chọn",
+     "section": "README · 24-cách-4--raw--rollup-tính-lại--phân-rã-khoảng-cách-được-ch"
+    },
+    {
+     "id": "a4-diagram",
+     "t": 59.6,
+     "text": "Sơ đồ: client → ingest (202) → raw_events → RollupJob mỗi phút → agg_1m/1h/1d → Stats phân rã; Reconciler hằng giờ",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#4-design-tầng-1--bản-tối-giản-đúng",
+     "section": "04-event-counting-10k · 4-design-tầng-1--bản-tối-giản-đúng"
+    },
+    {
+     "id": "a4-scorecard",
+     "t": 104.7,
+     "text": "Bảng chấm bốn cách: 1 bác (T1), 2 bác (T2) giữ raw, 3 bác (T3, T5), 4 được chọn",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#25-bảng-chấm-cả-bốn-cách",
+     "section": "README · 25-bảng-chấm-cả-bốn-cách"
+    },
+    {
+     "id": "a4-why",
+     "t": 126.4,
+     "text": "Cơ chế từng tiêu chí: bucket + raw mép; ≤ 529 bucket/năm; id tất định + đếm lại; cửa sổ 30 phút; raw 7 ngày + đối soát; chỉ job ghi bucket",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#25-bảng-chấm-cả-bốn-cách",
+     "section": "README · 25-bảng-chấm-cả-bốn-cách"
+    },
+    {
+     "id": "a4-right-size",
+     "t": 174.8,
+     "text": "Chưa cần Kafka ở 10k/phút; ngưỡng: > ~50k event/s, breakdown theo key > 10k key, replay > 7 ngày, nhiều consumer độc lập",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#7-chọn-tech-stack--3-phương-án-và-ngưỡng-chuyển",
+     "section": "04-event-counting-10k · 7-chọn-tech-stack--3-phương-án-và-ngưỡng-chuyển"
+    },
+    {
+     "id": "a4-four-sentences",
+     "t": 213.4,
+     "text": "Bốn câu phải nhớ: ghi tách khỏi đếm; đếm theo bucket; raw là sự thật, bucket tính lại; chưa cần Kafka + ngưỡng",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút",
+     "section": "04-event-counting-10k · 11-kịch-bản-trình-bày-3-phút"
+    }
+   ]
   }
  ]
 }
