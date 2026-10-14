@@ -1222,6 +1222,369 @@
      "section": "README · 8-ranh-giới-trung-thực"
     }
    ]
+  },
+  {
+   "id": "k11-10m-kafka-pipeline",
+   "ep": 11,
+   "code": "K11",
+   "week": 10,
+   "title": "“What about 10 million a minute?” — step by step to a Kafka pipeline",
+   "subtitle": "Climb ×10 at a time, reject what breaks, and keep the three ideas that never change",
+   "file": "k11-10m-kafka-pipeline.mp4",
+   "poster": "k11-10m-kafka-pipeline.jpg",
+   "source": "k11-10m-kafka-pipeline.yaml",
+   "duration": 364.0,
+   "bytes": 5375170,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 17.0,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 38.3,
+     "title": "Numbers"
+    },
+    {
+     "t": 66.3,
+     "title": "×10, ×100"
+    },
+    {
+     "t": 117.8,
+     "title": "Rejected"
+    },
+    {
+     "t": 173.4,
+     "title": "Measured skew"
+    },
+    {
+     "t": 203.9,
+     "title": "The pipeline"
+    },
+    {
+     "t": 251.1,
+     "title": "One transaction"
+    },
+    {
+     "t": 287.2,
+     "title": "Failure modes"
+    },
+    {
+     "t": 320.4,
+     "title": "What stayed"
+    },
+    {
+     "t": 348.1,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-prep-java/10-event-counting/README.md#7-khi-tải-lên-10m-và-100m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#4-cái-gì-vỡ-trước--đi-từng-bước--10",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#43--1000--10m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#52-quyết-định-và-đánh-đổi",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+    "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix"
+   ],
+   "points": [
+    {
+     "id": "d1-numbers",
+     "t": 38.3,
+     "text": "10M/phút: 166.667 request/s, 3,3 triệu event/s, 288 tỷ/ngày, ~1,3 Gbit/s; đường đọc không đổi",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#43--1000--10m-requestphút",
+     "section": "07-event-counting-10m-100m · 43--1000--10m-requestphút"
+    },
+    {
+     "id": "d1-ladder",
+     "t": 66.3,
+     "text": "Leo × 10: 100k → gộp mỗi request thành một dòng; 1M → Kafka giữa API và phần đếm, 202 sau acks=all; 10M → key batch_id, khử trùng trong stream state",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#4-cái-gì-vỡ-trước--đi-từng-bước--10",
+     "section": "07-event-counting-10m-100m · 4-cái-gì-vỡ-trước--đi-từng-bước--10"
+    },
+    {
+     "id": "d1-rejected",
+     "t": 117.8,
+     "text": "Bị bác ở 10M: Postgres to hơn mỗi event một dòng, Kafka key theo tenant, consumer ghi đồng bộ từng record (rebalance storm), đánh dấu rồi cộng trong hai commit, bảng dedup Postgres",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#43--1000--10m-requestphút",
+     "section": "07-event-counting-10m-100m · 43--1000--10m-requestphút"
+    },
+    {
+     "id": "d1-skew",
+     "t": 173.4,
+     "text": "Đo (module 09): key theo tenant → partition nóng nhất 53,2%; key theo batch_id → ~25%",
+     "src": "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+     "section": "README · 2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix"
+    },
+    {
+     "id": "d1-pipeline",
+     "t": 203.9,
+     "text": "Pipeline 10M: SDK batch_id + retry, ~28 pod collector, Kafka key batch_id 64–128 partition, stream processor khử trùng 15 phút + cửa sổ 1 phút, GREATEST, raw đóng gói ra object storage, đối soát hằng giờ",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#51-sơ-đồ",
+     "section": "07-event-counting-10m-100m · 51-sơ-đồ"
+    },
+    {
+     "id": "d1-one-tx",
+     "t": 251.1,
+     "text": "Sửa ở module 09: đánh dấu processed_batch và cộng số đếm trong một transaction; race lúc rebalance → transaction thua rollback",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once",
+     "section": "07-event-counting-10m-100m · 54-exactly-once-về-hiệu-quả-từ-các-mảnh-at-least-once"
+    },
+    {
+     "id": "d1-failures",
+     "t": 287.2,
+     "text": "Poison pill → DLT để partition tiếp tục; burst → buffer có giới hạn + token bucket → 429 Retry-After",
+     "src": "../katalon-prep/katalon-prep-java/09-kafka-pipeline/README.md#2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix",
+     "section": "README · 2-5-sự-cố-production-kinh-điển-và-cách-code-để-fix"
+    },
+    {
+     "id": "d1-invariants",
+     "t": 320.4,
+     "text": "Ba ý không đổi: log sự thật, đếm theo event time theo bucket, không cộng mù — chỉ công cụ đổi",
+     "src": "../katalon-prep/katalon-prep-java/10-event-counting/README.md#7-khi-tải-lên-10m-và-100m-requestphút",
+     "section": "README · 7-khi-tải-lên-10m-và-100m-requestphút"
+    }
+   ]
+  },
+  {
+   "id": "k12-100m-cells-and-money",
+   "ep": 12,
+   "code": "K12",
+   "week": 10,
+   "title": "“And 100 million?” — when the problem becomes physics and money",
+   "subtitle": "Regional cells summed globally, dedup by client sequence, and three bills you must estimate",
+   "file": "k12-100m-cells-and-money.mp4",
+   "poster": "k12-100m-cells-and-money.jpg",
+   "source": "k12-100m-cells-and-money.yaml",
+   "duration": 294.9,
+   "bytes": 4280722,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 17.9,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 44.5,
+     "title": "Numbers"
+    },
+    {
+     "t": 69.7,
+     "title": "Rejected"
+    },
+    {
+     "t": 118.2,
+     "title": "Five changes"
+    },
+    {
+     "t": 168.9,
+     "title": "Three bills"
+    },
+    {
+     "t": 216.8,
+     "title": "Counts vs money"
+    },
+    {
+     "t": 242.8,
+     "title": "One minute"
+    },
+    {
+     "t": 275.8,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#44--10000--100m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#6-kiến-trúc-ở-100m-requestphút",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#63-ba-thứ-phải-tính-tiền-ra-được",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao"
+   ],
+   "points": [
+    {
+     "id": "d2-numbers",
+     "t": 44.5,
+     "text": "100M/phút: 1,67 triệu request/s, 33 triệu event/s, ~13 Gbit/s; 1 µs mỗi request = 1,7 core",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#44--10000--100m-requestphút",
+     "section": "07-event-counting-10m-100m · 44--10000--100m-requestphút"
+    },
+    {
+     "id": "d2-rejected",
+     "t": 69.7,
+     "text": "Bị bác ở 100M: một cụm Kafka toàn cầu, exactly-once xuyên region (2PC), sketch cho số tổng, khử trùng theo batch_id (1,5 tỷ khoá), mỗi event một dòng",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao",
+     "section": "07-event-counting-10m-100m · 64-cái-không-làm-ở-100m-và-vì-sao"
+    },
+    {
+     "id": "d2-five-changes",
+     "t": 118.2,
+     "text": "Năm thay đổi: cell theo region cộng toàn cục (G-counter), khử trùng (client_id, seq), dây nhị phân + nén, raw đóng gói ở lại region, sketch chỉ cho distinct/top-K",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#62-năm-thay-đổi-so-với-10m",
+     "section": "07-event-counting-10m-100m · 62-năm-thay-đổi-so-với-10m"
+    },
+    {
+     "id": "d2-bills",
+     "t": 168.9,
+     "text": "Ba hoá đơn: mạng qua AZ ≈ 6.900 USD/ngày nếu chưa đóng gói, lưu raw 110k vs 12k USD/tháng, CPU 1,7 core mỗi µs",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#63-ba-thứ-phải-tính-tiền-ra-được",
+     "section": "07-event-counting-10m-100m · 63-ba-thứ-phải-tính-tiền-ra-được"
+    },
+    {
+     "id": "d2-counts-vs-money",
+     "t": 216.8,
+     "text": "Số đếm active-active được vì không có bất biến giữa các cell; số dư thì có (không âm) nên cần một nơi ghi hoặc đồng thuận",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#64-cái-không-làm-ở-100m-và-vì-sao",
+     "section": "07-event-counting-10m-100m · 64-cái-không-làm-ở-100m-và-vì-sao"
+    },
+    {
+     "id": "d2-say-it",
+     "t": 242.8,
+     "text": "Câu trả lời 100M dưới một phút: vật lý và tiền; cell theo region; khử trùng (client_id, seq); số tổng chính xác",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#8-kịch-bản-trả-lời",
+     "section": "07-event-counting-10m-100m · 8-kịch-bản-trả-lời"
+    }
+   ]
+  },
+  {
+   "id": "k13-timed-answer-and-drill",
+   "ep": 13,
+   "code": "K13",
+   "week": 10,
+   "title": "The whole answer in three minutes, and a follow-up drill",
+   "subtitle": "Tell it as a story — first answer, why it failed, the fix, the proof — then answer five follow-ups",
+   "file": "k13-timed-answer-and-drill.mp4",
+   "poster": "k13-timed-answer-and-drill.jpg",
+   "source": "k13-timed-answer-and-drill.yaml",
+   "duration": 342.9,
+   "bytes": 4577210,
+   "engine": "kokoro",
+   "voices": [
+    "Emma (narrator) — Kokoro af_heart"
+   ],
+   "chapters": [
+    {
+     "t": 0.0,
+     "title": "Intro"
+    },
+    {
+     "t": 14.3,
+     "title": "Acronyms in this video"
+    },
+    {
+     "t": 22.9,
+     "title": "Three minutes"
+    },
+    {
+     "t": 44.8,
+     "title": "The answer"
+    },
+    {
+     "t": 111.0,
+     "title": "Follow-up 1"
+    },
+    {
+     "t": 147.8,
+     "title": "Follow-up 2"
+    },
+    {
+     "t": 180.1,
+     "title": "Follow-up 3"
+    },
+    {
+     "t": 211.4,
+     "title": "Follow-up 4"
+    },
+    {
+     "t": 253.4,
+     "title": "Follow-up 5"
+    },
+    {
+     "t": 294.7,
+     "title": "Limits"
+    },
+    {
+     "t": 320.0,
+     "title": "Recap"
+    }
+   ],
+   "covers": [
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#10-16-câu-follow-up-interviewer-hay-hỏi",
+    "../katalon-prep/katalon-system-design/04-event-counting-10k.md#12-ranh-giới-trung-thực",
+    "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#8-kịch-bản-trả-lời"
+   ],
+   "points": [
+    {
+     "id": "e-shape",
+     "t": 22.9,
+     "text": "Khung 3 phút: hỏi, ước lượng, bác lần lượt rồi sửa, dựng, chứng minh, right-size",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút",
+     "section": "04-event-counting-10k · 11-kịch-bản-trình-bày-3-phút"
+    },
+    {
+     "id": "e-story",
+     "t": 44.8,
+     "text": "Bài nói mẫu kể như câu chuyện: hỏi, số, cách hiển nhiên bị bác, raw + bucket tính lại, phân rã + đối soát, chưa cần Kafka",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#11-kịch-bản-trình-bày-3-phút",
+     "section": "04-event-counting-10k · 11-kịch-bản-trình-bày-3-phút"
+    },
+    {
+     "id": "e-f1",
+     "t": 128.0,
+     "text": "Follow-up: 3–5 giờ chiều thứ Ba → hai bucket giờ × 4 outcome = 8 dòng, không chạm raw",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#10-16-câu-follow-up-interviewer-hay-hỏi",
+     "section": "04-event-counting-10k · 10-16-câu-follow-up-interviewer-hay-hỏi"
+    },
+    {
+     "id": "e-f2",
+     "t": 161.8,
+     "text": "Follow-up: crash giữa chừng → retry chèn 0 dòng; rollup thay trong một transaction nên crash rollback; không có phép cộng nào chạy hai lần",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#10-16-câu-follow-up-interviewer-hay-hỏi",
+     "section": "04-event-counting-10k · 10-16-câu-follow-up-interviewer-hay-hỏi"
+    },
+    {
+     "id": "e-f3",
+     "t": 193.3,
+     "text": "Follow-up: biết số đúng bằng cách đo — đối soát hằng giờ, lệch thì cảnh báo và tính lại",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#10-16-câu-follow-up-interviewer-hay-hỏi",
+     "section": "04-event-counting-10k · 10-16-câu-follow-up-interviewer-hay-hỏi"
+    },
+    {
+     "id": "e-f4",
+     "t": 227.9,
+     "text": "Follow-up: 'hôm nay' giờ Việt Nam = 17:00 UTC hôm qua tới 17:00 UTC hôm nay; tầng giờ phục vụ mọi múi giờ tròn giờ",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#10-16-câu-follow-up-interviewer-hay-hỏi",
+     "section": "04-event-counting-10k · 10-16-câu-follow-up-interviewer-hay-hỏi"
+    },
+    {
+     "id": "e-f5",
+     "t": 267.0,
+     "text": "Follow-up: 10M trong một phút — chỉ đường ghi đổi: gộp request, Kafka key batch_id, khử trùng 15 phút, cửa sổ 1 phút, GREATEST, raw đóng gói",
+     "src": "../katalon-prep/katalon-system-design/07-event-counting-10m-100m.md#8-kịch-bản-trả-lời",
+     "section": "07-event-counting-10m-100m · 8-kịch-bản-trả-lời"
+    },
+    {
+     "id": "e-limits",
+     "t": 294.7,
+     "text": "Nói giới hạn trước: 20 cặp là giả định; đúng đắn đã test; tốc độ là một lần đo; ngưỡng Postgres là bậc độ lớn; 10M/100M trên giấy",
+     "src": "../katalon-prep/katalon-system-design/04-event-counting-10k.md#12-ranh-giới-trung-thực",
+     "section": "04-event-counting-10k · 12-ranh-giới-trung-thực"
+    }
+   ]
   }
  ]
 }
