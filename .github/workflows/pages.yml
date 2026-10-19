@@ -51,7 +51,7 @@ jobs:
           cp -R site/. _deploy/docs/
           (cd leetcode-38-bai-video && find . -path '*/nhom-*/bai-*/*' \( -name 'bai-*-full.mp4' -o -name 'bai-*.gif' \) \
             -exec cp --parents {} ../_deploy/media/ \;)
-          # video bài giảng Java System Design (tab Video của app): mỗi bộ java-system-design/<bộ>/lessons
+          # video bài giảng Java System Design (tab Ôn bài › Video của app): mỗi bộ java-system-design/<bộ>/lessons
           # (video-gd1, video-gd2, video-katalon…) sang media/jsd/<bộ>/, đúng chỗ web/build.py trỏ tới
           for d in java-system-design/video-*/lessons; do
             s=$(basename "$(dirname "$d")")

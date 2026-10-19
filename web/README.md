@@ -12,7 +12,7 @@ uv run --with markdown --with pymdown-extensions python3 web/build.py
 
 Chạy lại build sau **mỗi lần sửa `app.template.html` hoặc bất kỳ file `.md` nào**.
 
-## Năm tab
+## Sáu tab
 
 | Tab | Nội dung |
 |---|---|
@@ -20,7 +20,8 @@ Chạy lại build sau **mỗi lần sửa `app.template.html` hoặc bất kỳ
 | **Công ty** | NAB và Katalon tách riêng: stack, các vòng phỏng vấn đánh số, và **checklist yêu cầu JD tick được** — mỗi dòng ghi rõ mạnh / cần ôn / gap kèm lý do. Bấm **Mở** để nhảy thẳng tới tài liệu chứng minh |
 | **Thuật toán** | 38 bài, lọc theo nhóm A/B/C, độ khó, hoặc chỉ hiện bài chưa làm. Tick là **đã gõ tay xong, tắt Copilot** — không phải đã đọc lời giải. Bấm tên bài mở thẳng phần phân tích. Bài có video (nút **▶ Video**) hiện video mp4 + GIF ngay dưới tiêu đề bài trong phần phân tích |
 | **System design** | **Lộ trình Java System Design 24 tuần** ([java-system-design/](../java-system-design/README.md)): 4 giai đoạn bấm vào mở đúng mục, hai track P (code chậm dưới tải) và S (vẽ hệ thống), bảng 100k → 1M → 10M users bấm vào mở sơ đồ, và **6 mốc kiểm tra tick được**. Bên dưới: 5 trục nhận diện họ bài, bảng 7 họ, 6 bài design đầy đủ |
-| **Tài liệu** | Toàn bộ 90 file, nhóm theo folder, tìm kiếm **không dấu** trên toàn văn, link giữa các tài liệu bấm được |
+| **Ôn bài** | Hai chế độ. **Bài ôn** (mặc định): thẻ của từng bài trong [on-bai/](../on-bai/README.md), có trọng tâm, sao ưu tiên Katalon/NAB, thời lượng, số test lab, và ô **Đã ôn** tick được. Bấm một bài thì **mở popup đọc ngay**: cùng cách hiển thị với tab Tài liệu (bảng, code, biểu đồ mermaid), liên kết sang bài khác mở ngay trong popup với nút ← quay lại, Esc để đóng, **Mở toàn trang** để chuyển sang tab Tài liệu. **Video bài giảng**: ba bộ video tiếng Anh (giai đoạn 1, giai đoạn 2, chen ngang Katalon) với chương, ý chính và liên kết về mục nguồn |
+| **Tài liệu** | Toàn bộ file `.md`, nhóm theo folder, tìm kiếm **không dấu** trên toàn văn, link giữa các tài liệu bấm được |
 
 Bấm `/` ở bất kỳ đâu để nhảy vào ô tìm kiếm.
 
@@ -28,7 +29,7 @@ Bấm `/` ở bất kỳ đâu để nhảy vào ô tìm kiếm.
 
 | File | Vai trò |
 |---|---|
-| `app.template.html` | **Bản nguồn giao diện và mã — sửa ở đây.** Có 6 chỗ đánh dấu cho build chèn dữ liệu: `/*__DOCS__*/`, `/*__ALGOS__*/`, `/*__CO__*/`, `/*__FAMS__*/`, `/*__AXES__*/`, `/*__SDR__*/` |
+| `app.template.html` | **Bản nguồn giao diện và mã — sửa ở đây.** Có các chỗ đánh dấu cho build chèn dữ liệu: `/*__DOCS__*/`, `/*__ALGOS__*/`, `/*__CO__*/`, `/*__FAMS__*/`, `/*__AXES__*/`, `/*__SDR__*/`, `/*__JSDV__*/` (video), `/*__ONBAI__*/` (bài ôn), `/*__MEDIA_BASE__*/` |
 | `build.py` | Render mọi `.md` sang HTML, đọc bảng 38 bài từ `leetcode-38-bai-phong-van-vietnam.md`, giữ dữ liệu công ty và 7 họ bài, rồi nhúng tất cả vào bản nguồn |
 | `algorithms-learning.html` | Bản dựng để publish làm Artifact — không có `<!doctype>`/`<html>`/`<head>`/`<body>` vì nền tảng tự bọc. **Sinh tự động, đừng sửa tay** |
 | `index.html` | Bản dựng standalone, mở trực tiếp bằng trình duyệt. **Sinh tự động, đừng sửa tay** |
@@ -38,6 +39,7 @@ Bấm `/` ở bất kỳ đâu để nhảy vào ô tìm kiếm.
 | Dữ liệu | Lấy từ đâu |
 |---|---|
 | 38 bài thuật toán | **Parse từ bảng mục lục** trong `leetcode-38-bai-phong-van-vietnam.md` — một nguồn duy nhất, sửa bảng đó là web đổi theo |
+| Bài ôn (tab Ôn bài) | **Parse từ bảng "Danh sách bài"** trong `on-bai/<giai đoạn>/README.md` (số, tên, file, trọng tâm, sao Katalon/NAB, test lab); thời lượng lấy từ dòng `**Thời lượng:**` của từng bài. Thêm giai đoạn mới: thêm một dòng vào `ONBAI_PHASES` trong `build.py` |
 | Nội dung tài liệu | Mọi file `.md` trong repo (trừ `site/`, `web/`, `.git/`) |
 | Yêu cầu JD, các vòng, gap | Khai trong `build.py`, soạn từ `nab-prep/02-gap-analysis.md` và `katalon-prep/` |
 | 7 họ bài, 5 trục | Khai trong `build.py`, soạn từ `katalon-prep/katalon-system-design/README.md` |

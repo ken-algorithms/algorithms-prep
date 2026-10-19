@@ -18,6 +18,7 @@ open site/index.html
 
 | Folder | Là gì |
 |---|---|
+| [**on-bai/**](on-bai/) ⭐ | **Ôn bài cho phỏng vấn Katalon + NAB**, giai đoạn 1: 11 bài từ lý thuyết tới real case dựng từ đầu, lab chạy thật (79 test, PostgreSQL 16 + Redis, [lab/](on-bai/gd1-nen-tang/lab/)), drill code tại chỗ. Trọng tâm: [sổ cái và số dư real-time](on-bai/gd1-nen-tang/05-ledger-va-balance.md), [race tính lãi với thanh toán](on-bai/gd1-nen-tang/06-race-tinh-lai-vs-thanh-toan.md) |
 | [**java-system-design/**](java-system-design/) ⭐ | **Lộ trình System Design 6 tháng cho Senior Java (v2)** — 4 giai đoạn, capstone, công ty mục tiêu. Thêm hai track: [code Java chậm dưới tải cao](java-system-design/01-java-code-cham-duoi-tai-cao.md) (20 anti-pattern, [perf-lab](java-system-design/perf-lab/) có số đo thật) và [vẽ hệ thống 100k → 1M → 10M users](java-system-design/02-ve-he-thong-100k-1m-10m.md). Bài tập chi tiết: [giai đoạn 1](java-system-design/10-implement-gd1-nen-tang.md) |
 | [**ai-learning/**](ai-learning/) ⭐ | **Học sâu AI** — 16 file từ toán nền → ML/DL → CV/NLP/VLM → fine-tuning → eval → tối ưu token. Mọi ví dụ lấy từ code thật `motivesidp-ai-service`. Kèm 12 project thực hành và [lộ trình AI Engineer](ai-learning/13-lo-trinh-ai-engineer-vsf-fpt.md) |
 | [**nab-prep/**](nab-prep/) ⭐ | **NAB Innovation Centre Vietnam** — Senior/Lead Java Engineer. Nghiên cứu công ty, JD, quy trình 5 vòng, gap analysis, kế hoạch 5 tuần |
@@ -25,7 +26,7 @@ open site/index.html
 | [katalon-prep/katalon-system-design/](katalon-prep/katalon-system-design/) | **Dùng chung cho cả hai hướng** — 7 họ bài, 5 trục nhận diện, 6 bài design đầy đủ |
 | [leetcode-38-bai/](leetcode-38-bai/) · [leetcode-38-bai-java/](leetcode-38-bai-java/) | 38 bài DSA, cả Python và Java |
 | [leetcode-38-bai-phong-van-vietnam.md](leetcode-38-bai-phong-van-vietnam.md) | Tài liệu DSA gốc |
-| [web/](web/) | **Bản một trang** — tổng quan, công ty, 38 bài có tick, system design, đọc tài liệu |
+| [web/](web/) | **Bản một trang** — tổng quan, công ty, 38 bài có tick, system design, ôn bài (đọc trong popup) + video, đọc tài liệu |
 
 Tiếng Anh có lộ trình riêng ở `../ielts-target-5-5/` ([bản web](https://claude.ai/code/artifact/9569184e-cc2d-43ce-b0e7-c4c0183af03b)) — 40 tuần, giáo án
 từng ngày, có bản web đồng hành. [`nab-prep/05`](nab-prep/05-english-interview.md) chỉ lo phần

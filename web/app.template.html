@@ -331,6 +331,46 @@ h2.sec:first-child{margin-top:0}
 .vitem b{display:block;font-size:13px;font-weight:600;line-height:1.3}
 .vitem small{display:block;color:var(--ink-3);font-size:11.5px;margin-top:2px;font-family:var(--f-mono)}
 .vitem.seen b::after{content:" ✓";color:var(--ok)}
+
+/* ---------- ôn bài (tab Ôn bài) ---------- */
+.obtabs{margin-bottom:14px}
+.obtabs .fbtn b{font-family:var(--f-mono);font-weight:500;margin-left:6px;opacity:.75}
+.oblist{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-top:14px}
+.obcard{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-width:0}
+.obcard:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.obmain{display:grid;grid-template-columns:38px minmax(0,1fr);gap:12px;text-align:left;background:none;border:0;
+  padding:14px 16px 10px;width:100%;border-radius:var(--r) var(--r) 0 0}
+.obn{font-family:var(--f-mono);font-size:20px;font-weight:600;color:var(--accent);line-height:1.2}
+.obcard.done .obn{color:var(--ok)}
+.obtx{min-width:0}
+.obtx > b{display:block;font-size:14.5px;line-height:1.35;margin-bottom:5px}
+.obtx small{display:block;color:var(--ink-2);font-size:12.5px;line-height:1.5}
+.obtx code{font-family:var(--f-mono);font-size:.92em;background:var(--sunken);padding:0 .3em;border-radius:4px}
+.obmeta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:9px 16px 12px;margin-top:auto;border-top:1px solid var(--line)}
+.obmeta label,.mdbar label{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.obmeta label{margin-left:auto}
+.obmeta input,.mdbar input{accent-color:var(--accent);width:16px;height:16px}
+.obstar{color:var(--warn)}
+.chip .st{font-family:var(--f-ui);font-size:12px;letter-spacing:-.04em;color:var(--warn)}
+
+/* popup đọc bài: CÙNG class .doc và cùng renderMermaid với tab Tài liệu, nên bảng/biểu đồ/code hiển thị y hệt */
+dialog.mdpop{padding:0;border:1px solid var(--line);border-radius:var(--r);background:var(--ground);color:var(--ink);
+  width:min(1100px,96vw);height:min(92dvh,1600px);max-width:none;max-height:none;box-shadow:var(--shadow);overflow:hidden}
+dialog.mdpop[open]{display:flex;flex-direction:column}
+dialog.mdpop::backdrop{background:rgba(10,12,16,.58)}
+.mdbar{display:flex;gap:8px;align-items:center;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--line);flex:none}
+.mdttl{min-width:0;flex:1;display:flex;flex-direction:column}
+.mdttl b{font-size:14px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdttl span{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdbar .fbtn{white-space:nowrap}
+.mdscroll{flex:1;min-height:0;overflow-y:auto;padding:22px 34px 56px;overscroll-behavior:contain}
+body.modal-open{overflow:hidden}
+@media(max-width:760px){
+  dialog.mdpop{width:100vw;height:100dvh;border-radius:0;border:0}
+  .mdscroll{padding:16px 16px 40px}
+  .mdbar{flex-wrap:wrap}
+  .mdbar .full{display:none}
+}
 </style>
 
 <div class="shell">
@@ -340,7 +380,7 @@ h2.sec:first-child{margin-top:0}
     <button class="tab" data-act="tab" data-t="co">Công ty<span class="n">2</span></button>
     <button class="tab" data-act="tab" data-t="algo">Thuật toán<span class="n" id="nAlgo">38</span></button>
     <button class="tab" data-act="tab" data-t="sd">System design<span class="n" id="nSd">0/6</span></button>
-    <button class="tab" data-act="tab" data-t="vid">Video<span class="n" id="nVid">0</span></button>
+    <button class="tab" data-act="tab" data-t="onbai">Ôn bài<span class="n" id="nOnbai">0</span></button>
     <button class="tab" data-act="tab" data-t="docs">Tài liệu<span class="n" id="nDocs">0</span></button>
     <div class="foot">
       <button class="mini" data-act="theme" id="themeBtn">Giao diện: theo máy</button>
@@ -351,7 +391,7 @@ h2.sec:first-child{margin-top:0}
   <main class="view">
     <div class="head">
       <div><h1 id="ttl">Tổng quan</h1><div class="sub" id="sub"></div></div>
-      <span class="chip acc num" id="pct" title="Phần trăm đã hoàn thành: bài thuật toán + yêu cầu JD + mốc lộ trình System Design">0%</span>
+      <span class="chip acc num" id="pct" title="Phần trăm đã hoàn thành: bài thuật toán + yêu cầu JD + mốc lộ trình System Design + bài ôn">0%</span>
     </div>
 
     <!-- ============ TỔNG QUAN ============ -->
@@ -363,6 +403,8 @@ h2.sec:first-child{margin-top:0}
           <div class="big" id="sReq">0/25</div><span>Yêu cầu JD đã sẵn sàng →</span></button>
         <button class="stat" data-act="tab" data-t="sd">
           <div class="big" id="sMs">0/6</div><span>Mốc lộ trình System Design →</span></button>
+        <button class="stat" data-act="tab" data-t="onbai">
+          <div class="big" id="sOb">0/0</div><span>Bài ôn đã xong (lý thuyết + lab) →</span></button>
         <button class="stat" data-act="tab" data-t="docs">
           <div class="big" id="sDocs">0</div><span>Tài liệu trong kho →</span></button>
       </div>
@@ -450,8 +492,11 @@ h2.sec:first-child{margin-top:0}
       <div class="grid g2" id="sdDocs"></div>
     </section>
 
-    <!-- ============ VIDEO ============ -->
-    <section class="pane" id="p-vid" hidden>
+    <!-- ============ ÔN BÀI (bài md + video bài giảng) ============ -->
+    <section class="pane" id="p-onbai" hidden>
+      <div class="filters obtabs" id="obTabs"></div>
+      <div id="obLessons"></div>
+      <div id="obVideos" hidden>
       <div class="card vhead">
         <div>
           <div class="vser" id="vSeries"></div>
@@ -467,6 +512,7 @@ h2.sec:first-child{margin-top:0}
           <div id="vInfo"></div>
         </div>
         <div class="vlist" id="vList"></div>
+      </div>
       </div>
     </section>
 
@@ -492,6 +538,18 @@ h2.sec:first-child{margin-top:0}
   </main>
 </div>
 
+<!-- popup đọc bài ôn (và mọi tài liệu mở từ trong nó) -->
+<dialog class="mdpop" id="mdPop" aria-labelledby="mdTitle">
+  <div class="mdbar">
+    <button class="fbtn" data-act="pback" id="pBack" hidden aria-label="Quay lại bài trước">←</button>
+    <div class="mdttl"><b id="mdTitle"></b><span id="mdPath"></span></div>
+    <label id="mdSeenWrap" hidden><input type="checkbox" data-act="obseen" id="mdSeen"> Đã ôn</label>
+    <button class="fbtn full" data-act="pfull" title="Mở bài này ở tab Tài liệu">Mở toàn trang</button>
+    <button class="fbtn" data-act="pclose" aria-label="Đóng (Esc)">✕</button>
+  </div>
+  <div class="mdscroll" id="mdScroll"><article class="doc" id="mdDoc"></article></div>
+</dialog>
+
 <script>
 const DOCS = /*__DOCS__*/{};
 const ALGOS = /*__ALGOS__*/[];
@@ -503,12 +561,14 @@ const KEY = "algo-learning-v1";
 const DSA_DOC = "leetcode-38-bai-phong-van-vietnam.md";
 const MEDIA_BASE = /*__MEDIA_BASE__*/"";
 const JSDV = /*__JSDV__*/{};
+const ONBAI = /*__ONBAI__*/{};
 
 /* ---------- state ---------- */
 let S = {done:{}, req:{}, ms:{}};
 try{ const r = localStorage.getItem(KEY); if(r) S = Object.assign(S, JSON.parse(r)); }catch(e){}
 S.ms = S.ms || {};
 S.vid = S.vid || {};
+S.onbai = S.onbai || {};
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 
 const el = id => document.getElementById(id);
@@ -545,10 +605,10 @@ function cycleTheme(){
 }
 
 /* ---------- tabs ---------- */
-const TABS = ["over","co","algo","sd","vid","docs"];
+const TABS = ["over","co","algo","sd","onbai","docs"];
 const TITLES = {over:["Tổng quan","Bạn đang ở đâu"], co:["Công ty","JD, các vòng, và gap thật"],
   algo:["Thuật toán","38 bài — gõ tay, tắt Copilot"], sd:["System design","Lộ trình 24 tuần · 2 track · 7 họ bài · 6 bài đầy đủ"],
-  vid:["Video","Bài giảng tiếng Anh cho lộ trình Java System Design"],
+  onbai:["Ôn bài","Lý thuyết → real case dựng từ đầu → lab chạy thật → drill code · kèm video bài giảng"],
   docs:["Tài liệu","Toàn bộ kho, đọc ngay trong trang"]};
 function go(t){
   if(!TABS.includes(t)) return;
@@ -565,6 +625,8 @@ const reqTotal = () => Object.values(CO).reduce((n, c) => n + c.req.length, 0);
 const reqDone = () => Object.keys(S.req).filter(k => S.req[k]).length;
 const msTotal = () => (SDR.ms || []).length;
 const msDone = () => (SDR.ms || []).filter((m, i) => S.ms[i]).length;
+const OB = (ONBAI.phases || []).flatMap(p => p.lessons);
+const obDone = () => OB.filter(l => S.onbai[l.doc]).length;
 
 function renderOver(){
   const d = doneCount();
@@ -577,7 +639,9 @@ function renderOver(){
   el("covC").textContent = doneCount("C");
   el("covSegs").innerHTML = ALGOS.map(a =>
     `<span class="seg${S.done[a.i] ? " on" : ""}" title="${esc(a.i + ". " + a.n)}"></span>`).join("");
-  el("pct").textContent = Math.round(((d + reqDone() + msDone()) / (ALGOS.length + reqTotal() + msTotal())) * 100) + "%";
+  el("sOb").textContent = obDone() + "/" + OB.length;
+  el("pct").textContent = Math.round(((d + reqDone() + msDone() + obDone()) /
+    (ALGOS.length + reqTotal() + msTotal() + OB.length)) * 100) + "%";
 
   el("trackCards").innerHTML = Object.entries(CO).map(([k, c]) => `
     <button class="track" data-act="co" data-co="${esc(k)}">
@@ -693,7 +757,7 @@ function renderRoadmap(){
     <button class="fbtn" data-act="doc" data-doc="${esc(SDR.doc)}" aria-pressed="true">Mở lộ trình đầy đủ →</button>` +
     SDR.phases.filter(p => p.impl).map(p =>
       `<button class="fbtn" data-act="doc" data-doc="${esc(p.impl)}">Bài tập GĐ${p.n} →</button>`).join("") +
-    ((JSDV.series || []).length ? `<button class="fbtn" data-act="tab" data-t="vid">▶ Video bài giảng (${(JSDV.series || []).reduce((n, x) => n + x.lessons.length, 0)}) →</button>` : "");
+    (OB.length || (JSDV.series || []).length ? `<button class="fbtn" data-act="tab" data-t="onbai">Ôn bài: ${OB.length} bài + ${(JSDV.series || []).reduce((n, x) => n + x.lessons.length, 0)} video →</button>` : "");
   el("phases").innerHTML = SDR.phases.map(p => `
     <div class="card phase">
       <div class="top"><i>${p.n}</i>
@@ -752,7 +816,6 @@ function srcRef(ref){  // "10-implement-gd1-nen-tang.md#11-..." → [khoá tài 
 const vCode = v => v.code || "Ep" + String(v.ep).padStart(2, "0");  // K03 ở bộ chen ngang, Ep03 ở hai bộ giai đoạn
 const srcLabel = ref => String(ref).split("#")[0].split("/").pop().replace(/\.md$/, "").split("-")[0];
 function renderVid(){
-  el("nVid").textContent = vAll();
   if(!SER.length){
     el("vLead").textContent = "Chưa có video nào được dựng.";
     el("vSeries").innerHTML = ""; el("vPlayer").innerHTML = ""; el("vInfo").innerHTML = ""; el("vList").innerHTML = "";
@@ -820,9 +883,100 @@ function seekVid(t){
   try{ v.scrollIntoView({block:"nearest"}); }catch(e){}
 }
 
+/* ---------- ôn bài ----------
+   Danh sách bài lấy từ bảng trong on-bai/<gđ>/README.md (build.py đọc). Bấm một bài thì mở popup đọc ngay,
+   cùng cách hiển thị với tab Tài liệu. "Đã ôn" lưu trong S.onbai theo đường dẫn file bài. */
+const inl = s => esc(s).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>");
+const stars = n => "★".repeat(n) + "☆".repeat(Math.max(0, 3 - n));
+function renderOnbai(){
+  el("nOnbai").textContent = obDone() + "/" + OB.length;
+  const view = S.obview === "vid" && SER.length ? "vid" : "les";
+  el("obTabs").innerHTML =
+    `<button class="fbtn" data-act="obview" data-v="les" aria-pressed="${view === "les"}">Bài ôn<b>${obDone()}/${OB.length}</b></button>` +
+    (SER.length ? `<button class="fbtn" data-act="obview" data-v="vid" aria-pressed="${view === "vid"}">Video bài giảng<b>${vAll()}</b></button>` : "");
+  el("obLessons").hidden = view !== "les";
+  el("obVideos").hidden = view !== "vid";
+  el("obLessons").innerHTML = (ONBAI.phases || []).map(p => {
+    const done = p.lessons.filter(l => S.onbai[l.doc]).length;
+    const mins = p.lessons.reduce((n, l) => n + l.mins, 0), tests = p.lessons.reduce((n, l) => n + l.tests, 0);
+    const lab = p.readme.replace(/README\.md$/, "lab/README.md");
+    return `
+    <div class="card rm-head">
+      <div><p class="eyebrow">Ôn bài · ${esc(p.title)} · ${done}/${p.lessons.length} đã ôn</p>
+        <h3>${p.lessons.length} bài · khoảng ${Math.round(mins / 60)} giờ · lab ${tests} test chạy thật</h3>
+        <p>${esc(p.lead)}</p></div>
+      <div class="rm-actions">
+        <button class="fbtn" data-act="pop" data-doc="${esc(p.readme)}" aria-pressed="true">Tổng quan + thứ tự học →</button>
+        ${DOCS[lab] ? `<button class="fbtn" data-act="pop" data-doc="${esc(lab)}">Lab: cách chạy →</button>` : ""}
+      </div>
+    </div>
+    <div class="oblist">${p.lessons.map(l => `
+      <div class="obcard${S.onbai[l.doc] ? " done" : ""}">
+        <button class="obmain" data-act="pop" data-doc="${esc(l.doc)}">
+          <span class="obn">${esc(l.n)}</span>
+          <span class="obtx"><b>${esc(l.t)}${l.star ? ' <span class="obstar" title="bài trọng tâm">★</span>' : ""}</b><small>${inl(l.focus)}</small></span>
+        </button>
+        <div class="obmeta">
+          <span class="chip" title="Mức ưu tiên cho Katalon">Katalon <span class="st">${stars(l.k)}</span></span>
+          <span class="chip" title="Mức ưu tiên cho NAB">NAB <span class="st">${stars(l.nab)}</span></span>
+          ${l.mins ? `<span class="chip num" title="đọc + lab + drill">${l.mins}′</span>` : ""}
+          ${l.tests ? `<span class="chip ok num" title="${esc(l.lab.join(", "))}">${l.tests} test</span>` : ""}
+          <label><input type="checkbox" data-act="obseen" data-doc="${esc(l.doc)}" ${S.onbai[l.doc] ? "checked" : ""}> Đã ôn</label>
+        </div>
+      </div>`).join("")}</div>`;
+  }).join("") || `<p class="empty">Chưa có bài ôn nào.</p>`;
+  if(view === "vid") renderVid();
+}
+
+/* Popup đọc bài: <dialog> modal (Esc đóng, nền tối, khoá cuộn trang sau). Liên kết sang tài liệu khác mở NGAY
+   trong popup và có nút ← quay lại; "Mở toàn trang" chuyển sang tab Tài liệu đúng bài đó. */
+let popCur = null;
+const popHist = [];
+function openPop(k, anchor, push){
+  const key = resolveDoc(k);
+  if(!key) return false;
+  const dlg = el("mdPop");
+  if(!dlg.open){
+    popHist.length = 0;
+    try{ dlg.showModal(); }catch(e){ dlg.setAttribute("open", ""); }
+    document.body.classList.add("modal-open");
+  } else if(push !== false && popCur && popCur !== key){
+    popHist.push(popCur);
+  }
+  popCur = key;
+  el("pBack").hidden = popHist.length === 0;
+  el("mdTitle").textContent = DOCS[key].t;
+  el("mdPath").textContent = key;
+  el("mdSeenWrap").hidden = !OB.some(l => l.doc === key);
+  el("mdSeen").dataset.doc = key;
+  el("mdSeen").checked = !!S.onbai[key];
+  const box = el("mdDoc");
+  box.innerHTML = DOCS[key].h;
+  prepareDoc(box, key);
+  requestAnimationFrame(() => popScroll(anchor));
+  return true;
+}
+function popScroll(anchor){
+  const sc = el("mdScroll");
+  let t = null;
+  if(anchor){
+    try{ t = el("mdDoc").querySelector("#" + CSS.escape(anchor)); }catch(e){}
+    if(!t) t = el("mdDoc").querySelector(`[id="${anchor}"], [name="${anchor}"]`);
+  }
+  sc.scrollTop = t ? Math.max(0, t.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 10) : 0;
+}
+function closePop(){ const d = el("mdPop"); if(d.open) d.close(); }
+el("mdPop").addEventListener("close", () => {
+  popCur = null; popHist.length = 0;
+  document.body.classList.remove("modal-open");
+  el("mdDoc").innerHTML = "";
+});
+el("mdPop").addEventListener("click", e => { if(e.target === el("mdPop")) closePop(); });  // bấm ra nền tối thì đóng
+
 /* ---------- tài liệu ---------- */
 const ORDER = Object.keys(DOCS);
 function groupOf(k){
+  if(k.startsWith("on-bai/")) return "Ôn bài";
   if(k.startsWith("java-system-design/")) return "Java System Design";
   if(k.startsWith("ai-agent-learning/")) return "AI Agent";
   if(k.startsWith("ai-learning/")) return "AI Learning";
@@ -889,7 +1043,14 @@ function openDoc(k, anchor, pushHist){
   el("docPath").textContent = key;
   const box = el("doc");
   box.innerHTML = DOCS[key].h;
+  prepareDoc(box, key);
+  requestAnimationFrame(() => scrollToAnchor(anchor));
+  return true;
+}
 
+/* Xử lý chung sau khi đổ HTML của một tài liệu vào khung: dùng cho tab Tài liệu VÀ popup ôn bài,
+   nên hai nơi hiển thị y hệt nhau (bảng cuộn ngang, liên kết, media, biểu đồ mermaid). */
+function prepareDoc(box, key){
   // bọc bảng rộng để cuộn ngang trong khung của nó, không làm trang cuộn ngang
   box.querySelectorAll("table").forEach(t => {
     if(t.parentElement.classList.contains("tw")) return;
@@ -912,8 +1073,6 @@ function openDoc(k, anchor, pushHist){
   });
   if(key === DSA_DOC) injectMedia(box);   // sau vòng xử lý link: link "Mở file" giữ nguyên data-act="ext"
   renderMermaid(box);
-  requestAnimationFrame(() => scrollToAnchor(anchor));
-  return true;
 }
 
 function renderMermaid(container){
@@ -982,8 +1141,12 @@ function handleAct(e){
   if(!t) return;
   const act = t.dataset.act;
 
-  if(act === "req" || act === "algo" || act === "ms" || act === "vseen"){  // checkbox: để trình duyệt tự toggle
-    if(act === "vseen"){ S.vid[t.dataset.v] = t.checked; save(); renderVid(); }
+  if(act === "req" || act === "algo" || act === "ms" || act === "vseen" || act === "obseen"){  // checkbox: để trình duyệt tự toggle
+    if(act === "obseen"){
+      S.onbai[t.dataset.doc] = t.checked; save(); renderOnbai(); renderOver();
+      if(el("mdSeen").dataset.doc === t.dataset.doc) el("mdSeen").checked = t.checked;
+    }
+    else if(act === "vseen"){ S.vid[t.dataset.v] = t.checked; save(); renderVid(); }
     else if(act === "ms"){ S.ms[t.dataset.ms] = t.checked; save(); renderRoadmap(); renderOver(); }
     else if(act === "req"){ S.req[t.dataset.req] = t.checked; save(); renderOver(); renderCo(); }
     else { S.done[t.dataset.a] = t.checked; save(); renderAlgo(); renderOver(); }
@@ -996,8 +1159,16 @@ function handleAct(e){
   switch(act){
     case "tab":    go(t.dataset.t); break;
     case "co":     coCur = t.dataset.co; renderCo(); go("co"); break;
-    case "doc":    openDoc(t.dataset.doc, t.dataset.anchor || undefined, t.dataset.nohist !== "1"); break;
-    case "anchor": scrollToAnchor(t.dataset.anchor); break;
+    case "doc":    // liên kết bấm TRONG popup thì mở trong popup, không nhảy tab
+      if(t.closest("#mdPop")) openPop(t.dataset.doc, t.dataset.anchor || undefined);
+      else openDoc(t.dataset.doc, t.dataset.anchor || undefined, t.dataset.nohist !== "1");
+      break;
+    case "anchor": if(t.closest("#mdPop")) popScroll(t.dataset.anchor); else scrollToAnchor(t.dataset.anchor); break;
+    case "pop":    openPop(t.dataset.doc, t.dataset.anchor || undefined); break;
+    case "pback":  if(popHist.length) openPop(popHist.pop(), undefined, false); break;
+    case "pfull":  { const k = popCur; closePop(); if(k) openDoc(k); } break;
+    case "pclose": closePop(); break;
+    case "obview": S.obview = t.dataset.v; save(); renderOnbai(); break;
     case "vid":    vidCur = t.dataset.v; renderVid(); toTop(); break;
     case "vser":   S.vser = t.dataset.s; save(); vidCur = null; renderVid(); break;
     case "seek":   seekVid(t.dataset.t); break;
@@ -1019,25 +1190,25 @@ function handleAct(e){
     case "theme": cycleTheme(); break;
     case "reset":
       if(confirm("Xoá toàn bộ tiến độ đã tick? Không khôi phục lại được.")){
-        S = {done:{}, req:{}, ms:{}, vid:{}}; save(); renderAll();
+        S = {done:{}, req:{}, ms:{}, vid:{}, onbai:{}}; save(); renderAll();
       }
       break;
   }
 }
 document.addEventListener("click", handleAct);
-document.addEventListener("change", e => { if(e.target.matches('[data-act="req"],[data-act="algo"],[data-act="ms"],[data-act="vseen"]')) handleAct(e); });
+document.addEventListener("change", e => { if(e.target.matches('[data-act="req"],[data-act="algo"],[data-act="ms"],[data-act="vseen"],[data-act="obseen"]')) handleAct(e); });
 // phần tử bấm được nhưng không phải <button> vẫn phải dùng được bằng bàn phím
 document.addEventListener("keydown", e => {
   if((e.key === "Enter" || e.key === " ") && e.target.matches('[data-act][role="button"]')){
     e.preventDefault(); handleAct(e);
   }
-  if(e.key === "/" && e.target !== el("q")){ e.preventDefault(); go("docs"); el("q").focus(); }
+  if(e.key === "/" && e.target !== el("q") && !el("mdPop").open){ e.preventDefault(); go("docs"); el("q").focus(); }
   if(e.key === "Escape" && e.target === el("q")){ el("q").value = ""; runSearch(); el("q").blur(); }
 });
 el("q").addEventListener("input", runSearch);
 
 /* ---------- boot ---------- */
-function renderAll(){ renderOver(); renderCo(); renderAlgo(); renderSd(); renderVid(); renderNav(); }
+function renderAll(){ renderOver(); renderCo(); renderAlgo(); renderSd(); renderOnbai(); renderVid(); renderNav(); }
 themeLabel();
 el("nDocs").textContent = Object.keys(DOCS).length;
 renderAll();

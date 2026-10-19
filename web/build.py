@@ -98,6 +98,19 @@ def first_heading(md_text: str) -> str | None:
 LINK_RE = re.compile(r'(?<=\]\()([^)\s]+?)(\)|\s)')
 
 
+def details_markdown(md_text: str) -> str:
+    """<details> viết trần: GitHub vẫn render markdown bên trong, python-markdown thì để nguyên **, `, [link]().
+    Thêm markdown="1" (md_in_html) cho mọi thẻ <details> đứng đầu dòng, ngoài code fence. File nguồn không đổi."""
+    out, fence = [], False
+    for line in md_text.split("\n"):
+        if line.lstrip().startswith(("```", "~~~")):
+            fence = not fence
+        elif not fence and line.startswith("<details>"):
+            line = '<details markdown="1">' + line[len("<details>"):]
+        out.append(line)
+    return "\n".join(out)
+
+
 def to_doc_refs(md_text: str, page_dir: Path, known: set[str]) -> str:
     """Turn cross-document .md links into in-app references the page can intercept."""
     def sub(m: re.Match) -> str:
@@ -138,9 +151,10 @@ def collect_docs() -> dict[str, dict]:
         head = (
             0 if rel == "README.md" else
             1 if rel.startswith("java-system-design/") else
-            2 if rel.startswith("ai-agent-learning/") else
-            3 if rel.startswith("ai-learning/") else
-            4 if rel.startswith("nab-prep/") else 5
+            2 if rel.startswith("on-bai/") else
+            3 if rel.startswith("ai-agent-learning/") else
+            4 if rel.startswith("ai-learning/") else
+            5 if rel.startswith("nab-prep/") else 6
         )
         return (head, rel)
 
@@ -149,7 +163,7 @@ def collect_docs() -> dict[str, dict]:
         rel = p.relative_to(ROOT).as_posix()
         raw = p.read_text(encoding="utf-8", errors="ignore")
         md.reset()
-        html_body = md.convert(to_doc_refs(raw, p.parent, known))
+        html_body = md.convert(to_doc_refs(details_markdown(raw), p.parent, known))
         # rewrite the placeholder hrefs into data attributes the app listens on
         html_body = re.sub(
             r'href="#doc:([^:"]+):([^"]*)"',
@@ -440,6 +454,45 @@ SDR = {
 }
 
 
+# Tab "Ôn bài": mỗi giai đoạn một thư mục on-bai/<id>/. Bảng "Danh sách bài" trong README của thư mục là
+# nguồn sự thật duy nhất (giống bảng 38 bài của tab Thuật toán): số, tên, file, trọng tâm, sao Katalon/NAB, test lab.
+ONBAI_PHASES = [
+    {"id": "gd1-nen-tang", "title": "Giai đoạn 1 · Nền tảng",
+     "lead": "Lý thuyết đi cùng real case dựng từ đầu, lab chạy thật trên PostgreSQL 16 và Redis, drill code tại chỗ. "
+             "Dùng chung cho vòng system design của Katalon và NAB."},
+]
+ONBAI_ROW = re.compile(
+    r"^\|\s*(\d{2})\s*\|\s*\[([^\]]+)\]\(([^)]+\.md)\)\s*(⭐)?\s*\|\s*([^|]+?)\s*\|\s*(★*)\s*\|\s*(★*)\s*\|\s*([^|]*?)\s*\|\s*$",
+    re.M)
+
+
+def collect_onbai(docs: dict[str, dict]) -> dict:
+    phases = []
+    for ph in ONBAI_PHASES:
+        base = f"on-bai/{ph['id']}/"
+        readme = base + "README.md"
+        if readme not in docs:
+            continue
+        lessons = []
+        for m in ONBAI_ROW.finditer((ROOT / readme).read_text(encoding="utf-8")):
+            doc = base + m.group(3)
+            if doc not in docs:
+                print(f"⚠ ôn bài: {readme} trỏ tới {m.group(3)} nhưng không có file đó")
+                continue
+            raw = (ROOT / doc).read_text(encoding="utf-8")
+            dur = re.search(r"\*\*Thời lượng:\*\*([^\n]+)", raw)
+            tests = [int(n) for n in re.findall(r"`\w+Test`\s*\((\d+)\)", m.group(8))]
+            lessons.append({"n": m.group(1), "doc": doc, "t": m.group(2), "star": bool(m.group(4)),
+                            "focus": m.group(5), "k": len(m.group(6)), "nab": len(m.group(7)),
+                            "mins": sum(int(x) for x in re.findall(r"(\d+)\s*phút", dur.group(1))) if dur else 0,
+                            "tests": sum(tests), "lab": [t for t in re.findall(r"`(\w+Test)`", m.group(8))]})
+        on_disk = sorted(p.name for p in (ROOT / base).glob("[0-9][0-9]-*.md"))
+        if len(on_disk) != len(lessons):
+            print(f"⚠ ôn bài {ph['id']}: bảng có {len(lessons)} bài, thư mục có {len(on_disk)} file bài")
+        phases.append(dict(ph, readme=readme, lessons=lessons))
+    return {"phases": phases}
+
+
 def resolve_sdr_anchors(docs: dict[str, dict]) -> None:
     """Đổi tiêu đề ("h") thành anchor, và kiểm tra anchor có trong tài liệu đã render."""
     ladder_doc = SDR_DIR + "02-ve-he-thong-100k-1m-10m.md"
@@ -463,6 +516,7 @@ def main() -> None:
         print(f"⚠ đọc được {len(algos)} bài thuật toán, kỳ vọng 38 — kiểm tra bảng mục lục")
 
     series = collect_jsd_series(docs)
+    onbai = collect_onbai(docs)
     tpl = (WEB / "app.template.html").read_text(encoding="utf-8")
     dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":"))
 
@@ -470,6 +524,7 @@ def main() -> None:
         jsdv = {"dir": SDR_DIR, "series": [dict(x, base=jsd_base(x["id"], standalone)) for x in series]}
         return (tpl
                 .replace("/*__JSDV__*/{}", dump(jsdv))
+                .replace("/*__ONBAI__*/{}", dump(onbai))
                 .replace("/*__DOCS__*/{}", dump(docs))
                 .replace("/*__ALGOS__*/[]", dump(algos))
                 .replace("/*__CO__*/{}", dump(COMPANIES))
@@ -496,8 +551,11 @@ def main() -> None:
           f"{sum(len(c['req']) for c in COMPANIES.values())} yêu cầu JD")
     print(f"  web/algorithms-learning.html  {kb:.0f} KB  → publish làm Artifact")
     print(f"  web/index.html                          → mở trực tiếp bằng trình duyệt")
+    for ph in onbai["phases"]:
+        print(f"  ôn bài {ph['id']}: {len(ph['lessons'])} bài (tab Ôn bài): "
+              f"{', '.join(l['n'] for l in ph['lessons'])} · {sum(l['tests'] for l in ph['lessons'])} test lab")
     for x in series:
-        print(f"  {x['id']}: {len(x['lessons'])} video (tab Video): {', '.join(v.get('code') or 'Ep%02d' % v['ep'] for v in x['lessons'])}"
+        print(f"  {x['id']}: {len(x['lessons'])} video (tab Ôn bài › Video): {', '.join(v.get('code') or 'Ep%02d' % v['ep'] for v in x['lessons'])}"
               f" — media từ {jsd_base(x['id'], True)}")
     videos = [a for a in algos if "v" in a]
     if videos:

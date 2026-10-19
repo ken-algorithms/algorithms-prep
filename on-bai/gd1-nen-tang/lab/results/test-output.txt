@@ -1,0 +1,60 @@
+# mvn -B test — 2026-10-19 — JDK 21.0.11, PostgreSQL 16.4 (embedded), Redis 7.0.15
+Tests run: 79, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+
+[LAB] Lua token bucket, 4 instance x 8 luong x 50 lan, capacity 100: cho qua 100
+[LAB] limit 100/phut, 200 request trong 2 ms quanh bien phut: fixed 200, sliding log 100, sliding counter 101
+[LAB] GET roi SET, limit 100, dang o 99: A=true B=true -> bo dem = 100
+[LAB] doc cham + ghi chen vao giua: xoa-khi-ghi -> cache tra 100 (CU, toi het TTL); version+tombstone -> 120
+[LAB] 100 luong cung miss key nong: khong gop -> 100 lan doc DB, single-flight -> 1 lan
+[LAB] khong token: 100 tu replica | token seq=2: 70 tu primary
+[LAB] account nong: su that -130, chot theo id -30 (sot vinh vien), chot theo xmin -130
+[LAB] mot transaction mo giu moc xmin: phan duoi phai cong = 20 dong
+[LAB] 507 posting, sau refresh doc chi cong 7 dong duoi, so du 507 @seq 507
+[LAB] snapshot+duoi khop so du chay o 4951 lan doc giua luc dang ghi
+[LAB] khoa theo thu tu request: [commit, 40P01]
+[LAB] 1916 chuyen khoan ngau nhien hai chieu, 16 luong: 1710 ok, 206 thieu tien, tong 5 vi = 5000, doi soat sach = true
+[LAB] 50 lenh rut 10 cung luc tu vi 100: 10 thanh cong, 40 bi tu choi
+[LAB] 20 request trung key chay song song -> thuc thi 1, phat lai 19
+[LAB] qua tai 150%, cho vo han : rho=1.50 thong luong=1002/s p50=9991.3ms p99=19635.2ms (cho p99=19626.9ms) bo cuoc=0
+[LAB] qua tai 150%, cho <= 100ms: rho=1.50 thong luong=998/s p50=105.1ms p99=143.4ms (cho p99=100.0ms) bo cuoc=19925
+[LAB] 10 conn, giu 10ms: rho=0.50 thong luong=498/s p50=7.0ms p99=46.2ms (cho p99=2.6ms) bo cuoc=0
+[LAB] 10 conn, giu 10ms: rho=0.70 thong luong=697/s p50=7.8ms p99=47.2ms (cho p99=10.5ms) bo cuoc=0
+[LAB] 10 conn, giu 10ms: rho=0.80 thong luong=797/s p50=9.2ms p99=49.3ms (cho p99=18.8ms) bo cuoc=0
+[LAB] 10 conn, giu 10ms: rho=0.90 thong luong=897/s p50=13.5ms p99=63.0ms (cho p99=42.4ms) bo cuoc=0
+[LAB] 10 conn, giu 10ms: rho=0.95 thong luong=946/s p50=20.7ms p99=100.8ms (cho p99=87.4ms) bo cuoc=0
+[LAB] 10 conn, giu 10ms: rho=0.99 thong luong=986/s p50=58.6ms p99=249.9ms (cho p99=241.5ms) bo cuoc=0
+[LAB] giu 5ms : rho=0.15 thong luong=299/s p50=3.5ms p99=23.0ms (cho p99=0.0ms) bo cuoc=0
+[LAB] giu 55ms: rho=1.65 thong luong=181/s p50=1030.2ms p99=1245.6ms (cho p99=999.9ms) bo cuoc=39413 | tran Little = 182/s
+[LAB] REQUIRES_NEW, 4 request: pool 4 -> 0 ok, 4 timeout | pool 5 -> 4 ok
+[LAB] broker loi 3 lan: 11 vong poll, outbox = {attempts=4, last_error=broker khong san sang, done=true}
+[LAB] dual write: orders = 0, broker da nhan 1 su kien
+[LAB] con tro id: vong 2 thay 0 dong (sot id 1) | theo published_at IS NULL: phat 2 dong
+[LAB] 4 relay SKIP LOCKED: 1.000 su kien -> broker nhan 1000, khac nhau 1000
+[LAB] relay chet giua chung: broker nhan 2 ban, consumer xu ly [true, false] -> 1 email
+[LAB] 5 ma lien tiep tu sequence 1..5: [cL4LztG, Een9sHB, qyVxkf6, TIEld31, 5bxZVQw]
+[LAB] Snowflake: 400.000 id tu 8 luong, 0 trung, ~1459 id/ms; id 237730595440982139 -> worker 7, 10 ky tu base62
+[LAB] write skew o READ COMMITTED: tong cua ho = -80
+[LAB] write skew o REPEATABLE READ: tong cua ho = -80
+[LAB] lost update o READ COMMITTED: 100 +10 +10 = 110
+[LAB] REPEATABLE READ: 40001 ERROR: could not serialize access due to concurrent update
+[LAB] lock_timeout: 55P03 sau 204 ms | NOWAIT: 55P03 | SKIP LOCKED: 0 dong
+[LAB] SERIALIZABLE ca hai: 40001 ERROR: could not serialize access due to read/write dependencies among transactions | mot ben READ COMMITTED: tong = -80
+[LAB] @Version: khong retry -> 7/8 lenh no OptimisticLock, so du 95 | co retry -> 14 lan thu cho 8 lenh, so du 60
+[LAB] @Lock(PESSIMISTIC_WRITE) sinh ra: select w1_0.id,w1_0.balance,w1_0.owner_id,w1_0.version from jpa_wallet w1_0 where w1_0.id=? for no key update
+[LAB] REQUIRES_NEW goi qua this: con 0 dong audit | qua bean khac: con [thu rut 1000 tu vi 10]
+[LAB] 10 khach x 3 vi: LAZY -> 11 cau SQL (1 + N), @EntityGraph -> 1 cau
+[LAB] 10 request trung key cung luc: {201=1, 409=9}, PSP tru tien 1 lan
+[LAB] lan 1: 201 {"amountMinor":150000,"chargeId":"ch_1","currency":"VND","paymentId":"3b4da316-b80d-40af-a059-9be8f3d1eff1","status":"SUCCEEDED"}
+[LAB] lan 2: 201 Idempotent-Replayed=true
+[LAB] timeout sau khi tru tien: 504 -> retry ngay 409 (Retry-After 1s) -> sau lease 201, PSP tru tien 1 lan
+[LAB] fencing: B tiep quan -> 201, A cham toi sau -> 409 {"error":"superseded","message":"key da bi request khac tiep quan"}; payment = 1, PSP tru tien 1 lan
+[LAB] dinh nghia theo ngay nghiep vu: 22/22 khoan vay lai ngay D = 5.00 bat ke thu tu, ngay D+1 = 3.50
+[LAB] khoa bi quan: accrual truoc -> 5 @seq 1; thanh toan truoc -> 3.5 @seq 2
+[LAB] 1 transaction READ COMMITTED: lai 5 tinh tren 10000 @seq 1, luc commit seq da la 2
+[LAB] job cu: lai ghi 5 (dung: 3.50), cot balance 10000, SUM(posting) 7000
+[LAB] ghi muon -> dieu chinh: [{idempotency_key=accrual-adj:42:2026-10-18:2, interest=-1.5000}], tong lai ngay D = 3.5
+[LAB] 20 vong tranh chap that: ban khoa -> {3.5@seq2=17, 5@seq1=3}, 0 lan tinh tren so du cu; ban READ COMMITTED -> 19/20 lan tinh tren so du cu
+[LAB] REPEATABLE READ ghi de: 40001 ERROR: could not serialize access due to concurrent update
+[LAB] SKIP LOCKED: vong 1 (33 ms) Pass[accrued=[1, 2, 4, 5, 6], alreadyDone=[], skipped=[3]] | vong 2 Pass[accrued=[3], alreadyDone=[1, 2, 4, 5, 6], skipped=[]] | vong 3 Pass[accrued=[], alreadyDone=[1, 2, 3, 4, 5, 6], skipped=[]]
+[LAB] retry: key ngau nhien -> lai 10; key accrual:43:2026-10-18 -> lai 5, lan 2 alreadyDone=true

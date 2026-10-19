@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Playwright test of the Video tab for the Katalon interlude series (K00–K13, narrated by Emma).
+"""Playwright test of the video view of the Ôn bài tab, for the Katalon interlude series (K00–K13, narrated by Emma).
 
 Everything it expects comes from java-system-design/video-katalon/lessons/lessons.json, so a rebuild that changes a
 length or a chapter does not need an edit here. It checks:
@@ -46,8 +46,10 @@ def test_video_portal():
         errors: list[str] = []
         page.on("pageerror", lambda e: errors.append(str(e)))
         page.goto(f"file://{html_file}", wait_until="load")
-        page.locator('button.tab[data-t="vid"]').click()
-        page.wait_for_selector("#p-vid", state="visible")
+        page.locator('button.tab[data-t="onbai"]').click()           # tab "Ôn bài": bài md mặc định, video là chế độ thứ hai
+        page.wait_for_selector("#p-onbai", state="visible")
+        page.locator('button[data-act="obview"][data-v="vid"]').click()
+        page.wait_for_selector("#obVideos", state="visible")
         page.locator('button[data-act="vser"][data-s="video-katalon"]').click()
         page.wait_for_timeout(300)
 

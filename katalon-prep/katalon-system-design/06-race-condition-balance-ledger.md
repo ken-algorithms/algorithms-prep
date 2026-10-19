@@ -538,6 +538,20 @@ GROUP BY s.balance;
 > không dùng thời gian.** Cùng một bài học với `event_id` ở
 > [04 §6.4](04-event-counting-10k.md#64-idempotency--vì-sao-counter-không-phải-nguồn-sự-thật).
 
+> ⚠️ **Đính chính (đã chạy lab):** "không thể sót" chỉ đúng **có điều kiện**. `IDENTITY` cấp id theo thứ tự
+> **INSERT**, còn dòng chỉ hiện ra theo thứ tự **COMMIT**. Transaction lấy id 101 mà commit sau transaction lấy
+> id 102 thì một lần refresh chạy giữa hai commit sẽ đặt mốc 102, và posting 101 nằm **dưới mốc, bị sót vĩnh
+> viễn**. Mốc theo `posting_id` chỉ an toàn khi **mọi** đường ghi giữ khoá account từ lúc cấp id tới lúc commit
+> (đúng như bản vá ở §6 bước 3), hoặc khi chốt theo `account_seq` cấp dưới khoá như §12.3. Với account hệ thống
+> không khoá, và với mọi con trỏ toàn cục (outbox, ETL đọc `id > cursor`), phải chốt theo **mốc transaction**
+> (`pg_snapshot_xmin`) hoặc đọc theo trạng thái. Lab tái hiện cả lỗi lẫn cách sửa:
+> [ôn bài 05, bước 9–10](../../on-bai/gd1-nen-tang/05-ledger-va-balance.md#bước-10--tài-khoản-nóng-không-khoá-chốt-theo-mốc-xmin)
+> (`[LAB] account nong: su that -130, chot theo id -30 (sot vinh vien), chot theo xmin -130`).
+>
+> Thêm một điều cho §9.1: test `isIn(5.00, 3.50)` **cũng xanh với bản lỗi**, vì 5,00 trông y như "accrual chạy
+> trước". Xem [ôn bài 06, bước 4](../../on-bai/gd1-nen-tang/06-race-tinh-lai-vs-thanh-toan.md#bước-4--bản-vá-cho-hệ-thống-đang-chạy-idempotency--từng-khoản-vay--khoá-theo-id)
+> để biết cách kiểm phân biệt được hai bản.
+
 **Chi phí đọc bị chặn trên:** snapshot cập nhật mỗi khi có ~100 posting mới (hoặc mỗi phút) → mỗi
 lần đọc chỉ cộng tối đa ~100 dòng, **bất kể account đó có 10 hay 10 triệu posting**.
 

@@ -39,6 +39,7 @@ SKIP_DIRS = {".git", "site", "__pycache__", "target", ".venv", "node_modules", "
 
 # Nav grouping: (directory prefix, section label, sort weight)
 SECTIONS = [
+    ("on-bai", "Ôn bài", 6),
     ("java-system-design", "Java System Design", 6),
     ("ai-agent-learning", "AI Agent", 7),
     ("ai-learning", "AI Learning", 8),
@@ -127,6 +128,19 @@ def collect() -> list[Page]:
 LINK_RE = re.compile(r'(?<=\]\()([^)\s]+?)(\)|\s)')
 
 
+def details_markdown(md_text: str) -> str:
+    """<details> viết trần: GitHub vẫn render markdown bên trong, python-markdown thì để nguyên **, `, [link]().
+    Thêm markdown="1" (md_in_html) cho mọi thẻ <details> đứng đầu dòng, ngoài code fence. File nguồn không đổi."""
+    out, fence = [], False
+    for line in md_text.split("\n"):
+        if line.lstrip().startswith(("```", "~~~")):
+            fence = not fence
+        elif not fence and line.startswith("<details>"):
+            line = '<details markdown="1">' + line[len("<details>"):]
+        out.append(line)
+    return "\n".join(out)
+
+
 def resolve_rel(page_dir: Path, path: str) -> str | None:
     """Repo-relative posix path for a link target, or None if it escapes the repo."""
     try:
@@ -198,7 +212,7 @@ def render(pages: list[Page], code_files: set[str], dir_pages: set[str]) -> None
     for page in pages:
         raw = page.src.read_text(encoding="utf-8", errors="ignore")
         page.words = len(raw.split())
-        body_md = rewrite_links(raw, page.src.parent, known, code_files, dir_pages)
+        body_md = rewrite_links(details_markdown(raw), page.src.parent, known, code_files, dir_pages)
         md.reset()
         page.body = md.convert(body_md)
         page.toc = [
@@ -469,6 +483,15 @@ def build_home(pages: list[Page]) -> str:
         li("java-system-design/dist-lab/README.md", "lời giải giai đoạn 2, Postgres + Kafka thật"),
         li("java-system-design/ops-lab/README.md", "lời giải giai đoạn 3, Gatling + Hikari thật"),
     ])
+    onbai = "".join([
+        li("on-bai/gd1-nen-tang/README.md", "11 bài: lý thuyết, real case dựng từ đầu, lab chạy thật, drill code", "mới"),
+        li("on-bai/gd1-nen-tang/05-ledger-va-balance.md", "ví từ đầu: khoá, idempotency, số dư real-time", "⭐"),
+        li("on-bai/gd1-nen-tang/06-race-tinh-lai-vs-thanh-toan.md", "bài thật: tái hiện, sửa, thiết kế lại", "⭐"),
+        li("on-bai/gd1-nen-tang/04-postgres-concurrency.md", "MVCC, lost update, write skew, Spring/JPA"),
+        li("on-bai/gd1-nen-tang/02-idempotency-key.md", "lease + fencing khi side effect ngoài DB"),
+        li("on-bai/gd1-nen-tang/10-tong-on-mock-interview.md", "3 đề mock, 20 câu đào sâu, tự chấm"),
+        li("on-bai/gd1-nen-tang/lab/README.md", "79 test, Postgres + Redis thật"),
+    ])
     hero = f"""
 <div class="hero">
   <h1>Interview Prep</h1>
@@ -483,6 +506,8 @@ def build_home(pages: list[Page]) -> str:
   </div>
 </div>
 <div class="tracks">
+  <div class="track"><h3>Ôn bài — giai đoạn 1</h3>
+    <p class="sub">Katalon + NAB · senior Java · code tại chỗ và vẽ design</p><ol>{onbai}</ol></div>
   <div class="track"><h3>Java System Design — 6 tháng</h3>
     <p class="sub">Lộ trình v2 · Track P (code) + Track S (vẽ hệ thống)</p><ol>{jsd}</ol></div>
   <div class="track"><h3>NAB Innovation Centre</h3>
