@@ -1,0 +1,200 @@
+
+=== 1. Mac dinh that cua kafka-clients
+kafka-clients 4.1.2
+producer  acks                                     = all
+producer  enable.idempotence                       = true
+producer  max.in.flight.requests.per.connection    = 5
+producer  retries                                  = 2147483647
+producer  linger.ms                                = 5
+producer  batch.size                               = 16384
+producer  buffer.memory                            = 33554432
+producer  max.block.ms                             = 60000
+producer  request.timeout.ms                       = 30000
+producer  delivery.timeout.ms                      = 120000
+producer  compression.type                         = none
+producer  partitioner.ignore.keys                  = false
+consumer  group.protocol                           = classic
+consumer  partition.assignment.strategy            = [RangeAssignor, CooperativeStickyAssignor]
+consumer  enable.auto.commit                       = true
+consumer  auto.commit.interval.ms                  = 5000
+consumer  auto.offset.reset                        = latest
+consumer  isolation.level                          = read_uncommitted
+consumer  max.poll.records                         = 500
+consumer  max.poll.interval.ms                     = 300000
+consumer  session.timeout.ms                       = 45000
+consumer  heartbeat.interval.ms                    = 3000
+consumer  fetch.min.bytes                          = 1
+consumer  fetch.max.wait.ms                        = 500
+consumer  max.partition.fetch.bytes                = 1048576
+
+=== 2. Producer: cung 300.000 event, doi linger/batch/nen/acks, doc metric cua client
+Created topic perf.
+300000 record, value trung binh 94 byte, topic perf
+
+cau hinh                 rec/s     MB/s   batch(B)   rec/req      nen  queue ms    req ms
+A mac dinh < 4.0         69103      6.6      16323     308.0     1.00    1660.6      61.4   (3 lan: 47798 / 69103 / 73826)
+B mac dinh 4.x           82846      7.9      16332     311.2     1.00    1691.0      51.8   (3 lan: 76021 / 82846 / 129642)
+C batch 64K             316376     30.0      65302    1214.6     1.00     143.5      46.3   (3 lan: 280153 / 316376 / 344887)
+D 256K + lz4            273923     26.0     110367    4477.6     0.40     212.0     182.6   (3 lan: 120662 / 273923 / 381254)
+E 256K + zstd           424413     40.3      39944    6250.0     0.07      17.1      26.7   (3 lan: 126528 / 424413 / 428469)
+F nhu D, acks=1         708124     67.2     210836    5882.4     0.39       8.6       7.8   (3 lan: 640004 / 708124 / 914358)
+
+=== 3. Consumer group: c1 vao, c2 vao, c3 vao, c2 roi nhom — ba cach chia lai
+Created topic orders6.
++ 0.008s == che do eager, group rebalance-eager-14895
++ 1.356s c1 nhan [0,1,2,3,4,5] -> giu [0, 1, 2, 3, 4, 5]
++ 6.714s -- c2 tham gia
++ 7.320s c1 tra lai [0,1,2,3,4,5] -> con []
++ 7.341s c2 nhan [3,4,5] -> giu [3, 4, 5]
++ 7.342s c1 nhan [0,1,2] -> giu [0, 1, 2]
++14.730s -- c3 tham gia
++16.356s c2 tra lai [3,4,5] -> con []
++16.357s c1 tra lai [0,1,2] -> con []
++16.382s c1 nhan [0,1] -> giu [0, 1]
++16.386s c3 nhan [4,5] -> giu [4, 5]
++16.389s c2 nhan [2,3] -> giu [2, 3]
++22.794s -- c2 roi nhom (close)
++22.897s c2 tra lai [2,3] -> con []
++25.401s c3 tra lai [4,5] -> con []
++25.408s c1 tra lai [0,1] -> con []
++25.433s c1 nhan [0,1,2] -> giu [0, 1, 2]
++25.434s c3 nhan [3,4,5] -> giu [3, 4, 5]
++31.054s -- ket thuc
++31.091s c1 tra lai [0,1,2] -> con []
++31.437s c3 tra lai [3,4,5] -> con []
++31.463s c3 nhan [0,1,2,3,4,5] -> giu [0, 1, 2, 3, 4, 5]
++31.549s c3 tra lai [0,1,2,3,4,5] -> con []
+Partition bi tra roi nhan lai, kem khoang khong co chu:
+  p3: c1 -> c2, khong co chu 22 ms
+  p4: c1 -> c2, khong co chu 22 ms
+  p5: c1 -> c2, khong co chu 22 ms
+  p0: c1 -> c1, khong co chu 23 ms  (ve DUNG chu cu: dung vo ich)
+  p1: c1 -> c1, khong co chu 23 ms  (ve DUNG chu cu: dung vo ich)
+  p2: c1 -> c1, khong co chu 23 ms  (ve DUNG chu cu: dung vo ich)
+  p0: c1 -> c1, khong co chu 25 ms  (ve DUNG chu cu: dung vo ich)
+  p1: c1 -> c1, khong co chu 25 ms  (ve DUNG chu cu: dung vo ich)
+  p4: c2 -> c3, khong co chu 29 ms
+  p5: c2 -> c3, khong co chu 29 ms
+  p2: c1 -> c2, khong co chu 31 ms
+  p3: c2 -> c2, khong co chu 32 ms  (ve DUNG chu cu: dung vo ich)
+  p0: c1 -> c1, khong co chu 25 ms  (ve DUNG chu cu: dung vo ich)
+  p1: c1 -> c1, khong co chu 25 ms  (ve DUNG chu cu: dung vo ich)
+  p2: c2 -> c1, khong co chu 2537 ms
+  p3: c2 -> c3, khong co chu 2538 ms
+  p4: c3 -> c3, khong co chu 33 ms  (ve DUNG chu cu: dung vo ich)
+  p5: c3 -> c3, khong co chu 33 ms  (ve DUNG chu cu: dung vo ich)
+  p0: c1 -> c3, khong co chu 371 ms
+  p1: c1 -> c3, khong co chu 371 ms
+  p2: c1 -> c3, khong co chu 371 ms
+  p3: c3 -> c3, khong co chu 25 ms  (ve DUNG chu cu: dung vo ich)
+  p4: c3 -> c3, khong co chu 25 ms  (ve DUNG chu cu: dung vo ich)
+  p5: c3 -> c3, khong co chu 25 ms  (ve DUNG chu cu: dung vo ich)
+
++ 0.008s == che do cooperative, group rebalance-cooperative-51508
++ 1.512s c1 nhan [0,1,2,3,4,5] -> giu [0, 1, 2, 3, 4, 5]
++ 6.811s -- c2 tham gia
++ 7.502s c1 tra lai [3,4,5] -> con [0, 1, 2]
++10.511s c2 nhan [3,4,5] -> giu [3, 4, 5]
++14.844s -- c3 tham gia
++16.540s c2 tra lai [5] -> con [3, 4]
++16.544s c1 tra lai [2] -> con [0, 1]
++19.558s c3 nhan [2,5] -> giu [2, 5]
++22.867s -- c2 roi nhom (close)
++22.951s c2 tra lai [3,4] -> con []
++25.585s c1 nhan [3] -> giu [0, 1, 3]
++25.587s c3 nhan [4] -> giu [2, 4, 5]
++31.201s -- ket thuc
++31.307s c1 tra lai [0,1,3] -> con []
++31.506s c3 tra lai [2,4,5] -> con []
+Partition bi tra roi nhan lai, kem khoang khong co chu:
+  p3: c1 -> c2, khong co chu 3009 ms
+  p4: c1 -> c2, khong co chu 3009 ms
+  p5: c1 -> c2, khong co chu 3009 ms
+  p2: c1 -> c3, khong co chu 3013 ms
+  p5: c2 -> c3, khong co chu 3017 ms
+  p3: c2 -> c1, khong co chu 2633 ms
+  p4: c2 -> c3, khong co chu 2636 ms
+
++ 0.019s == che do consumer, group rebalance-consumer-87808
++ 1.640s c1 nhan [0,1,2,3,4,5] -> giu [0, 1, 2, 3, 4, 5]
++ 6.717s -- c2 tham gia
++11.869s c1 tra lai [3,4,5] -> con [0, 1, 2]
++14.737s -- c3 tham gia
++14.840s c3 nhan [5] -> giu [5]
++17.006s c2 nhan [3,4] -> giu [3, 4]
++17.163s c1 tra lai [2] -> con [0, 1]
++19.977s c3 nhan [2] -> giu [2, 5]
++22.749s -- c2 roi nhom (close)
++22.818s c2 tra lai [3,4] -> con []
++25.161s c3 nhan [4] -> giu [2, 4, 5]
+08:01:55.131 [ERROR] CommitRequestManager - [Consumer clientId=c1, groupId=rebalance-consumer-87808] OffsetCommit failed for member NKiwRhY2S-mdws49pdS8hw with stale member epoch error. Last epoch sent: 3
+08:01:55.134 [WARN] CommitRequestManager - [Consumer clientId=c1, groupId=rebalance-consumer-87808] Auto-commit of offsets {orders6-1=OffsetAndMetadata{offset=0, leaderEpoch=null, metadata=''}, orders6-0=OffsetAndMetadata{offset=0, leaderEpoch=null, metadata=''}} failed
+org.apache.kafka.common.errors.StaleMemberEpochException: The member epoch is stale. The member must retry after receiving its updated member epoch via the ConsumerGroupHeartbeat API.
++27.410s c1 nhan [3] -> giu [0, 1, 3]
++31.224s -- ket thuc
++31.278s c1 tra lai [0,1,3] -> con []
++31.657s c3 tra lai [2,4,5] -> con []
+Partition bi tra roi nhan lai, kem khoang khong co chu:
+  p5: c1 -> c3, khong co chu 2972 ms
+  p3: c1 -> c2, khong co chu 5138 ms
+  p4: c1 -> c2, khong co chu 5138 ms
+  p2: c1 -> c3, khong co chu 2814 ms
+  p4: c2 -> c3, khong co chu 2342 ms
+  p3: c2 -> c1, khong co chu 4588 ms
+
+
+=== 4. Commit truoc hay xu ly truoc: kill -9 tien trinh giua mot batch
+[at-least-once] kill -9 tien trinh 1 sau khi no xu ly 350 record
+[at-least-once] xu ly tong 1050 lan cho 1000 record: TRUNG 50, MAT 0
+[at-most-once] kill -9 tien trinh 1 sau khi no xu ly 351 record
+[at-most-once] xu ly tong 951 lan cho 1000 record: TRUNG 0, MAT 49
+[auto] kill -9 tien trinh 1 sau khi no xu ly 751 record
+[auto] xu ly tong 1351 lan cho 1000 record: TRUNG 351, MAT 0
+
+=== 5. Transaction: abort/commit, LSO, zombie fencing
+topic txn-demo-77156
+
+--- 1. Transaction abort roi transaction commit
+08:03:00.734 [WARN] Sender - [Producer clientId=producer-demo-tx-1, transactionalId=demo-tx-1] Got error produce response with correlation id 21 on topic-partition txn-demo-77156-0, retrying (2147483646 attempts left). Error: CONCURRENT_TRANSACTIONS
+read_uncommitted: [0:a1, 1:a2, 2:a3, 4:c1, 5:c2, 6:c3]
+read_committed  : [4:c1, 5:c2, 6:c3]
+
+--- 2. Transaction dang mo chan read_committed (LSO)
+dang mo transaction:
+  read_uncommitted: [0:a1, 1:a2, 2:a3, 4:c1, 5:c2, 6:c3, 8:pending, 9:plain-after]
+  read_committed  : [4:c1, 5:c2, 6:c3]   <- khong thay ca 'plain-after'
+  end offset (HW) = 10, LSO = 8
+sau commit:
+  read_committed  : [4:c1, 5:c2, 6:c3, 8:pending, 9:plain-after]
+
+--- 3. Zombie fencing: hai producer cung transactional.id
+zombie: dang trong transaction, da ghi zombie-1 (chua commit)
+fresh : initTransactions() xong -> epoch moi, transaction cua zombie bi abort
+zombie: bi chan -> InvalidProducerEpochException: Producer attempted to produce with an old epoch.
+read_committed  : [4:c1, 5:c2, 6:c3, 8:pending, 9:plain-after, 13:fresh-1]
+--- trong file log cua txn-demo-77156-0 (leader broker 1): marker COMMIT/ABORT la record dieu khien, chiem mot offset
+| offset: 0 keySize: -1 valueSize: 2 sequence: 0 payload: a1
+| offset: 1 keySize: -1 valueSize: 2 sequence: 1 payload: a2
+| offset: 2 keySize: -1 valueSize: 2 sequence: 2 payload: a3
+baseOffset: 3 lastOffset: 3 count: 1 baseSequence: -1 lastSequence: -1 producerId: 6006 producerEpoch: 1 partitionLeaderEpoch: 0 isTransactional: true isControl: true
+| offset: 3 keySize: 4 valueSize: 6 sequence: -1 endTxnMarker: ABORT coordinatorEpoch: 0
+| offset: 4 keySize: -1 valueSize: 2 sequence: 0 payload: c1
+| offset: 5 keySize: -1 valueSize: 2 sequence: 1 payload: c2
+| offset: 6 keySize: -1 valueSize: 2 sequence: 2 payload: c3
+baseOffset: 7 lastOffset: 7 count: 1 baseSequence: -1 lastSequence: -1 producerId: 6006 producerEpoch: 2 partitionLeaderEpoch: 0 isTransactional: true isControl: true
+| offset: 7 keySize: 4 valueSize: 6 sequence: -1 endTxnMarker: COMMIT coordinatorEpoch: 0
+| offset: 8 keySize: -1 valueSize: 7 sequence: 0 payload: pending
+| offset: 9 keySize: -1 valueSize: 11 sequence: 0 payload: plain-after
+baseOffset: 10 lastOffset: 10 count: 1 baseSequence: -1 lastSequence: -1 producerId: 5008 producerEpoch: 1 partitionLeaderEpoch: 0 isTransactional: true isControl: true
+| offset: 10 keySize: 4 valueSize: 6 sequence: -1 endTxnMarker: COMMIT coordinatorEpoch: 0
+| offset: 11 keySize: -1 valueSize: 8 sequence: 0 payload: zombie-1
+baseOffset: 12 lastOffset: 12 count: 1 baseSequence: -1 lastSequence: -1 producerId: 6007 producerEpoch: 1 partitionLeaderEpoch: 0 isTransactional: true isControl: true
+| offset: 12 keySize: 4 valueSize: 6 sequence: -1 endTxnMarker: ABORT coordinatorEpoch: 0
+| offset: 13 keySize: -1 valueSize: 7 sequence: 0 payload: fresh-1
+baseOffset: 14 lastOffset: 14 count: 1 baseSequence: -1 lastSequence: -1 producerId: 6007 producerEpoch: 3 partitionLeaderEpoch: 0 isTransactional: true isControl: true
+| offset: 14 keySize: 4 valueSize: 6 sequence: -1 endTxnMarker: COMMIT coordinatorEpoch: 0
+--- coordinator nho trang thai transaction trong topic __transaction_state
+TransactionalId	Coordinator	ProducerId	TransactionState	
+demo-tx-2      	1          	5008      	CompleteCommit  	
+demo-tx-1      	2          	6006      	CompleteCommit  	
+demo-tx-3      	2          	6007      	CompleteCommit  	

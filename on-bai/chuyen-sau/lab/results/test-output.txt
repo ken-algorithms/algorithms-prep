@@ -1,0 +1,92 @@
+[LAB] GlobalLock       284 ms, 5,633,802 giao dich/s, tong tien truoc 8,000 sau 8,000 (giu nguyen), so du nho nhat 181
+[LAB] OrderedLock      232 ms, 6,896,551 giao dich/s, tong tien truoc 8,000 sau 8,000 (giu nguyen), so du nho nhat 103
+[LAB] PerAccountLock DEADLOCK sau 445 giao dich
+  chuyen-0 cho khoa NonfairSync@ba54932, khoa do dang nam trong tay chuyen-6
+  chuyen-6 cho khoa NonfairSync@3c947bc5, khoa do dang nam trong tay chuyen-2
+  chuyen-2 cho khoa NonfairSync@ba54932, khoa do dang nam trong tay chuyen-6
+[LAB] Naive            157 ms, 10,191,082 giao dich/s, tong tien truoc 8,000 sau 10,640 (LECH 2640), so du nho nhat 183
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.937 s -- in com.prep.cs.ledger.MemWalletTest
+[LAB] so du 100: giu 40 -> hold 1, giu 40 -> hold 2, giu 40 -> TU CHOI; so du 100, kha dung 20
+[LAB] capture hold 1, release hold 2: so du 60, kha dung 60, merchant 40; doi soat []
+[LAB] 50 lenh giu 10 cung luc tren kha dung 60 -> 6 duoc giu, kha dung con 0
+[LAB] 16 luong tra tien vao MOT dong merchant: 495 giao dich/s; vao 16 o merchant: 921 giao dich/s (x1.9); so du merchant = SUM 16 o = 4,605
+[LAB] cung hai tai do, synchronous_commit = off (COMMIT khong cho fsync WAL): MOT dong 449/s, 16 o 778/s
+[LAB] ham l_transfer (1 round trip): MOT dong 852/s, 16 o 1,964/s
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 36.55 s -- in com.prep.cs.ledger.HoldsAndHotAccountTest
+[LAB] nap 2 trieu posting trong 44.1 s
+[LAB] sum: SUM(amount) 1 trieu dong                  201.107 ms   -> 20000030
+[LAB] running: cot balance cua tai khoan               0.381 ms   -> 20000030
+[LAB] at(2026-03-25T08:00:00Z): posting cuoi <= t      0.532 ms   -> 7200000
+[LAB] sao ke keyset: 50 dong sau seq 900.000           0.505 ms   -> 50
+[LAB] sao ke OFFSET 900.000 LIMIT 50                 183.420 ms   -> 50
+[LAB] EXPLAIN SELECT coalesce(sum(amount), 0) FROM l_posting WHERE account_id = 7
+        Finalize Aggregate (actual rows=1 loops=1)
+          Buffers: shared hit=20619
+          ->  Gather (actual rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=20619
+                ->  Partial Aggregate (actual rows=1 loops=3)
+                      Buffers: shared hit=20619
+                      ->  Parallel Seq Scan on l_posting (actual rows=333333 loops=3)
+                            Filter: (account_id = 7)
+                            Rows Removed by Filter: 333333
+                            Buffers: shared hit=20619
+        Planning Time: 0.087 ms
+        Execution Time: 107.144 ms
+[LAB] EXPLAIN SELECT balance_after FROM l_posting WHERE account_id = 7 AND created_at <= '2026-03-25T08:00:00Z' ORDER BY created_at DESC, seq DESC LIMIT 1
+        Limit (actual rows=1 loops=1)
+          Buffers: shared hit=4
+          ->  Incremental Sort (actual rows=1 loops=1)
+                Sort Key: created_at DESC, seq DESC
+                Presorted Key: created_at
+                Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 25kB  Peak Memory: 25kB
+                Buffers: shared hit=4
+                ->  Index Scan Backward using l_posting_account_time on l_posting (actual rows=2 loops=1)
+                      Index Cond: ((account_id = 7) AND (created_at <= '2026-03-25 08:00:00+00'::timestamp with time zone))
+                      Buffers: shared hit=4
+        Planning Time: 0.122 ms
+        Execution Time: 0.061 ms
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 50.41 s -- in com.prep.cs.ledger.BalanceReadTest
+[LAB] V3: 800 lenh A<->B nguoc chieu: 800 thanh cong, 0 deadlock, 398 lenh/s (8 luong)
+[LAB] V3: 50 lenh rut 10 tu 100 cung luc -> 10 thanh cong, so du 0
+[LAB] V3: 20 request cung idempotency key -> chay that 1, phat lai 19; doi soat: []
+[LAB] V2: 200 lenh A<->B nguoc chieu -> 55 thanh cong, 145 bi Postgres giet vi deadlock (40P01)
+  ERROR: deadlock detected
+    Detail: Process 12899 waits for ShareLock on transaction 93806; blocked by process 12896.
+  Process 12896 waits for ShareLock on transaction 93808; blocked by process 12902.
+  Process 12902 waits for ExclusiveLock on tuple (0,20) of relation 16389 of database 16384; blocked by process 12899.
+    Hint: See server log for query details.
+    Where: while updating tuple (0,20) in relation "l_account"
+[LAB] V1: 50 lenh chuyen 10 tu tai khoan co 100 -> thanh cong 50; so du A = 70, B = 500 (A + B = 570, dung phai la 100)
+  doi soat: {balance <> tong posting=1, chuoi balance_after bi dut=38}
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 88.20 s -- in com.prep.cs.ledger.LedgerDbTest
+[LAB] 300 khoang ngau nhien trong 3 ngay: deu khop dem thu cong; doc toi da 142 dong; ca 3 ngay: TRUE=88260 FALSE=44306 FAKE_KEY=18997 MALFORMED=6317 successRate=0.6658 (doc 85 bucket)
+[LAB] sau restart: replay 50, dem moi 10, bo trung 10
+[LAB] owner commit ok, zombie commit bi tu choi; tong TRUE = 20 (dung: 20)
+[LAB] xac song commit truoc (0 -> 1), chu that bi tu choi, nap lai tu offset 1: replay 10, dem 10; tong TRUE = 20 (dung: 20)
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.919 s -- in com.prep.cs.counting.CountStoreTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.prep.cs.counting.ClientWindowTest
+[LAB] registry 1.000.000 key: 2097152 o (tai 0.48), 33.6 MB cho hai mang fp; 1.000.000 key gia -> 0 bi nhan nham
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.010 s -- in com.prep.cs.counting.KeyRegistryTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.110 s -- in com.prep.cs.counting.LongObjectMapTest
+[LAB] SECOND [2026-10-19T02:59:58Z, 2026-10-19T03:00:00Z) 2 bucket
+[LAB] HOUR   [2026-10-19T03:00:00Z, 2026-10-19T05:00:00Z) 2 bucket
+[LAB] SECOND [2026-10-19T05:00:00Z, 2026-10-19T05:00:03Z) 3 bucket
+[LAB] mot nam lech 1 giay hai dau: 7 khoang, 645 bucket
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.094 s -- in com.prep.cs.counting.RangeDecomposerTest
+[LAB] registry tu topic compacted: 10000 key (legacy_removed: false)
+[LAB] 9.4s 30300/100000 request da xac nhan: agg-1 CHET (delta chua commit mat het)
+[LAB] 12.2s 50544/100000: agg-3 vao group (rebalance)
+[LAB] 13.5s 60163/100000: ingest node 1 CHET
+[LAB] aggregator da commit toi cuoi moi partition: {0=2119, 1=2028, 2=2087, 3=2213, 4=2027, 5=2190}
+[LAB] 100010 request duy nhat trong 19.3 s (5191 request/s, 103827 item/s), retry 20752, gui trung co chu y 5039; Postgres co 614 o
+[LAB] oracle  TRUE=900174 FALSE=599142 FAKE_KEY=300450 MALFORMED=200434
+[LAB] Postgres TRUE=900174 FALSE=599142 FAKE_KEY=300450 MALFORMED=200434 successRate=0.6004 (doc 69 bucket)
+[LAB] 100 khoang ngau nhien (do phan giai giay) deu khop oracle
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 24.93 s -- in com.prep.cs.counting.PipelineTest
+[LAB] 20.000 request x 20 item: oracle [179803, 120158, 59892, 40147], decoder [179803, 120158, 59892, 40147]
+[LAB] client=42 epoch=7 seq=17 ts=1792390123456 TRUE=2 FALSE=1 FAKE_KEY=2 MALFORMED=6
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.354 s -- in com.prep.cs.counting.RequestDecoderTest
+[INFO] Tests run: 29, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS

@@ -1,0 +1,30 @@
+topic ingest-bench-84992, 12 partition, flush 5 ms; body trung binh 835 byte, 20 item; 1 luong submit
+  giay  1:   55,381 request duoc xac nhan
+  giay  2:   58,847 request duoc xac nhan
+  giay  3:   69,416 request duoc xac nhan
+  giay  4:   66,322 request duoc xac nhan
+  giay  5:   90,366 request duoc xac nhan
+  giay  6:   72,966 request duoc xac nhan
+  giay  7:   89,224 request duoc xac nhan
+  giay  8:   97,897 request duoc xac nhan
+  giay  9:   74,075 request duoc xac nhan
+  giay 10:   98,473 request duoc xac nhan
+TONG: 77,273 request/s (1,545,463 item/s), loi 0; truoc nen 32.1 byte/request vao Kafka (body JSON 835 byte) -> 26 lan nho hon
+block: 2,197 record Kafka/s, trung binh 34.8 request/block (toi da 2.000)
+cap phat: 2,522 byte/request (ca tien trinh); GC: 10 lan, 113 ms trong 10 s
+Tren dia (lz4, mot ban sao): 15,028,707 byte cho 889,534 request = 16.9 byte/request
+topic ingest-bench-6654, 12 partition, flush 5 ms; body trung binh 835 byte, 20 item; 3 luong submit
+  giay  1:   61,657 request duoc xac nhan
+  giay  2:   62,660 request duoc xac nhan
+  giay  3:   86,141 request duoc xac nhan
+  giay  4:   97,975 request duoc xac nhan
+  giay  5:   84,678 request duoc xac nhan
+  giay  6:   78,668 request duoc xac nhan
+  giay  7:  132,036 request duoc xac nhan
+  giay  8:  130,100 request duoc xac nhan
+  giay  9:  134,137 request duoc xac nhan
+  giay 10:  140,520 request duoc xac nhan
+TONG: 100,506 request/s (2,010,112 item/s), loi 0; truoc nen 32.1 byte/request vao Kafka (body JSON 835 byte) -> 26 lan nho hon
+block: 1,928 record Kafka/s, trung binh 52.1 request/block (toi da 2.000)
+cap phat: 2,126 byte/request (ca tien trinh); GC: 7 lan, 77 ms trong 10 s
+Tren dia (lz4, mot ban sao): 20,097,308 byte cho 1,281,932 request = 15.7 byte/request

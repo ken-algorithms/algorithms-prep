@@ -1,0 +1,85 @@
+
+=== 1. docker compose up: mot node vua la broker vua la controller
+ Container kafka Waiting 
+ Container kafka Healthy 
+san sang sau 8.6 giay
+NAME      STATUS                   PORTS
+kafka     Up 8 seconds (healthy)   0.0.0.0:9092->9092/tcp
+
+=== 2. Image doi bien moi truong KAFKA_* thanh server.properties
+
+advertised.listeners=INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+controller.listener.names=CONTROLLER
+controller.quorum.voters=1@kafka:9093
+group.initial.rebalance.delay.ms=0
+inter.broker.listener.name=INTERNAL
+listener.security.protocol.map=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+listeners=INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:9093
+log.dirs=/var/lib/kafka/data
+node.id=1
+num.partitions=3
+offsets.topic.replication.factor=1
+process.roles=broker,controller
+share.coordinator.state.topic.min.isr=1
+share.coordinator.state.topic.replication.factor=1
+transaction.state.log.min.isr=1
+transaction.state.log.replication.factor=1
+
+=== 3. Vong doi khoi dong trong log: bau leader KRaft -> dang ky broker -> bat kip metadata -> mo cong cho client
+[2026-10-19 07:44:59,962] INFO [RaftManager id=1] Completed transition to Leader(epoch=1 ...)
+[2026-10-19 07:45:00,070] INFO Awaiting socket connections on 0.0.0.0:9093. 
+[2026-10-19 07:45:00,330] INFO [BrokerLifecycleManager id=1] Incarnation TmeW33sxQLOR4u7RN8V8Og of broker 1 in cluster MkU3OEVBNTcwNTJENDM2Qg is now STARTING. 
+[2026-10-19 07:45:00,398] INFO [BrokerLifecycleManager id=1] Successfully registered broker 1 with broker epoch 9 
+[2026-10-19 07:45:00,587] INFO [BrokerLifecycleManager id=1] The broker has caught up. Transitioning from STARTING to RECOVERY. 
+[2026-10-19 07:45:00,630] INFO [BrokerLifecycleManager id=1] The broker has been unfenced. Transitioning from RECOVERY to RUNNING. 
+[2026-10-19 07:45:00,634] INFO Awaiting socket connections on 0.0.0.0:29092. 
+[2026-10-19 07:45:00,636] INFO Awaiting socket connections on 0.0.0.0:9092. 
+[2026-10-19 07:45:00,653] INFO [KafkaRaftServer nodeId=1] Kafka Server started 
+
+=== 4. CLI: tao topic, ghi co key, doc kem partition/offset, xem lag cua group
+Created topic orders.
+Topic: orders	TopicId: iYwRwvUlR6mU2j0qUh57XQ	PartitionCount: 3	ReplicationFactor: 1	Configs: min.insync.replicas=1
+	Topic: orders	Partition: 0	Leader: 1	Replicas: 1	Isr: 1	Elr: 	LastKnownElr: 
+	Topic: orders	Partition: 1	Leader: 1	Replicas: 1	Isr: 1	Elr: 	LastKnownElr: 
+	Topic: orders	Partition: 2	Leader: 1	Replicas: 1	Isr: 1	Elr: 	LastKnownElr: 
+Partition:0	Offset:0	alice	order-1
+Partition:0	Offset:1	bob	order-2
+Partition:0	Offset:2	alice	order-3
+Partition:0	Offset:3	bob	order-5
+Partition:0	Offset:4	alice	order-6
+Partition:2	Offset:0	carol	order-4
+
+GROUP           TOPIC           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG             CONSUMER-ID     HOST            CLIENT-ID
+demo            orders          0          5               5               0               -               -               -
+demo            orders          1          0               0               0               -               -               -
+demo            orders          2          1               1               0               -               -               -
+
+=== 5. Bon cach noi vao cung mot broker
+--- A. tu may host -> localhost:9092 (listener EXTERNAL)  (network=host, bootstrap=localhost:9092)
+__consumer_offsets
+orders
+--- B. tu container cung network -> kafka:29092 (listener INTERNAL)  (network=kafka1_default, bootstrap=kafka:29092)
+__consumer_offsets
+orders
+--- C. tu container cung network -> kafka:9092 (EXTERNAL, quang ba localhost:9092)  (network=kafka1_default, bootstrap=kafka:9092)
+WARN [AdminClient clientId=adminclient-1] Connection to node 1 (localhost/127.0.0.1:9092) could not be established. Node may not be available.
+WARN [AdminClient clientId=adminclient-1] Connection to node 1 (localhost/127.0.0.1:9092) could not be established. Node may not be available.
+WARN [AdminClient clientId=adminclient-1] Connection to node 1 (localhost/127.0.0.1:9092) could not be established. Node may not be available.
+Error while executing topic command : Timed out waiting for a node assignment. Call: listTopics
+--- D. tu may host -> 172.18.0.2:29092 (INTERNAL, quang ba kafka:29092)  (network=host, bootstrap=172.18.0.2:29092)
+WARN [AdminClient clientId=adminclient-1] Error connecting to node kafka:29092 (id: 1 rack: null isFenced: false)
+java.net.UnknownHostException: kafka: Name does not resolve
+WARN [AdminClient clientId=adminclient-1] Error connecting to node kafka:29092 (id: 1 rack: null isFenced: false)
+Error while executing topic command : Timed out waiting for a node assignment. Call: listTopics
+
+=== 6. Client Java tu may host
+bootstrap      = localhost:9092
+cluster id     = MkU3OEVBNTcwNTJENDM2Qg
+'controller'   = broker 1 (client khong noi thang voi controller KRaft)
+broker 1       -> localhost:9092  rack=null
+topics         = [orders]
+thoi gian      = 1065 ms
+
+=== 7. Don dep
+ Volume kafka1_kafka-data Removed 
+ Network kafka1_default Removed 

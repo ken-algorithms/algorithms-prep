@@ -1,0 +1,138 @@
+# Cum giong production thu nho: 3 controller (quorum KRaft) + 3 broker + Postgres 16.
+# Broker thu 4 nam trong profile "scale" (bai 05: them broker roi chuyen partition).
+#
+#   docker compose -f docker/cluster.yml up -d --wait            # 3 controller + 3 broker + postgres
+#   docker compose -f docker/cluster.yml --profile scale up -d    # them kafka-4
+#   docker compose -f docker/cluster.yml down -v                  # xoa sach, ke ca du lieu
+#
+# Tu may host: bootstrap localhost:19092,localhost:29092,localhost:39092
+# Tu container trong cung network (app, tool): kafka-1:9092,kafka-2:9092,kafka-3:9092
+name: kafkacluster
+
+x-controller: &controller
+  image: apache/kafka:4.1.2
+  environment: &controller-env
+    KAFKA_PROCESS_ROLES: controller
+    KAFKA_LISTENERS: CONTROLLER://:9093
+    KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+    KAFKA_CONTROLLER_QUORUM_VOTERS: 101@controller-1:9093,102@controller-2:9093,103@controller-3:9093
+    KAFKA_LOG_DIRS: /var/lib/kafka/data
+    # Kafka 4.x bat ELR: controller ghi min.insync.replicas cua NO thanh mac dinh cap cum (dynamic default),
+    # de len gia tri dat o broker. Khong dat o day thi cum chay voi min.insync.replicas = 1.
+    KAFKA_MIN_INSYNC_REPLICAS: 2
+    KAFKA_HEAP_OPTS: -Xms256m -Xmx256m
+    CLUSTER_ID: YRE8Da5PREOivilI17ORRg
+
+x-broker: &broker
+  image: apache/kafka:4.1.2
+  depends_on: [controller-1, controller-2, controller-3]
+  environment: &broker-env
+    KAFKA_PROCESS_ROLES: broker
+    KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    KAFKA_CONTROLLER_QUORUM_VOTERS: 101@controller-1:9093,102@controller-2:9093,103@controller-3:9093
+    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+    KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+    KAFKA_LOG_DIRS: /var/lib/kafka/data
+    KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+    KAFKA_MIN_INSYNC_REPLICAS: 2
+    KAFKA_NUM_PARTITIONS: 6
+    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+    KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    # Lab: follower bi tut lai 10 giay thi bi loai khoi ISR (mac dinh 30 giay) de thi nghiem nhanh hon.
+    KAFKA_REPLICA_LAG_TIME_MAX_MS: 10000
+    # Lab: quet retention moi 5 giay (mac dinh 5 phut) de thay segment bi xoa ngay.
+    KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 5000
+    KAFKA_HEAP_OPTS: -Xms512m -Xmx512m
+    CLUSTER_ID: YRE8Da5PREOivilI17ORRg
+  healthcheck:
+    test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+    interval: 5s
+    timeout: 10s
+    retries: 30
+
+services:
+  controller-1:
+    <<: *controller
+    container_name: controller-1
+    hostname: controller-1
+    environment: { <<: *controller-env, KAFKA_NODE_ID: 101 }
+    volumes: [ "c1:/var/lib/kafka/data" ]
+  controller-2:
+    <<: *controller
+    container_name: controller-2
+    hostname: controller-2
+    environment: { <<: *controller-env, KAFKA_NODE_ID: 102 }
+    volumes: [ "c2:/var/lib/kafka/data" ]
+  controller-3:
+    <<: *controller
+    container_name: controller-3
+    hostname: controller-3
+    environment: { <<: *controller-env, KAFKA_NODE_ID: 103 }
+    volumes: [ "c3:/var/lib/kafka/data" ]
+
+  kafka-1:
+    <<: *broker
+    container_name: kafka-1
+    hostname: kafka-1
+    ports: [ "19092:19092" ]
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:19092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-1:9092,EXTERNAL://localhost:19092
+    volumes: [ "b1:/var/lib/kafka/data" ]
+  kafka-2:
+    <<: *broker
+    container_name: kafka-2
+    hostname: kafka-2
+    ports: [ "29092:29092" ]
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 2
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-2:9092,EXTERNAL://localhost:29092
+    volumes: [ "b2:/var/lib/kafka/data" ]
+  kafka-3:
+    <<: *broker
+    container_name: kafka-3
+    hostname: kafka-3
+    ports: [ "39092:39092" ]
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 3
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:39092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-3:9092,EXTERNAL://localhost:39092
+    volumes: [ "b3:/var/lib/kafka/data" ]
+  kafka-4:
+    <<: *broker
+    profiles: [ scale ]
+    container_name: kafka-4
+    hostname: kafka-4
+    ports: [ "49092:49092" ]
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 4
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:49092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-4:9092,EXTERNAL://localhost:49092
+    volumes: [ "b4:/var/lib/kafka/data" ]
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    ports: [ "55432:5432" ]          # 55432 de khong dung Postgres san co tren may ban
+    environment:
+      POSTGRES_USER: lab
+      POSTGRES_PASSWORD: lab
+      POSTGRES_DB: lab
+    command: [ "postgres", "-c", "max_connections=200", "-c", "shared_buffers=256MB" ]
+    volumes: [ "pg:/var/lib/postgresql/data" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U lab -d lab" ]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+volumes: { c1: {}, c2: {}, c3: {}, b1: {}, b2: {}, b3: {}, b4: {}, pg: {} }

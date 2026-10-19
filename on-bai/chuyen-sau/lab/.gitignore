@@ -1,0 +1,6 @@
+target/
+# file trung gian cua thi nghiem bai 03 (danh sach id da xac nhan, log WARN day du cua producer)
+results/acked-*.txt
+results/stop-*
+results/k03-*-producer.txt
+results/test-output-full.txt

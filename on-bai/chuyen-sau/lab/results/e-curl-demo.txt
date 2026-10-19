@@ -1,0 +1,16 @@
+nghe cong 8080, che do ingest + aggregator
+--- moi request: 4 item = 1 TRUE, 1 FALSE, 1 FAKE_KEY (hack_me), 1 MALFORMED (value "yes")
+body: {"clientId":1792404783,"epoch":1,"seq":0,"ts":1792404783046,"items":[{"key":"feature_1","value":true},{"key":"feature_2","value":false},{"key":"hack_me","value":true},{"key":"feature_3","value":"yes"}]}
+1. epoch 1, seq 0                            202  0.365289s  
+2. GUI LAI dung body do (mat response)       202  0.039426s  
+3. epoch 1, seq 1                            202  0.035499s  
+4. client khoi dong lai: epoch 2, seq 0      202  0.022323s  
+5. tien trinh cu (epoch 1) van gui seq 2     202  0.027336s  
+6. JSON hong                                 400  0.005834s  {"error":"JSON hong o cot 59"}
+7. thieu clientId                            400  0.002756s  {"error":"thieu clientId/epoch/seq/ts/items"}
+--- 7 lan POST: 5 lan 202, 2 lan 400. Request duy nhat: (1,0) (1,1) (2,0) = 3 -> ky vong moi loai = 3
+GET /stats?from=2026-10-19T10:12:58Z&to=2026-10-19T10:13:08Z
+{"trueCount":3,"falseCount":3,"fakeKey":3,"malformed":3,"successRate":0.5000,"bucketsRead":1}
+[http-agg-1] nhan p0: offset trong Postgres = 0, doc lai tu 0 de nap state khu trung
+[http-agg-1] nhan p1: offset trong Postgres = 0, doc lai tu 0 de nap state khu trung
+[http-agg-1] nhan p2: offset trong Postgres = 0, doc lai tu 0 de nap state khu trung

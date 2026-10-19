@@ -1,0 +1,18 @@
+=== kafka-metadata-quorum describe --status
+ClusterId:              YRE8Da5PREOivilI17ORRg
+LeaderId:               102
+LeaderEpoch:            12
+HighWatermark:          7766
+MaxFollowerLag:         0
+MaxFollowerLagTimeMs:   314
+CurrentVoters:          [{"id": 101, "endpoints": ["CONTROLLER://controller-1:9093"]}, {"id": 102, "endpoints": ["CONTROLLER://controller-2:9093"]}, {"id": 103, "endpoints": ["CONTROLLER://controller-3:9093"]}]
+CurrentObservers:       [{"id": 3, "directoryId": "xS_U3v5zVOBAQenxfOyHcA"}, {"id": 2, "directoryId": "00MlxlwmOyqHK8rFWsROfA"}, {"id": 1, "directoryId": "p5MlUI5PzTnc7lSiVvw2aw"}]
+
+=== kafka-metadata-quorum describe --replication
+NodeId	DirectoryId           	LogEndOffset	Lag	LastFetchTimestamp	LastCaughtUpTimestamp	Status  	
+102   	AAAAAAAAAAAAAAAAAAAAAA	7774        	0  	1792402893884     	1792402893884        	Leader  	
+101   	AAAAAAAAAAAAAAAAAAAAAA	7773        	1  	1792402893874     	1792402893395        	Follower	
+103   	AAAAAAAAAAAAAAAAAAAAAA	7773        	1  	1792402893874     	1792402893395        	Follower	
+3     	xS_U3v5zVOBAQenxfOyHcA	7773        	1  	1792402893874     	1792402893396        	Observer	
+2     	00MlxlwmOyqHK8rFWsROfA	7773        	1  	1792402893874     	1792402893396        	Observer	
+1     	p5MlUI5PzTnc7lSiVvw2aw	7774        	0  	1792402893884     	1792402893884        	Observer	

@@ -491,6 +491,12 @@ def build_home(pages: list[Page]) -> str:
         li("on-bai/gd1-nen-tang/02-idempotency-key.md", "lease + fencing khi side effect ngoài DB"),
         li("on-bai/gd1-nen-tang/10-tong-on-mock-interview.md", "3 đề mock, 20 câu đào sâu, tự chấm"),
         li("on-bai/gd1-nen-tang/lab/README.md", "79 test, Postgres + Redis thật"),
+        li("on-bai/chuyen-sau/README.md", "chuyên sâu: Kafka từ bên trong, đếm sự kiện 1M–10M request/s, sổ cái", "mới"),
+        li("on-bai/chuyen-sau/06-dem-su-kien-1m-10m-de-va-kien-truc.md", "bài fake key ở 10M request/s: con số và kiến trúc", "⭐"),
+        li("on-bai/chuyen-sau/08-dem-su-kien-code-aggregator.md", "khử trùng theo client, offset cùng transaction, fencing", "⭐"),
+        li("on-bai/chuyen-sau/10-ledger-tinh-so-du-tu-code.md", "sổ cái từ code: V1 sai, V2 deadlock, V3 đúng, tài khoản nóng", "⭐"),
+        li("on-bai/chuyen-sau/03-kafka-replication-va-su-co.md", "tái hiện mất dữ liệu đã xác nhận với acks=1"),
+        li("on-bai/chuyen-sau/lab/README.md", "29 test, Kafka 4.1 KRaft + Postgres 16 trên Docker"),
     ])
     hero = f"""
 <div class="hero">
@@ -506,7 +512,7 @@ def build_home(pages: list[Page]) -> str:
   </div>
 </div>
 <div class="tracks">
-  <div class="track"><h3>Ôn bài — giai đoạn 1</h3>
+  <div class="track"><h3>Ôn bài — giai đoạn 1 và chuyên sâu</h3>
     <p class="sub">Katalon + NAB · senior Java · code tại chỗ và vẽ design</p><ol>{onbai}</ol></div>
   <div class="track"><h3>Java System Design — 6 tháng</h3>
     <p class="sub">Lộ trình v2 · Track P (code) + Track S (vẽ hệ thống)</p><ol>{jsd}</ol></div>

@@ -1,0 +1,15 @@
+Benchmark                                                   Mode  Cnt       Score        Error   Units
+CountingBench.aggregateBlockOf2000                          avgt    5   57149.877 ±  34361.474   ns/op
+CountingBench.aggregateBlockOf2000:gc.alloc.rate.norm       avgt    5       0.394 ±      0.235    B/op
+CountingBench.aggregateBlockOf2000Naive                     avgt    5  427369.839 ± 259368.681   ns/op
+CountingBench.aggregateBlockOf2000Naive:gc.alloc.rate.norm  avgt    5  304002.953 ±      1.801    B/op
+CountingBench.clientWindowAccept                            avgt    5       2.405 ±      0.544   ns/op
+CountingBench.clientWindowAccept:gc.alloc.rate.norm         avgt    5      ≈ 10⁻⁵                 B/op
+CountingBench.decodeStreaming                               avgt    5   10077.574 ±   2369.689   ns/op
+CountingBench.decodeStreaming:gc.alloc.rate.norm            avgt    5     744.069 ±      0.016    B/op
+CountingBench.decodeTreeAndHashSet                          avgt    5   27860.031 ±  15272.486   ns/op
+CountingBench.decodeTreeAndHashSet:gc.alloc.rate.norm       avgt    5    8025.627 ±      0.242    B/op
+CountingBench.lookupHashSetString                           avgt    5      56.819 ±      9.388   ns/op
+CountingBench.lookupHashSetString:gc.alloc.rate.norm        avgt    5      ≈ 10⁻³                 B/op
+CountingBench.lookupRegistryPreHashed                       avgt    5      35.171 ±     16.487   ns/op
+CountingBench.lookupRegistryPreHashed:gc.alloc.rate.norm    avgt    5      ≈ 10⁻⁴                 B/op

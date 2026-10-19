@@ -1,0 +1,47 @@
+# Mot node Kafka 4.1 (KRaft, khong ZooKeeper): broker va controller chung mot process.
+# Dung cho bai 01: chay, ket noi tu may host va tu container khac.
+#
+#   docker compose -f docker/kafka-1node.yml up -d
+#   docker compose -f docker/kafka-1node.yml down -v      # -v xoa luon volume du lieu
+name: kafka1
+
+services:
+  kafka:
+    image: apache/kafka:4.1.2
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"                       # chi mo listener EXTERNAL ra may host
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      # Ba listener, moi cai mot cong. Ten listener (INTERNAL, EXTERNAL, CONTROLLER) la ten tu dat.
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:9093
+      # Dia chi broker TRA VE cho client trong metadata, theo dung listener ma client da noi vao.
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_NUM_PARTITIONS: 3
+      # Mot node thi topic noi bo chi co 1 ban sao. Cum that: 3.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_HEAP_OPTS: -Xms512m -Xmx512m
+      # Moi cum mot id, sinh bang: kafka-storage.sh random-uuid. Image format o dia bang id nay lan dau chay.
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qg
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+volumes:
+  kafka-data:

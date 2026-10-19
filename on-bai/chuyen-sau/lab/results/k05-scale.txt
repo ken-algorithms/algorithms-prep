@@ -1,0 +1,90 @@
+
+=== 1. Topic 'grow': 6 partition, RF 3, tren 3 broker; ghi ~120 MB
+Created topic grow.
+1200000 records sent, 209607.0 records/sec (19.99 MB/sec), 47.92 ms avg latency, 899.00 ms max latency, 30 ms 50th, 144 ms 95th, 244 ms 99th, 318 ms 99.9th.
+  p0 Leader: 2 Replicas: 2,3,1 Isr: 2,3,1
+  p1 Leader: 3 Replicas: 3,1,2 Isr: 3,1,2
+  p2 Leader: 1 Replicas: 1,2,3 Isr: 1,2,3
+  p3 Leader: 1 Replicas: 1,2,3 Isr: 1,2,3
+  p4 Leader: 2 Replicas: 2,3,1 Isr: 2,3,1
+  p5 Leader: 3 Replicas: 3,1,2 Isr: 3,1,2
+  broker 1:  6 replica,   132.0 MB
+  broker 2:  6 replica,   132.0 MB
+  broker 3:  6 replica,   132.0 MB
+
+=== 2. Bat broker thu 4
+ Container kafka-4 Healthy 
+kafka-1:9092 (id: 1
+kafka-2:9092 (id: 2
+kafka-3:9092 (id: 3
+kafka-4:9092 (id: 4
+--- broker 4 da vao cum, nhung topic cu KHONG tu chuyen sang:
+  p0 Leader: 2 Replicas: 2,3,1 Isr: 2,3,1
+  p1 Leader: 3 Replicas: 3,1,2 Isr: 3,1,2
+  p2 Leader: 1 Replicas: 1,2,3 Isr: 1,2,3
+  p3 Leader: 1 Replicas: 1,2,3 Isr: 1,2,3
+  p4 Leader: 2 Replicas: 2,3,1 Isr: 2,3,1
+  p5 Leader: 3 Replicas: 3,1,2 Isr: 3,1,2
+  broker 1:  6 replica,   132.0 MB
+  broker 2:  6 replica,   132.0 MB
+  broker 3:  6 replica,   132.0 MB
+  broker 4:  0 replica,     0.0 MB
+
+=== 3. Lap ke hoach chuyen partition sang 4 broker (--generate chi de xuat, chua lam gi)
+  p0 -> replicas [1, 2, 3]
+  p1 -> replicas [2, 3, 4]
+  p2 -> replicas [3, 4, 1]
+  p3 -> replicas [4, 1, 2]
+  p4 -> replicas [2, 4, 3]
+  p5 -> replicas [4, 3, 1]
+
+=== 4. Thuc hien co throttle 10 MB/s (gioi han bang thong chep, de khong lam cham traffic that)
+Current partition replica assignment
+Save this to use as the --reassignment-json-file option during rollback
+Warning: You must run --verify periodically, until the reassignment completes, to ensure the throttle is removed.
+The inter-broker throttle limit was set to 10000000 B/s
+--- trong luc chuyen: throttle dat thanh dynamic config tren broker
+    follower.replication.throttled.rate=10000000 sensitive=false synonyms={DYNAMIC_BROKER_CONFIG:follower.replication.throttled.rate=10000000}
+    leader.replication.throttled.rate=10000000 sensitive=false synonyms={DYNAMIC_BROKER_CONFIG:leader.replication.throttled.rate=10000000}
+  dang chuyen p1 Leader: 3 Replicas: 2,3,4,1 Isr: 3,1,2 Adding Replicas: 4 Removing
+  dang chuyen p2 Leader: 1 Replicas: 3,4,1,2 Isr: 1,2,3 Adding Replicas: 4 Removing
+  dang chuyen p3 Leader: 1 Replicas: 4,1,2,3 Isr: 1,2,3 Adding Replicas: 4 Removing
+  dang chuyen p4 Leader: 2 Replicas: 2,4,3,1 Isr: 2,3,1 Adding Replicas: 4 Removing
+  dang chuyen p5 Leader: 3 Replicas: 4,3,1,2 Isr: 3,1,2 Adding Replicas: 4 Removing
+08:11:48  chuyen xong sau 27 giay
+Reassignment of partition grow-0 is completed.
+Reassignment of partition grow-1 is completed.
+Reassignment of partition grow-2 is completed.
+  p0 Leader: 2 Replicas: 1,2,3 Isr: 2,3,1
+  p1 Leader: 3 Replicas: 2,3,4 Isr: 3,2,4
+  p2 Leader: 1 Replicas: 3,4,1 Isr: 1,3,4
+  p3 Leader: 1 Replicas: 4,1,2 Isr: 1,2,4
+  p4 Leader: 2 Replicas: 2,4,3 Isr: 2,3,4
+  p5 Leader: 3 Replicas: 4,3,1 Isr: 3,1,4
+  broker 1:  4 replica,    87.2 MB
+  broker 2:  4 replica,    81.9 MB
+  broker 3:  5 replica,   115.4 MB
+  broker 4:  5 replica,   111.4 MB
+
+=== 5. Bau leader uu tien (replica dau tien trong danh sach) de chia deu leader
+Successfully completed leader election (PREFERRED) for partitions grow-3, grow-2, grow-1, grow-0, grow-5
+  broker 1: lam leader 1 partition
+  broker 2: lam leader 2 partition
+  broker 3: lam leader 1 partition
+  broker 4: lam leader 2 partition
+
+=== 6. Tang so partition: key doi partition (tinh bang dung ham cua producer)
+100000 key dang 'account-<n>'
+ 6 ->  7 partition:  85.7% key doi partition; tai sau: min 14106, max 14441
+ 6 ->  8 partition:  75.1% key doi partition; tai sau: min 12402, max 12656
+ 6 -> 12 partition:  50.0% key doi partition; tai sau: min 8202, max 8488
+12 -> 24 partition:  50.1% key doi partition; tai sau: min 4053, max 4281
+vi du: account-42 o partition 2 (6 partition), 4 (8 partition)
+
+=== 7. Song song phia doc toi da = so partition
+6 partition, 6000 record moi lan, xu ly 1 ms/record
+1 consumer:  7.40 s,   811 record/s   {c1=[0, 1, 2, 3, 4, 5]=6000}
+2 consumer:  3.67 s,  1637 record/s   {c1=[0, 1, 2]=2994, c2=[3, 4, 5]=3006}
+3 consumer:  2.39 s,  2511 record/s   {c1=[0, 1]=2026, c2=[3, 4]=2018, c3=[2, 5]=1956}
+6 consumer:  1.23 s,  4890 record/s   {c1=[2]=968, c2=[3]=997, c3=[4]=1021, c4=[1]=1003, c5=[0]=1023, c6=[5]=988}
+8 consumer:  1.29 s,  4664 record/s   {c1=[3]=997, c2=[5]=988, c3=[4]=1021, c4=[2]=968, c5=[]=0, c6=[0]=1023, c7=[]=0, c8=[1]=1003}

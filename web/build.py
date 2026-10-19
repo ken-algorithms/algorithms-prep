@@ -460,6 +460,9 @@ ONBAI_PHASES = [
     {"id": "gd1-nen-tang", "title": "Giai đoạn 1 · Nền tảng",
      "lead": "Lý thuyết đi cùng real case dựng từ đầu, lab chạy thật trên PostgreSQL 16 và Redis, drill code tại chỗ. "
              "Dùng chung cho vòng system design của Katalon và NAB."},
+    {"id": "chuyen-sau", "title": "Chuyên sâu · Kafka, đếm sự kiện 1M–10M request/s, sổ cái",
+     "lead": "Kafka 4.1 từ bên trong (chạy Docker, kết nối, segment, replication, client, scale), bài đếm fake key ở "
+             "1M–10M request/s và bài tính số dư sổ cái, viết code từng bước, lab trên Kafka KRaft + PostgreSQL 16 thật."},
 ]
 ONBAI_ROW = re.compile(
     r"^\|\s*(\d{2})\s*\|\s*\[([^\]]+)\]\(([^)]+\.md)\)\s*(⭐)?\s*\|\s*([^|]+?)\s*\|\s*(★*)\s*\|\s*(★*)\s*\|\s*([^|]*?)\s*\|\s*$",

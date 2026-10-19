@@ -1,0 +1,4 @@
+JDK HttpServer, noop                     64 ket noi, 15.0 s: 317,845 x 202, 0 loi -> 21,172 request/s; CPU server 57.7 us/request
+Netty 2 event loop, noop                 64 ket noi, 15.0 s: 484,313 x 202, 0 loi -> 32,261 request/s; CPU server 24.1 us/request (trong do kernel 12.6 us)
+Netty, ingest, 64 ket noi                64 ket noi, 15.0 s: 58,752 x 202, 0 loi -> 3,910 request/s; CPU server 213.3 us/request (trong do kernel 34.2 us)
+Netty, ingest, 1024 ket noi              1024 ket noi, 15.1 s: 215,742 x 202, 0 loi -> 14,329 request/s; CPU server 80.4 us/request (trong do kernel 22.4 us)

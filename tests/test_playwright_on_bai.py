@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Playwright test of the Ôn bài tab: the lesson list and the markdown popup.
 
-Everything it expects comes from on-bai/gd1-nen-tang/README.md (the table web/build.py reads) and from the lesson
-files themselves, so adding a lesson does not need an edit here. It checks:
-1. the tab is labelled "Ôn bài", lessons are the default view, the cards match the README table in order;
+Everything it expects comes from web/build.py (ONBAI_PHASES: which on-bai/<phase>/ folders are shown, in order), from
+each phase README's lesson table and from the lesson files themselves, so adding a lesson or a phase does not need an
+edit here. It checks:
+1. the tab is labelled "Ôn bài", lessons are the default view, the cards match the README tables in order, and every
+   lesson file on disk is in a table;
 2. every lesson opens in the popup and renders like the Tài liệu tab: title, every code block, every table,
    markdown inside <details> (no raw ** left), and every mermaid block as an SVG without a syntax error;
 3. a link to another lesson opens inside the popup, ← goes back, an in-page anchor scrolls the popup;
@@ -24,14 +26,20 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
-PHASE = ROOT / "on-bai" / "gd1-nen-tang"
 ROW = re.compile(r"^\|\s*(\d{2})\s*\|\s*\[([^\]]+)\]\(([^)]+\.md)\)", re.M)
 
 
+def phases() -> list[str]:
+    """Các giai đoạn ôn bài theo đúng thứ tự web/build.py hiển thị (ONBAI_PHASES)."""
+    return re.findall(r'\{"id": "([^"]+)"', (ROOT / "web" / "build.py").read_text(encoding="utf-8")
+                      .split("ONBAI_PHASES = [", 1)[1].split("\n]", 1)[0])
+
+
 def lessons() -> list[tuple[str, str, str]]:
-    """(số, tên, khoá tài liệu) theo đúng thứ tự bảng trong README."""
-    return [(m.group(1), m.group(2), f"on-bai/gd1-nen-tang/{m.group(3)}")
-            for m in ROW.finditer((PHASE / "README.md").read_text(encoding="utf-8"))]
+    """(số, tên, khoá tài liệu) theo đúng thứ tự bảng trong README của từng giai đoạn."""
+    return [(m.group(1), m.group(2), f"on-bai/{ph}/{m.group(3)}")
+            for ph in phases()
+            for m in ROW.finditer((ROOT / "on-bai" / ph / "README.md").read_text(encoding="utf-8"))]
 
 
 def expected_blocks(md: str) -> tuple[int, int, int]:
@@ -55,7 +63,9 @@ def expected_blocks(md: str) -> tuple[int, int, int]:
 
 def test_on_bai_tab_and_popup():
     rows = lessons()
-    assert len(rows) == 11, f"README has {len(rows)} lessons"
+    on_disk = sum(len(list((ROOT / "on-bai" / ph).glob("[0-9][0-9]-*.md"))) for ph in phases())
+    print("[TEST] phases:", phases(), "lessons:", len(rows))
+    assert len(rows) == on_disk, f"README tables list {len(rows)} lessons, folders have {on_disk} lesson files"
     shots = Path(os.environ.get("SHOTS") or tempfile.mkdtemp(prefix="onbai-shots-"))
     shots.mkdir(parents=True, exist_ok=True)
     html_file = (ROOT / "web" / "index.html").resolve()

@@ -1,0 +1,318 @@
+
+=== A. acks=all, RF 3, min.insync.replicas 2: tat dan follower, tat leader em, roi kill leader
+Created topic pay.
+07:51:24  describe: Leader=2 Replicas=2,3,1 Isr=2,3,1 Elr=LastKnownElr:
+07:51:37  producer da on dinh (co xac nhan deu)
+07:51:42  leader=2, follower=1 3
+07:51:45  docker stop kafka-1   (follower thu nhat, tat em)
+07:51:51  describe: Leader=2 Replicas=2,3,1 Isr=2,3 Elr=LastKnownElr:
+07:52:00  docker stop kafka-3   (follower thu hai -> ISR chi con leader, duoi min.insync.replicas = 2)
+07:52:03  describe: Leader=2 Replicas=2,3,1 Isr=2 Elr=3
+07:52:15  docker start kafka-1 kafka-3
+07:52:31  ISR du 3 lai
+07:52:32  describe: Leader=2 Replicas=2,3,1 Isr=2,3,1 Elr=LastKnownElr:
+07:52:52  docker stop kafka-2   (LEADER, tat em: controlled shutdown, bao controller chuyen leader truoc khi tat)
+07:52:56  describe: Leader=3 Replicas=2,3,1 Isr=3,1 Elr=LastKnownElr:
+07:53:06  docker start kafka-2
+07:53:27  ISR du 3 lai
+07:53:28  describe: Leader=3 Replicas=2,3,1 Isr=3,1,2 Elr=LastKnownElr:
+07:53:43  docker kill kafka-3   (LEADER, SIGKILL: khong kip bao ai)
+07:53:44  describe: Leader=3 Replicas=2,3,1 Isr=3,1,2 Elr=LastKnownElr:
+07:53:52  da co leader moi
+07:53:53  describe: Leader=2 Replicas=2,3,1 Isr=1,2 Elr=LastKnownElr:
+07:54:19  describe: Leader=2 Replicas=2,3,1 Isr=1,2,3 Elr=LastKnownElr:
+--- producer (pay): dong moi giay va loi
+07:51:34 t= 1s gui= 101 xac-nhan=  98 loi=[] tre-max=938ms leader=2
+07:51:35 t= 2s gui= 100 xac-nhan= 100 loi=[] tre-max=100ms leader=2
+07:51:36 t= 3s gui= 100 xac-nhan= 101 loi=[] tre-max=76ms leader=2
+07:51:37 t= 4s gui= 100 xac-nhan= 101 loi=[] tre-max=43ms leader=2
+07:51:38 t= 5s gui= 100 xac-nhan=  97 loi=[] tre-max=92ms leader=2
+07:51:39 t= 6s gui= 100 xac-nhan=  88 loi=[] tre-max=325ms leader=2
+07:51:40 t= 7s gui= 100 xac-nhan= 113 loi=[] tre-max=219ms leader=2
+07:51:41 t= 8s gui= 100 xac-nhan= 103 loi=[] tre-max=105ms leader=2
+07:51:42 t= 9s gui= 100 xac-nhan= 100 loi=[] tre-max=23ms leader=2
+07:51:43 t=10s gui= 100 xac-nhan=  98 loi=[] tre-max=26ms leader=2
+07:51:44 t=11s gui= 100 xac-nhan= 101 loi=[] tre-max=24ms leader=2
+07:51:45 t=12s gui= 100 xac-nhan=  99 loi=[] tre-max=19ms leader=2
+07:51:46 t=13s gui= 100 xac-nhan= 101 loi=[] tre-max=210ms leader=2
+07:51:47 t=14s gui= 100 xac-nhan= 100 loi=[] tre-max=36ms leader=2
+07:51:48 t=15s gui= 100 xac-nhan=  93 loi=[] tre-max=70ms leader=2
+07:51:49 t=16s gui= 100 xac-nhan= 106 loi=[] tre-max=119ms leader=2
+07:51:50 t=17s gui= 100 xac-nhan= 101 loi=[] tre-max=203ms leader=2
+07:51:51 t=18s gui= 100 xac-nhan= 100 loi=[] tre-max=26ms leader=2
+07:51:52 t=19s gui= 100 xac-nhan= 100 loi=[] tre-max=24ms leader=2
+07:51:53 t=20s gui= 100 xac-nhan= 100 loi=[] tre-max=21ms leader=2
+07:51:54 t=21s gui= 100 xac-nhan= 100 loi=[] tre-max=13ms leader=2
+07:51:55 t=22s gui= 100 xac-nhan= 100 loi=[] tre-max=22ms leader=2
+07:51:56 t=23s gui= 100 xac-nhan= 100 loi=[] tre-max=20ms leader=2
+07:51:57 t=24s gui= 100 xac-nhan= 100 loi=[] tre-max=25ms leader=2
+07:51:58 t=25s gui= 100 xac-nhan=  92 loi=[] tre-max=116ms leader=2
+07:51:59 t=26s gui= 100 xac-nhan= 108 loi=[] tre-max=93ms leader=2
+07:52:01 t=28s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:02 t=29s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:03 t=30s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:04 t=31s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:05 t=32s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:06 t=33s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:07 t=34s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:08 t=35s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:09 t=36s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:10 t=37s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:11 t=38s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:12 t=39s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:13 t=40s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:14 t=41s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:15 t=42s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:16 t=43s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:17 t=44s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:18 t=45s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:19 t=46s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:20 t=47s gui= 100 xac-nhan=   0 loi=[TimeoutException+824] tre-max=0ms leader=2
+07:52:21 t=48s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:22 t=49s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:23 t=50s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:24 t=51s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:25 t=52s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:26 t=53s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:27 t=54s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:28 t=55s gui= 100 xac-nhan=   0 loi=[TimeoutException+819] tre-max=0ms leader=2
+07:52:29 t=56s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:30 t=57s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:31 t=58s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=2
+07:52:32 t=59s gui= 100 xac-nhan=1585 loi=[] tre-max=15139ms leader=2
+07:52:33 t=60s gui= 100 xac-nhan=  94 loi=[] tre-max=127ms leader=2
+07:52:34 t=61s gui= 100 xac-nhan=  97 loi=[] tre-max=125ms leader=2
+07:52:35 t=62s gui= 100 xac-nhan= 105 loi=[] tre-max=171ms leader=2
+07:52:36 t=63s gui= 100 xac-nhan= 101 loi=[] tre-max=217ms leader=2
+07:52:37 t=64s gui= 100 xac-nhan=  93 loi=[] tre-max=218ms leader=2
+07:52:38 t=65s gui= 100 xac-nhan= 106 loi=[] tre-max=220ms leader=2
+07:52:39 t=66s gui= 100 xac-nhan= 106 loi=[] tre-max=144ms leader=2
+07:52:40 t=67s gui= 100 xac-nhan=  99 loi=[] tre-max=81ms leader=2
+07:52:41 t=68s gui= 100 xac-nhan= 101 loi=[] tre-max=48ms leader=2
+07:52:42 t=69s gui= 100 xac-nhan= 100 loi=[] tre-max=55ms leader=2
+07:52:43 t=70s gui= 100 xac-nhan= 100 loi=[] tre-max=32ms leader=2
+07:52:44 t=71s gui= 100 xac-nhan= 100 loi=[] tre-max=20ms leader=2
+07:52:45 t=72s gui= 100 xac-nhan= 100 loi=[] tre-max=81ms leader=2
+07:52:46 t=73s gui= 100 xac-nhan= 100 loi=[] tre-max=29ms leader=2
+07:52:47 t=74s gui= 100 xac-nhan= 100 loi=[] tre-max=110ms leader=2
+07:52:48 t=75s gui= 100 xac-nhan= 100 loi=[] tre-max=45ms leader=2
+07:52:49 t=76s gui= 100 xac-nhan=  94 loi=[] tre-max=126ms leader=2
+07:52:50 t=77s gui= 100 xac-nhan= 105 loi=[] tre-max=118ms leader=2
+07:52:51 t=78s gui= 100 xac-nhan= 101 loi=[] tre-max=35ms leader=2
+07:52:52 t=79s gui= 100 xac-nhan=  91 loi=[] tre-max=21ms leader=2
+07:52:53 t=80s gui= 100 xac-nhan= 104 loi=[] tre-max=746ms leader=3
+07:52:54 t=81s gui= 100 xac-nhan= 104 loi=[] tre-max=81ms leader=3
+07:52:55 t=82s gui= 100 xac-nhan= 100 loi=[] tre-max=98ms leader=3
+07:52:56 t=83s gui= 100 xac-nhan= 101 loi=[] tre-max=83ms leader=3
+07:52:57 t=84s gui= 100 xac-nhan= 100 loi=[] tre-max=33ms leader=3
+07:52:58 t=85s gui= 100 xac-nhan= 100 loi=[] tre-max=70ms leader=3
+07:52:59 t=86s gui= 100 xac-nhan=  74 loi=[] tre-max=253ms leader=3
+07:53:01 t=88s gui= 100 xac-nhan= 100 loi=[] tre-max=222ms leader=3
+07:53:02 t=89s gui= 100 xac-nhan= 103 loi=[] tre-max=51ms leader=3
+07:53:03 t=90s gui= 100 xac-nhan=  97 loi=[] tre-max=103ms leader=3
+07:53:04 t=91s gui= 100 xac-nhan= 104 loi=[] tre-max=74ms leader=3
+07:53:05 t=92s gui= 100 xac-nhan= 100 loi=[] tre-max=36ms leader=3
+07:53:06 t=93s gui= 100 xac-nhan= 100 loi=[] tre-max=11ms leader=3
+07:53:07 t=94s gui= 100 xac-nhan= 100 loi=[] tre-max=34ms leader=3
+07:53:08 t=95s gui= 100 xac-nhan= 100 loi=[] tre-max=62ms leader=3
+07:53:09 t=96s gui= 100 xac-nhan=  93 loi=[] tre-max=99ms leader=3
+07:53:10 t=97s gui= 100 xac-nhan=  99 loi=[] tre-max=76ms leader=3
+07:53:11 t=98s gui= 100 xac-nhan= 105 loi=[] tre-max=116ms leader=3
+07:53:12 t=99s gui= 100 xac-nhan= 103 loi=[] tre-max=260ms leader=3
+07:53:13 t=100s gui= 100 xac-nhan=  97 loi=[] tre-max=95ms leader=3
+07:53:14 t=101s gui= 100 xac-nhan= 101 loi=[] tre-max=224ms leader=3
+07:53:15 t=102s gui= 100 xac-nhan= 102 loi=[] tre-max=56ms leader=3
+07:53:16 t=103s gui= 100 xac-nhan= 100 loi=[] tre-max=48ms leader=3
+07:53:17 t=104s gui= 100 xac-nhan= 100 loi=[] tre-max=72ms leader=3
+07:53:18 t=105s gui= 100 xac-nhan= 100 loi=[] tre-max=100ms leader=3
+07:53:19 t=106s gui= 100 xac-nhan= 100 loi=[] tre-max=218ms leader=3
+07:53:20 t=107s gui= 100 xac-nhan=  97 loi=[] tre-max=79ms leader=3
+07:53:21 t=108s gui= 100 xac-nhan=  98 loi=[] tre-max=114ms leader=3
+07:53:22 t=109s gui= 100 xac-nhan=  96 loi=[] tre-max=172ms leader=3
+07:53:23 t=110s gui= 100 xac-nhan= 100 loi=[] tre-max=94ms leader=3
+07:53:24 t=111s gui= 100 xac-nhan= 106 loi=[] tre-max=277ms leader=3
+07:53:25 t=112s gui= 100 xac-nhan=  92 loi=[] tre-max=206ms leader=3
+07:53:26 t=113s gui= 100 xac-nhan= 110 loi=[] tre-max=288ms leader=3
+07:53:27 t=114s gui= 100 xac-nhan=  98 loi=[] tre-max=52ms leader=3
+07:53:28 t=115s gui= 100 xac-nhan= 101 loi=[] tre-max=69ms leader=3
+07:53:29 t=116s gui= 100 xac-nhan= 100 loi=[] tre-max=101ms leader=3
+07:53:30 t=117s gui= 100 xac-nhan= 101 loi=[] tre-max=83ms leader=3
+07:53:31 t=118s gui= 100 xac-nhan=  99 loi=[] tre-max=24ms leader=3
+07:53:32 t=119s gui= 100 xac-nhan=  99 loi=[] tre-max=69ms leader=3
+07:53:33 t=120s gui= 100 xac-nhan= 101 loi=[] tre-max=78ms leader=3
+07:53:34 t=121s gui= 100 xac-nhan=  95 loi=[] tre-max=88ms leader=3
+07:53:35 t=122s gui= 100 xac-nhan= 106 loi=[] tre-max=82ms leader=3
+07:53:36 t=123s gui= 100 xac-nhan=  99 loi=[] tre-max=274ms leader=3
+07:53:37 t=124s gui= 100 xac-nhan= 101 loi=[] tre-max=34ms leader=3
+07:53:38 t=125s gui= 100 xac-nhan= 100 loi=[] tre-max=40ms leader=3
+07:53:39 t=126s gui= 100 xac-nhan=  99 loi=[] tre-max=25ms leader=3
+07:53:40 t=127s gui= 100 xac-nhan= 101 loi=[] tre-max=17ms leader=3
+07:53:41 t=128s gui= 100 xac-nhan= 100 loi=[] tre-max=25ms leader=3
+07:53:42 t=129s gui= 100 xac-nhan= 100 loi=[] tre-max=18ms leader=3
+07:53:43 t=130s gui= 100 xac-nhan=  96 loi=[] tre-max=61ms leader=3
+07:53:44 t=131s gui= 100 xac-nhan=  46 loi=[] tre-max=66ms leader=3
+07:53:45 t=132s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=3
+07:53:46 t=133s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=3
+07:53:47 t=134s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=3
+07:53:48 t=135s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=3
+07:53:49 t=136s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=3
+07:53:50 t=137s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=3
+07:53:51 t=138s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=3
+07:53:52 t=139s gui= 100 xac-nhan=   0 loi=[] tre-max=0ms leader=3
+07:53:53 t=140s gui= 100 xac-nhan= 950 loi=[] tre-max=9433ms leader=2
+07:53:54 t=141s gui= 100 xac-nhan=  99 loi=[] tre-max=98ms leader=2
+07:53:55 t=142s gui= 100 xac-nhan= 109 loi=[] tre-max=304ms leader=2
+07:53:56 t=143s gui= 100 xac-nhan=  97 loi=[] tre-max=124ms leader=2
+07:53:57 t=144s gui= 100 xac-nhan= 101 loi=[] tre-max=113ms leader=2
+07:53:58 t=145s gui= 100 xac-nhan=  99 loi=[] tre-max=166ms leader=2
+07:53:59 t=146s gui= 100 xac-nhan= 103 loi=[] tre-max=107ms leader=2
+07:54:01 t=148s gui= 100 xac-nhan= 100 loi=[] tre-max=11ms leader=2
+07:54:02 t=149s gui= 100 xac-nhan= 100 loi=[] tre-max=6ms leader=2
+07:54:03 t=150s gui= 100 xac-nhan=  99 loi=[] tre-max=16ms leader=2
+07:54:04 t=151s gui= 100 xac-nhan= 101 loi=[] tre-max=25ms leader=2
+      4 Disconnected from node 2
+     10 Disconnected from node 3
+      5 Error: NETWORK_EXCEPTION
+     38 Error: NOT_ENOUGH_REPLICAS
+      6 Error: NOT_LEADER_OR_FOLLOWER
+      1 Error: OUT_OF_ORDER_SEQUENCE_NUMBER
+      5 Error: REQUEST_TIMED_OUT
+     19 could not be established
+TONG: gui=15129 xac-nhan=13486 loi={TimeoutException=1643} -> results/acked-pay.txt
+--- kafka-3 vua bi SIGKILL, khoi dong lai: log recovery cua pay-0
+[2026-10-19 07:54:14,081] INFO [LogLoader partition=pay-0, dir=/var/lib/kafka/data] Recovering unflushed segment 0. 0 recovered for pay-0. (org.apache.kafka.storage.internals.log.LogLoader)
+[2026-10-19 07:54:14,096] INFO [LogLoader partition=pay-0, dir=/var/lib/kafka/data] Producer state recovery took 2ms for snapshot load and 0ms for segment recovery from offset 0 (org.apache.kafka.storage.internals.log.UnifiedLog)
+[2026-10-19 07:54:14,544] INFO [LogLoader partition=pay-0, dir=/var/lib/kafka/data] Producer state recovery took 7ms for snapshot load and 0ms for segment recovery from offset 11402 (org.apache.kafka.storage.internals.log.UnifiedL
+topic pay: 13486 id da xac nhan, 13487 id co trong log
+MAT (da xac nhan ma khong con trong log): 0
+trung (mot id xuat hien >1 lan): 0; co trong log nhung producer khong nhan xac nhan: 1
+
+=== B. acks=1: leader xac nhan ngay khi ghi vao log cua NO; follower dung, leader chet
+Created topic pay1.
+07:54:35  describe: Leader=1 Replicas=1,2,3 Isr=1,2,3 Elr=LastKnownElr:
+07:54:46  producer da on dinh (co xac nhan deu)
+07:54:48  docker pause kafka-2 kafka-3   (follower dung fetch; trong ISR toi khi qua replica.lag.time.max.ms = 10s)
+07:54:51  docker kill kafka-1   (leader chet)
+07:54:52  docker unpause kafka-2 kafka-3
+07:55:05  da co leader moi
+07:55:05  describe: Leader=2 Replicas=1,2,3 Isr=2,3 Elr=LastKnownElr:
+07:55:29  describe: Leader=2 Replicas=1,2,3 Isr=2,3,1 Elr=LastKnownElr:
+--- producer (pay1): dong moi giay va loi
+07:54:45 t= 1s gui= 501 xac-nhan= 497 loi=[] tre-max=712ms leader=1
+07:54:46 t= 2s gui= 500 xac-nhan= 478 loi=[] tre-max=92ms leader=1
+07:54:47 t= 3s gui= 500 xac-nhan= 504 loi=[] tre-max=64ms leader=1
+07:54:48 t= 4s gui= 500 xac-nhan= 509 loi=[] tre-max=83ms leader=1
+07:54:49 t= 5s gui= 500 xac-nhan= 507 loi=[] tre-max=93ms leader=1
+07:54:50 t= 6s gui= 500 xac-nhan= 502 loi=[] tre-max=33ms leader=1
+07:54:51 t= 7s gui= 500 xac-nhan= 449 loi=[] tre-max=26ms leader=1
+07:54:52 t= 8s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:54:53 t= 9s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:54:54 t=10s gui= 499 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:54:55 t=11s gui= 501 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:54:56 t=12s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:54:57 t=13s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:54:58 t=14s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:54:59 t=15s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:55:01 t=17s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:55:02 t=18s gui= 500 xac-nhan=5540 loi=[] tre-max=10698ms leader=2
+07:55:03 t=19s gui= 500 xac-nhan= 508 loi=[] tre-max=59ms leader=2
+07:55:04 t=20s gui= 500 xac-nhan= 500 loi=[] tre-max=44ms leader=2
+07:55:05 t=21s gui= 500 xac-nhan= 503 loi=[] tre-max=72ms leader=2
+07:55:06 t=22s gui= 500 xac-nhan= 492 loi=[] tre-max=76ms leader=2
+07:55:07 t=23s gui= 500 xac-nhan= 503 loi=[] tre-max=112ms leader=2
+07:55:08 t=24s gui= 500 xac-nhan= 504 loi=[] tre-max=28ms leader=2
+07:55:09 t=25s gui= 500 xac-nhan= 490 loi=[] tre-max=111ms leader=2
+07:55:10 t=26s gui= 500 xac-nhan= 508 loi=[] tre-max=98ms leader=2
+07:55:11 t=27s gui= 500 xac-nhan= 498 loi=[] tre-max=36ms leader=2
+07:55:12 t=28s gui= 500 xac-nhan= 489 loi=[] tre-max=51ms leader=2
+07:55:13 t=29s gui= 500 xac-nhan= 508 loi=[] tre-max=43ms leader=2
+07:55:14 t=30s gui= 500 xac-nhan= 504 loi=[] tre-max=21ms leader=2
+07:55:15 t=31s gui= 500 xac-nhan= 501 loi=[] tre-max=21ms leader=2
+07:55:16 t=32s gui= 500 xac-nhan= 501 loi=[] tre-max=15ms leader=2
+07:55:17 t=33s gui= 500 xac-nhan= 500 loi=[] tre-max=5ms leader=2
+07:55:18 t=34s gui= 500 xac-nhan= 500 loi=[] tre-max=7ms leader=2
+     10 Disconnected from node 1
+      5 Error: NETWORK_EXCEPTION
+     14 could not be established
+TONG: gui=17467 xac-nhan=17467 loi={} -> results/acked-pay1.txt
+--- kafka-1 quay lai: cat phan log ma leader moi khong co
+[2026-10-19 07:55:27,444] INFO [ReplicaFetcher replicaId=1, leaderId=2, fetcherId=0] Truncating partition pay1-0 with TruncationState(offset=1884, completed=true) due to leader epoch and offset EpochEndOffset(errorCode=0, partition=0, leaderEpoch=0, endOffset=
+[2026-10-19 07:55:27,445] INFO [UnifiedLog partition=pay1-0, dir=/var/lib/kafka/data] Truncating to offset 1884 (org.apache.kafka.storage.internals.log.UnifiedLog)
+topic pay1: 17467 id da xac nhan, 15901 id co trong log
+MAT (da xac nhan ma khong con trong log): 1566  vi du [1884, 1885, 1886, 1887, 1888] .. 3449
+trung (mot id xuat hien >1 lan): 0; co trong log nhung producer khong nhan xac nhan: 0
+
+=== C. Doi chung: dung kich ban B nhung acks=all
+Created topic pay2.
+07:55:44  describe: Leader=1 Replicas=1,2,3 Isr=1,2,3 Elr=LastKnownElr:
+07:55:54  producer da on dinh (co xac nhan deu)
+07:55:56  docker pause kafka-2 kafka-3   (follower dung fetch; trong ISR toi khi qua replica.lag.time.max.ms = 10s)
+07:55:59  docker kill kafka-1   (leader chet)
+07:56:00  docker unpause kafka-2 kafka-3
+07:56:11  da co leader moi
+07:56:11  describe: Leader=2 Replicas=1,2,3 Isr=2,3 Elr=LastKnownElr:
+07:56:33  describe: Leader=2 Replicas=1,2,3 Isr=2,3,1 Elr=LastKnownElr:
+--- producer (pay2): dong moi giay va loi
+07:55:53 t= 1s gui= 499 xac-nhan= 441 loi=[] tre-max=959ms leader=1
+07:55:54 t= 2s gui= 502 xac-nhan= 526 loi=[] tre-max=171ms leader=1
+07:55:55 t= 3s gui= 500 xac-nhan= 495 loi=[] tre-max=102ms leader=1
+07:55:56 t= 4s gui= 500 xac-nhan= 185 loi=[] tre-max=129ms leader=1
+07:55:57 t= 5s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:55:58 t= 6s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:55:59 t= 7s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:56:01 t= 9s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:56:02 t=10s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:56:03 t=11s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:56:04 t=12s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:56:05 t=13s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:56:06 t=14s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:56:07 t=15s gui= 500 xac-nhan=   0 loi=[] tre-max=0ms leader=1
+07:56:08 t=16s gui= 500 xac-nhan=6264 loi=[] tre-max=11884ms leader=2
+07:56:09 t=17s gui= 500 xac-nhan= 565 loi=[] tre-max=163ms leader=2
+07:56:10 t=18s gui= 500 xac-nhan= 489 loi=[] tre-max=86ms leader=2
+07:56:11 t=19s gui= 500 xac-nhan= 508 loi=[] tre-max=95ms leader=2
+07:56:12 t=20s gui= 500 xac-nhan= 506 loi=[] tre-max=55ms leader=2
+07:56:13 t=21s gui= 500 xac-nhan= 495 loi=[] tre-max=36ms leader=2
+07:56:14 t=22s gui= 500 xac-nhan= 501 loi=[] tre-max=57ms leader=2
+07:56:15 t=23s gui= 500 xac-nhan= 484 loi=[] tre-max=67ms leader=2
+07:56:16 t=24s gui= 500 xac-nhan= 516 loi=[] tre-max=88ms leader=2
+07:56:17 t=25s gui= 500 xac-nhan= 478 loi=[] tre-max=61ms leader=2
+07:56:18 t=26s gui= 500 xac-nhan= 501 loi=[] tre-max=173ms leader=2
+07:56:19 t=27s gui= 500 xac-nhan= 494 loi=[] tre-max=86ms leader=2
+07:56:20 t=28s gui= 500 xac-nhan= 536 loi=[] tre-max=79ms leader=2
+07:56:21 t=29s gui= 500 xac-nhan= 499 loi=[] tre-max=45ms leader=2
+     10 Disconnected from node 1
+      5 Error: NETWORK_EXCEPTION
+     12 could not be established
+TONG: gui=14568 xac-nhan=14568 loi={} -> results/acked-pay2.txt
+--- kafka-1 quay lai: cat phan log ma leader moi khong co
+topic pay2: 14568 id da xac nhan, 14568 id co trong log
+MAT (da xac nhan ma khong con trong log): 0
+trung (mot id xuat hien >1 lan): 0; co trong log nhung producer khong nhan xac nhan: 0
+
+=== D. Quorum controller KRaft: mat leader cua quorum, roi mat ca quorum
+07:56:46  quorum: LeaderId:=103 LeaderEpoch:=1 HighWatermark:=2014 
+07:56:50  docker stop controller-3   (leader cua quorum)
+07:57:11  quorum: LeaderId:=101 LeaderEpoch:=2 HighWatermark:=2064 
+describeTopics               OK   leader=2                   563 ms
+describeConfigs              OK   min.insync.replicas=2       26 ms
+listPartitionReassignments   LOI  TimeoutException          8053 ms
+describeMetadataQuorum       OK   leader=101                  14 ms
+createTopics                 LOI  TimeoutException          8027 ms
+07:57:37  docker stop controller-1   (con 1/3 controller: MAT QUORUM)
+describeTopics               OK   leader=2                   804 ms
+describeConfigs              OK   min.insync.replicas=2       38 ms
+listPartitionReassignments   LOI  TimeoutException          8040 ms
+describeMetadataQuorum       LOI  TimeoutException          8008 ms
+createTopics                 LOI  TimeoutException          8020 ms
+07:58:12  producer acks=1 (khong idempotent, khong can producer id) ghi vao topic co san:
+TONG: gui=500 xac-nhan=500 loi={} -> results/acked-quorum1.txt
+07:58:23  producer acks=all (idempotent: phai xin producer id) ghi vao topic co san:
+TONG: gui=800 xac-nhan=800 loi={} -> results/acked-quorum2.txt
+07:58:37  docker start controller-3 controller-1
+07:58:57  quorum: LeaderId:=102 LeaderEpoch:=5 HighWatermark:=2141 
+describeTopics               OK   leader=2                   713 ms
+describeConfigs              OK   min.insync.replicas=2       21 ms
+listPartitionReassignments   OK   {}                          13 ms
+describeMetadataQuorum       OK   leader=102                  14 ms
+createTopics                 OK   da tao                      72 ms
