@@ -19,3 +19,10 @@ leetcode-38-bai-video/**/*-preview.mp4
 
 # khoá file khi tools/lesson_video ghi lessons.json
 java-system-design/video-*/lessons/lessons.json.lock
+
+# .NET: output của dotnet build / dotnet test / Rider trong lab tutorial (sinh lại được)
+tutorial/**/bin/
+tutorial/**/obj/
+tutorial/**/TestResults/
+tutorial/**/.idea/
+tutorial/**/*.user

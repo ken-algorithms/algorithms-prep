@@ -1,0 +1,48 @@
+WORK=$WORK
+
+== Bai 06: Web API, luu tam trong bo nho
+  ok: build: 0 warning
+  ok: POST -> 201 (201), id 38b4f6c0-9878-4187-888e-d5c9d46d938a
+  ok: GET -> Pending
+  ok: invalid body -> 400 (400)
+  ok: duplicate sku -> problem from DomainExceptionHandler
+  ok: timing middleware logged the request
+
+== Bai 07: PostgreSQL + EF Core 8
+  ok: postgres healthy
+  ok: migration InitialCreate created
+  ok: database updated: __EFMigrationsHistory,order_lines,orders,outbox_messages,processed_messages
+  ok: build: 0 warning
+  ok: POST -> 201 (201)
+  ok: order + outbox row in one transaction
+  ok: order survives an API restart (stored in PostgreSQL)
+
+== Bai 08: Worker Service + outbox (publisher tam chi ghi log)
+  ok: build: 0 warning
+  ok: outbox drained by the Worker
+  ok: LoggingMessagePublisher logged the message
+
+== Bai 09: Azure Service Bus (emulator) + consumer idempotent
+  ok: Service Bus emulator healthy
+  ok: build: 0 warning
+  ok: small order Confirmed through Service Bus
+  ok: big order Rejected
+
+== Bai 10: Docker hoa ca he thong
+  prebuilt orderflow-api:dev from $WORK/OrderFlow
+  prebuilt orderflow-worker:dev from $WORK/OrderFlow
+  ok: smoke test: OK
+
+== Bai 11: xUnit + Testcontainers
+  Passed!  - Failed:     0, Passed:    10, Skipped:     0, Total:    10, Duration: 123 ms - OrderFlow.UnitTests.dll (net8.0)
+  Passed!  - Failed:     0, Passed:    14, Skipped:     0, Total:    14, Duration: 2 s - OrderFlow.IntegrationTests.dll (net8.0)
+  ok: 10 unit + 14 integration tests passed
+  ok: no vulnerable packages, direct or transitive
+
+== So sanh voi lab/OrderFlow
+  ok: same 46 files
+  ok: every file identical (after removing random GUIDs and migration timestamps)
+  ok: solution lists the same 5 projects
+
+== Done
+(chay lai ngay 25/10/2026 sau khi them test tat dinh va nang xunit 2.9.3; .NET SDK 8.0.426, dotnet-ef 8.0.32, Docker 29.9; exit 0, tong 435 giay)

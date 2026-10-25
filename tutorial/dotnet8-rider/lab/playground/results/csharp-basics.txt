@@ -1,0 +1,73 @@
+===== types
+count=3, big=3000000000, price=150000, name=OrderFlow
+0.1 + 0.2 as double  = 0.30000000000000004
+0.1 + 0.2 as decimal = 0.3
+a == b -> True  (C# so sanh NOI DUNG chuoi bang ==, Java phai dung equals)
+{"sku": "BOOK-001", "qty": 2}
+vi-VN N0: 360.000 | C0: 360.000 ₫ | invariant: 360,000
+===== nulls
+maybe?.Length -> null
+(no email)
+default@example.com
+HasValue=False, GetValueOrDefault(1)=1
+found an@example.com
+===== collections
+numbers: 5, 3, 8, 1 | skus: BOOK-001, PEN-002, MUG-003 (Count=3)
+stock["book-001"] = 10
+MUG-003 not in stock (mugs=0)
+  BOOK-001: 10
+  PEN-002: 0
+HashSet count=2 | sorted: 1, 3, 5, 8
+===== classes
+ACC-1: 150.000 ₫
+error: insufficient funds: balance 150000, requested 1000000
+[email] Order confirmed
+[sms] Order confirmed
+BOOK-001 Clean Code 150.000 ₫
+===== records
+a == b -> True  (record so sanh theo gia tri)
+Money { Amount = 100000, Currency = VND }
+Money { Amount = 250000, Currency = VND } | a still 100000
+amount=250000, currency=VND
+===== patterns
+null                         <- null
+negative int                 <- -5
+int 42                       <- 42
+empty string                 <- 
+string 'hi'                  <- hi
+big VND amount               <- Money { Amount = 2000000, Currency = VND }
+money 5 USD                  <- Money { Amount = 5, Currency = USD }
+array 1..3                   <- System.Int32[]
+other: Double                <- 3.14
+shipping fee for 120.000 ₫: 30.000 ₫
+shipping fee for 250.000 ₫: 15.000 ₫
+shipping fee for 800.000 ₫: 0 ₫
+===== linq
+confirmed total: 1.380.000 ₫
+  binh  2 order(s)     60.900.000 ₫
+  an    2 order(s)        480.000 ₫
+  chi   1 order(s)         45.000 ₫
+biggest: #2 | any rejected: True | first pending: #4
+byId[3].Customer = an
+query defined, nothing ran yet
+  checking #1
+  checking #2
+first big order: #2
+===== errors
+FormatException: The input string 'abc' was not in a correct format.
+caught only because the filter matched: 504 is retryable
+TryParse ok: 42
+  open connection-1
+  working with connection-1
+  dispose connection-1
+  open connection-2
+  end of the method body
+  dispose connection-2
+===== async
+sequential: ~900 ms
+parallel:   ~300 ms, stocks = 8, 7, 6
+cancelled after ~100 ms instead of waiting 300 ms
+===== generics
+Max(3, 9, 4) = 9 | Max("kiwi", "apple") = kiwi
+[log] price with 8% VAT: 108000.00
+first call: 150000, cached: 1

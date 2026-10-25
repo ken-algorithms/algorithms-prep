@@ -68,7 +68,7 @@ def jsd_base(sid: str, standalone: bool) -> str:
         return MEDIA_BASE_ARTIFACT + f"jsd/{sid}/"
     return (os.environ["MEDIA_BASE"] + f"jsd/{sid}/") if os.environ.get("MEDIA_BASE") \
         else f"../java-system-design/{sid}/lessons/"
-SKIP = {".git", "site", "web", "__pycache__", "target", ".venv", "node_modules"}
+SKIP = {".git", "site", "web", "__pycache__", "target", ".venv", "node_modules", "bin", "obj", "TestResults"}
 
 
 def gh_slug(text: str, separator: str = "-") -> str:
@@ -148,13 +148,15 @@ def collect_docs() -> dict[str, dict]:
     # Put the two entry points first so the sidebar reads in a sensible order.
     def sort_key(p: Path) -> tuple:
         rel = p.relative_to(ROOT).as_posix()
+        if rel.startswith("tutorial/"):  # README của mỗi thư mục đứng trước các bài 01, 02…
+            return (3, p.parent.as_posix(), p.name != "README.md", rel)
         head = (
             0 if rel == "README.md" else
             1 if rel.startswith("java-system-design/") else
             2 if rel.startswith("on-bai/") else
-            3 if rel.startswith("ai-agent-learning/") else
-            4 if rel.startswith("ai-learning/") else
-            5 if rel.startswith("nab-prep/") else 6
+            4 if rel.startswith("ai-agent-learning/") else
+            5 if rel.startswith("ai-learning/") else
+            6 if rel.startswith("nab-prep/") else 7
         )
         return (head, rel)
 
@@ -496,6 +498,79 @@ def collect_onbai(docs: dict[str, dict]) -> dict:
     return {"phases": phases}
 
 
+# Tab "Tutorial": mỗi bộ một thư mục tutorial/<id>/. Các bảng trong mục "## Danh sách bài" của README là nguồn sự
+# thật: số, tên + file, lý thuyết, thực hành; heading ### ngay trên mỗi bảng là tên phần. Thời lượng đọc từ dòng
+# **Thời lượng:** của từng bài, số khối code đếm từ chính file bài.
+TUT_TRACKS = [
+    {"id": "dotnet8-rider", "title": ".NET 8 + JetBrains Rider trên MacBook",
+     "lead": "Từ cài đặt tới dự án thật: Rider, C#, debug, phím tắt macOS; dựng từ đầu OrderFlow (Web API, PostgreSQL "
+             "+ EF Core, Worker, Azure Service Bus, Docker) với 24 test chạy thật; checklist vào dự án và nâng lên .NET 10."},
+]
+TUT_ROW = re.compile(r"^\|\s*(\d{2})\s*\|\s*\[([^\]]+)\]\(([^)]+\.md)\)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$")
+FENCE_OPEN = re.compile(r"^\s*(```|~~~)\s*([\w+-]*)")
+
+
+def code_blocks(md_text: str) -> int:
+    """Số khối code (không tính mermaid): mỗi khối có một nút Copy trên web. Tính cả khối nằm trong blockquote."""
+    n, fence = 0, None
+    for line in md_text.splitlines():
+        line = re.sub(r"^(\s*>\s?)+", "", line)
+        m = FENCE_OPEN.match(line)
+        if fence is None and m:
+            fence = m.group(1)
+            n += m.group(2) != "mermaid"
+        elif fence and line.strip().startswith(fence):
+            fence = None
+    return n
+
+
+def collect_tutorial(docs: dict[str, dict]) -> dict:
+    tracks = []
+    for tr in TUT_TRACKS:
+        base = f"tutorial/{tr['id']}/"
+        readme = base + "README.md"
+        if readme not in docs:
+            continue
+        parts: list[dict] = []
+        part = None
+        section = False
+        for line in (ROOT / readme).read_text(encoding="utf-8").splitlines():
+            if line.startswith("## "):
+                section = line[3:].strip().lower().startswith("danh sách bài")
+                continue
+            if not section:
+                continue
+            h = re.match(r"^###\s+(.+?)\s*$", line)
+            if h:
+                part = {"t": h.group(1), "lessons": []}
+                parts.append(part)
+                continue
+            m = TUT_ROW.match(line)
+            if not m:
+                continue
+            doc = base + m.group(3)
+            if doc not in docs:
+                print(f"⚠ tutorial: {readme} trỏ tới {m.group(3)} nhưng không có file đó")
+                continue
+            if part is None:
+                part = {"t": tr["title"], "lessons": []}
+                parts.append(part)
+            raw = (ROOT / doc).read_text(encoding="utf-8")
+            dur = re.search(r"\*\*Thời lượng:\*\*([^\n]+)", raw)
+            part["lessons"].append({
+                "n": m.group(1), "doc": doc, "file": m.group(3), "t": m.group(2),
+                "theory": m.group(4), "practice": m.group(5), "code": code_blocks(raw),
+                "mins": sum(int(x) for x in re.findall(r"(\d+)\s*phút", dur.group(1))) if dur else 0})
+        parts = [p for p in parts if p["lessons"]]
+        listed = sum(len(p["lessons"]) for p in parts)
+        on_disk = len(list((ROOT / base).glob("[0-9][0-9]-*.md")))
+        if listed != on_disk:
+            print(f"⚠ tutorial {tr['id']}: bảng có {listed} bài, thư mục có {on_disk} file bài")
+        lab = base + "lab/README.md"
+        tracks.append(dict(tr, readme=readme, lab=lab if lab in docs else "", parts=parts))
+    return {"tracks": tracks}
+
+
 def resolve_sdr_anchors(docs: dict[str, dict]) -> None:
     """Đổi tiêu đề ("h") thành anchor, và kiểm tra anchor có trong tài liệu đã render."""
     ladder_doc = SDR_DIR + "02-ve-he-thong-100k-1m-10m.md"
@@ -520,6 +595,7 @@ def main() -> None:
 
     series = collect_jsd_series(docs)
     onbai = collect_onbai(docs)
+    tut = collect_tutorial(docs)
     tpl = (WEB / "app.template.html").read_text(encoding="utf-8")
     dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":"))
 
@@ -528,6 +604,7 @@ def main() -> None:
         return (tpl
                 .replace("/*__JSDV__*/{}", dump(jsdv))
                 .replace("/*__ONBAI__*/{}", dump(onbai))
+                .replace("/*__TUT__*/{}", dump(tut))
                 .replace("/*__DOCS__*/{}", dump(docs))
                 .replace("/*__ALGOS__*/[]", dump(algos))
                 .replace("/*__CO__*/{}", dump(COMPANIES))
@@ -557,6 +634,10 @@ def main() -> None:
     for ph in onbai["phases"]:
         print(f"  ôn bài {ph['id']}: {len(ph['lessons'])} bài (tab Ôn bài): "
               f"{', '.join(l['n'] for l in ph['lessons'])} · {sum(l['tests'] for l in ph['lessons'])} test lab")
+    for tr in tut["tracks"]:
+        ls = [l for p in tr["parts"] for l in p["lessons"]]
+        print(f"  tutorial {tr['id']}: {len(ls)} bài (tab Tutorial): {', '.join(l['n'] for l in ls)} · "
+              f"{sum(l['mins'] for l in ls)} phút · {sum(l['code'] for l in ls)} khối code")
     for x in series:
         print(f"  {x['id']}: {len(x['lessons'])} video (tab Ôn bài › Video): {', '.join(v.get('code') or 'Ep%02d' % v['ep'] for v in x['lessons'])}"
               f" — media từ {jsd_base(x['id'], True)}")

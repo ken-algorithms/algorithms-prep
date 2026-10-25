@@ -1,0 +1,48 @@
+Thi nghiem voi bo test (21/10/2026, .NET SDK 8.0.426, Linux x64, Docker 1 node). Dung trong bai 11.
+
+1. Bo khoi catch unique violation trong OrderCreatedHandler (sua tam, da tra lai nguyen ban)
+   Truoc khi co test tat dinh (13 test integration):
+     chay rieng Concurrent_redeliveries_are_processed_exactly_once (--filter): fail 10/10
+     chay ca bo integration:                                                     fail 1/5, pass 4/5
+     coverage (ca bo, co catch): dong 39-43 OrderCreatedHandler.cs (khoi catch) khong duoc chay lan nao
+   Sau khi them Losing_the_race_to_another_consumer_is_a_duplicate_and_rolls_back_the_update (interceptor):
+     chay ca bo integration 5 lan: Losing_the_race... fail 5/5, Concurrent_redeliveries... fail 2/5
+     loi: DbUpdateException ---- Npgsql.PostgresException : 23505: duplicate key value violates unique constraint "pk_processed_messages"
+   Co catch: 24/24 pass, 5 lan chay lien tiep.
+
+2. Docker khong chay (an /var/run/docker.sock trong mount namespace rieng)
+   dotnet test: integration 14/14 fail sau ~190 ms; unit 10/10 van pass (khong dung Docker):
+     DotNet.Testcontainers.Builders.DockerUnavailableException : Docker is either not running or misconfigured.
+     Failed to connect to Docker endpoint at 'unix:///var/run/docker.sock'.
+     (The following constructor parameters did not have matching fixture data: PostgresFixture pg)
+   Ghi chu: dat DOCKER_HOST tro vao socket khong ton tai KHONG du de gia lap: Testcontainers thu tiep
+   unix:///var/run/docker.sock va van chay duoc.
+
+3. Ghi de connection string bang ConfigureAppConfiguration thay vi UseSetting (ban sao, lab khong doi)
+   Program.cs doc connection string ngay luc dang ky service (AddOrderFlowData, truoc builder.Build()):
+     OrdersApiTests: 5/6 PASS, 1/6 fail (Post_saves...: "Sequence contains no elements")
+     DB dev tai localhost:5432 (docker compose cua lab dang chay): orders 4 -> 6, tuc 2 don cua test ghi NHAM vao DB dev
+   Doi AddOrderFlowData sang doc connection string luc tao DbContext ((sp, options) => ...): 6/6 pass, DB dev khong doi.
+   Lab giu UseSetting: 6/6 pass, khong cham DB dev.
+
+4. Coverage: dotnet test --collect:"XPlat Code Coverage" (coverlet.collector 6.0.0), khong tinh Migrations/
+   Integration (14 test): 276/335 dong = 82.4%
+     100%: OrderCreatedHandler, OutboxProcessor, OrderDbContext, OutboxMessage, DataServiceCollectionExtensions, OrderContracts
+     69.7%: OrderService (ListAsync chua co test)     76.9%: Program.cs (nhanh --migrate)
+     0%:   ServiceBusMessaging, MessagingServiceCollectionExtensions (Service Bus chi kiem bang tay o bai 09 va smoke test bai 10)
+   Unit (10 test): Order.cs 58/63 dong = 92.1%
+   Gop ca hai bang ReportGenerator 5.5.11: line 83.2% (279/335), branch 71.7% (33/46) -> coverage-summary.txt
+
+5. Thoi gian (dotnet test o thu muc goc, da build): 16 giay
+   unit 10 test: 0.2 s; integration 14 test: chay test 3 s, tong 13.4 s (gom khoi dong container + migrate)
+   Container do Testcontainers tao trong luc chay: postgres:16-alpine (ten ngau nhien, cong host ngau nhien vd 32769)
+   va testcontainers/ryuk:0.14.0; ca hai bien mat sau khi chay xong.
+
+6. Kill tien trinh test giua chung (giong bam Stop khi dang debug test): pkill -9 testhost luc container vua len
+   dotnet test in: "The active test run was aborted. Reason: Test host process crashed" / "Test Run Aborted."
+   DisposeAsync khong kip chay; Ryuk thay ket noi mat va xoa container postgres sau 10.8 s, tu xoa minh sau 10.9 s.
+
+7. Dot bien (mutation) bang tay: doi `if (Total > AutoConfirmLimit)` thanh `>=` trong Order.Process (ban sao)
+   Ca 24 test van PASS: khong test nao dung dung bien 50.000.000 (Order.cs van "92% coverage").
+   Them Theory Process_allows_a_total_exactly_at_the_limit (50_000_000 -> Confirmed, 50_000_001 -> Rejected):
+     ban dot bien: fail (Expected: Confirmed, Actual: Rejected); ban goc: 12/12 pass. Loi giai bai tap 1 cua bai 11.

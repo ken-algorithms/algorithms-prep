@@ -1,0 +1,28 @@
+Passed OrderFlow.UnitTests.OrderTests.Processing_twice_changes_nothing_the_second_time [27 ms]
+Passed OrderFlow.UnitTests.OrderTests.Process_confirms_an_order_under_the_limit [10 ms]
+Passed OrderFlow.UnitTests.OrderTests.Create_rejects_an_order_without_lines [4 ms]
+Passed OrderFlow.UnitTests.OrderTests.Create_requires_utc_time [1 ms]
+Passed OrderFlow.UnitTests.OrderTests.Process_rejects_an_order_over_the_limit [7 ms]
+Passed OrderFlow.UnitTests.OrderTests.Create_computes_the_total_and_normalizes_input [21 ms]
+Passed OrderFlow.UnitTests.OrderTests.Create_rejects_the_same_sku_twice_even_with_different_case [< 1 ms]
+Passed OrderFlow.UnitTests.OrderTests.A_line_needs_a_positive_quantity(quantity: 0) [< 1 ms]
+Passed OrderFlow.UnitTests.OrderTests.A_line_needs_a_positive_quantity(quantity: -3) [< 1 ms]
+Passed OrderFlow.UnitTests.OutboxMessageTests.For_serializes_the_message_as_camelCase_json_that_round_trips [157 ms]
+Test Run Successful.
+Total tests: 10
+Passed OrderFlow.IntegrationTests.OrderCreatedHandlerTests.Unknown_order_is_reported_not_retried [474 ms]
+Passed OrderFlow.IntegrationTests.OrderCreatedHandlerTests.Processes_the_order_once_and_ignores_a_redelivery [452 ms]
+Passed OrderFlow.IntegrationTests.OrderCreatedHandlerTests.Rejects_an_order_over_the_limit [28 ms]
+Passed OrderFlow.IntegrationTests.OrderCreatedHandlerTests.Concurrent_redeliveries_are_processed_exactly_once [101 ms]
+Passed OrderFlow.IntegrationTests.OrderCreatedHandlerTests.Losing_the_race_to_another_consumer_is_a_duplicate_and_rolls_back_the_update [50 ms]
+Passed OrderFlow.IntegrationTests.OrdersApiTests.Domain_rule_violation_returns_400_problem_from_the_exception_handler [272 ms]
+Passed OrderFlow.IntegrationTests.OrdersApiTests.Unknown_id_returns_404_problem [179 ms]
+Passed OrderFlow.IntegrationTests.OrdersApiTests.Health_check_reaches_postgres [101 ms]
+Passed OrderFlow.IntegrationTests.OrdersApiTests.Get_returns_what_post_created [209 ms]
+Passed OrderFlow.IntegrationTests.OrdersApiTests.Post_saves_the_order_and_its_outbox_message_together [119 ms]
+Passed OrderFlow.IntegrationTests.OrdersApiTests.Invalid_body_returns_400_validation_problem_and_writes_nothing [45 ms]
+Passed OrderFlow.IntegrationTests.OutboxProcessorTests.A_failed_publish_keeps_the_message_and_records_the_error [96 ms]
+Passed OrderFlow.IntegrationTests.OutboxProcessorTests.Two_dispatchers_in_parallel_never_send_the_same_message [444 ms]
+Passed OrderFlow.IntegrationTests.OutboxProcessorTests.Sends_pending_messages_in_order_and_only_once [40 ms]
+Test Run Successful.
+Total tests: 14

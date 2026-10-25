@@ -1,0 +1,44 @@
+# ./new-dotnet8-service.sh Acme.Billing <thu-muc-tam>   (21/10/2026, Linux x64, .NET SDK 8.0.426, 64 giay)
+
+== SDK, solution, file chung
+8.0.426
+
+== 5 project
+
+== Tham chieu giua cac project, package
+
+== Central Package Management: chuyen Version tu .csproj sang Directory.Packages.props
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.32" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+</Project>
+
+== Directory.Build.props: ap cho moi project trong thu muc
+
+== Mot integration test that cho API mau
+
+== Doi xuong dong CRLF cua file template sang LF
+
+== Build, test, lo hong, dinh dang
+    0 Warning(s)
+    0 Error(s)
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: < 1 ms - Acme.Billing.IntegrationTests.dll (net8.0)
+The given project `Acme.Billing.Api` has no vulnerable packages given the current sources.
+The given project `Acme.Billing.Core` has no vulnerable packages given the current sources.
+The given project `Acme.Billing.Worker` has no vulnerable packages given the current sources.
+The given project `Acme.Billing.IntegrationTests` has no vulnerable packages given the current sources.
+The given project `Acme.Billing.UnitTests` has no vulnerable packages given the current sources.
+dotnet format: khong co gi phai sua
+
+== Xong: <thu-muc-tam>/Acme.Billing
+Mo bang Rider: open -a Rider "Acme.Billing.sln"   |   chay API: dotnet run --project src/Acme.Billing.Api

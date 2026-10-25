@@ -35,11 +35,12 @@ md_toc.unique = gh_unique  # toc gọi unique() qua biến toàn cục của mod
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "site"
-SKIP_DIRS = {".git", "site", "__pycache__", "target", ".venv", "node_modules", ".idea"}
+SKIP_DIRS = {".git", "site", "__pycache__", "target", ".venv", "node_modules", ".idea", "bin", "obj", "TestResults"}
 
 # Nav grouping: (directory prefix, section label, sort weight)
 SECTIONS = [
     ("on-bai", "Ôn bài", 6),
+    ("tutorial", "Tutorial", 6),
     ("java-system-design", "Java System Design", 6),
     ("ai-agent-learning", "AI Agent", 7),
     ("ai-learning", "AI Learning", 8),
@@ -498,6 +499,16 @@ def build_home(pages: list[Page]) -> str:
         li("on-bai/chuyen-sau/03-kafka-replication-va-su-co.md", "tái hiện mất dữ liệu đã xác nhận với acks=1"),
         li("on-bai/chuyen-sau/lab/README.md", "29 test, Kafka 4.1 KRaft + Postgres 16 trên Docker"),
     ])
+    tut = "".join([
+        li("tutorial/dotnet8-rider/README.md", "12 bài, thứ tự học, lộ trình nhanh 1–2 ngày", "mới"),
+        li("tutorial/dotnet8-rider/01-cai-dat-macos.md", ".NET 8 SDK, Rider, Docker Desktop trên Mac chip Apple"),
+        li("tutorial/dotnet8-rider/05-phim-tat-rider-macos.md", "phím tắt Rider trên MacBook, gỡ xung đột macOS", "⭐"),
+        li("tutorial/dotnet8-rider/06-web-api-asp-net-core.md", "Web API từ đầu: DI, cấu hình, validation, ProblemDetails"),
+        li("tutorial/dotnet8-rider/09-azure-service-bus.md", "Service Bus emulator, peek-lock, DLQ, consumer idempotent", "⭐"),
+        li("tutorial/dotnet8-rider/11-test-xunit-testcontainers.md", "xUnit + Testcontainers, test race tất định, debug test"),
+        li("tutorial/dotnet8-rider/12-bat-dau-du-an-that.md", "ngày đầu ở dự án, script dựng service 1 phút, .NET 10", "⭐"),
+        li("tutorial/dotnet8-rider/lab/README.md", "OrderFlow: API + Worker + PostgreSQL + Service Bus + Docker, 24 test"),
+    ])
     hero = f"""
 <div class="hero">
   <h1>Interview Prep</h1>
@@ -514,6 +525,8 @@ def build_home(pages: list[Page]) -> str:
 <div class="tracks">
   <div class="track"><h3>Ôn bài — giai đoạn 1 và chuyên sâu</h3>
     <p class="sub">Katalon + NAB · senior Java · code tại chỗ và vẽ design</p><ol>{onbai}</ol></div>
+  <div class="track"><h3>Tutorial — .NET 8 + JetBrains Rider trên MacBook</h3>
+    <p class="sub">Từ cài đặt tới dự án thật · lý thuyết song song thực hành</p><ol>{tut}</ol></div>
   <div class="track"><h3>Java System Design — 6 tháng</h3>
     <p class="sub">Lộ trình v2 · Track P (code) + Track S (vẽ hệ thống)</p><ol>{jsd}</ol></div>
   <div class="track"><h3>NAB Innovation Centre</h3>

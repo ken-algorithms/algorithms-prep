@@ -1,0 +1,6 @@
+NAME                     MEM USAGE / LIMIT     CPU %
+orderflow-api-1          72.55MiB / 15.72GiB   0.02%
+orderflow-worker-1       83.36MiB / 15.72GiB   0.47%
+orderflow-servicebus-1   161.2MiB / 15.72GiB   1.36%
+orderflow-postgres-1     39.03MiB / 15.72GiB   4.76%
+orderflow-sqledge-1      468.5MiB / 15.72GiB   2.54%

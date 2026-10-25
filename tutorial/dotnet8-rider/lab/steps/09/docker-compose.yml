@@ -1,0 +1,44 @@
+# Bai 09: PostgreSQL + Service Bus emulator (emulator can them mot SQL Server lam kho luu tru).
+# App van chay tu Rider/dotnet run. Bai 10 them migrate + api + worker vao profile "app".
+name: orderflow
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: orderflow
+      POSTGRES_PASSWORD: orderflow
+      POSTGRES_DB: orderflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderflow -d orderflow"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # Service Bus emulator can mot SQL Server de luu trang thai; Azure SQL Edge chay native ca tren chip Apple (arm64)
+  sqledge:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${SQL_PASSWORD:-OrderFlow_Dev_2026!}"
+
+  servicebus:
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    depends_on:
+      - sqledge
+    environment:
+      SQL_SERVER: sqledge
+      MSSQL_SA_PASSWORD: "${SQL_PASSWORD:-OrderFlow_Dev_2026!}"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - ./servicebus/config.json:/ServiceBus_Emulator/ConfigFiles/Config.json:ro
+    ports:
+      - "5672:5672" # AMQP: app gui/nhan message
+      - "5300:5300" # HTTP: /health va API quan tri
+
+volumes:
+  pgdata:

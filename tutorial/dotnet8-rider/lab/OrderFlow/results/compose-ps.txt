@@ -1,0 +1,7 @@
+SERVICE      IMAGE                                                          STATUS                      PORTS
+api          orderflow-api:dev                                              Up 33 seconds               0.0.0.0:8080->8080/tcp
+migrate      orderflow-api:dev                                              Exited (0) 34 seconds ago   
+postgres     postgres:16-alpine                                             Up 39 seconds (healthy)     0.0.0.0:5432->5432/tcp
+servicebus   mcr.microsoft.com/azure-messaging/servicebus-emulator:latest   Up 38 seconds               0.0.0.0:5300->5300/tcp, 0.0.0.0:5672->5672/tcp, 8080/tcp
+sqledge      mcr.microsoft.com/azure-sql-edge:latest                        Up 39 seconds               1401/tcp, 1433/tcp
+worker       orderflow-worker:dev                                           Up 33 seconds               

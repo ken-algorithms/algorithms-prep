@@ -1,0 +1,24 @@
+Thu nang OrderFlow tu .NET 8 len .NET 10 (21/10/2026), tren mot BAN SAO cua lab (repo van giu net8.0)
+
+SDK: 10.0.402
+Thay doi:
+  5 file .csproj: <TargetFramework>net8.0</TargetFramework> -> net10.0
+  global.json: "version": "8.0.100" -> "10.0.100" (rollForward latestFeature giu nguyen)
+  Npgsql.EntityFrameworkCore.PostgreSQL               8.0.11 -> 10.0.3
+  EFCore.NamingConventions                            8.0.3  -> 10.0.1
+  Microsoft.EntityFrameworkCore.Design                8.0.32 -> 10.0.13
+  Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore 8.0.32 -> 10.0.13
+  Microsoft.AspNetCore.Mvc.Testing                    8.0.32 -> 10.0.13
+  Microsoft.Extensions.Hosting                        8.0.1  -> 10.0.13
+  Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> 10.0.13
+  Microsoft.Extensions.Options.DataAnnotations        8.0.0  -> 10.0.13
+  Giu nguyen: Azure.Messaging.ServiceBus 7.21.0, Swashbuckle.AspNetCore 6.6.2, Testcontainers.PostgreSql 4.16.0,
+              xunit 2.5.3, Microsoft.NET.Test.Sdk 17.8.0, Microsoft.Extensions.TimeProvider.Testing 8.10.0
+
+Ket qua (chay lai tren ban lab cuoi cung, 24 test):
+  dotnet build   -> Build succeeded, 0 warning
+  dotnet test    -> Passed! 10/10 OrderFlow.UnitTests.dll (net10.0)
+                    Passed! 14/14 OrderFlow.IntegrationTests.dll (net10.0)   (migration tao bang EF Core 8 van ap dung duoc)
+  chay API       -> san sang sau ~6 giay; /swagger/v1/swagger.json tra openapi 3.0.1 (2 path); POST /api/orders -> 201
+
+Chua lam trong lan thu nay: doi image Docker sang sdk:10.0 / aspnet:10.0 / runtime:10.0 va chay lai compose.

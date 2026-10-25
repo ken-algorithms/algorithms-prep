@@ -3,6 +3,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dockerfile.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/http.min.js"></script>
 
 <style>
 :root{
@@ -17,6 +20,8 @@
   --f-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-read:"Newsreader",Georgia,"Times New Roman",serif;
   --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --hl-kw:#7A3EA8; --hl-str:#1D6B4F; --hl-num:#9A5B00; --hl-com:#666D7C;
+  --hl-ttl:#2F4B9B; --hl-attr:#8A4B14; --hl-meta:#A32F3A; --hl-type:#0E6A7A;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -27,6 +32,8 @@
     --ok:#4FBF8E; --ok-soft:#122A22; --warn:#D9A445; --warn-soft:#2A2214;
     --risk:#E27F89; --risk-soft:#2E181C;
     --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 30px -18px rgba(0,0,0,.8);
+    --hl-kw:#C8A2F0; --hl-str:#8FD4A8; --hl-num:#E5B567; --hl-com:#8A93A3;
+    --hl-ttl:#8FB0F5; --hl-attr:#E0A67A; --hl-meta:#E8919A; --hl-type:#7FD0DC;
   }
 }
 :root[data-theme="dark"]{
@@ -37,6 +44,8 @@
   --ok:#4FBF8E; --ok-soft:#122A22; --warn:#D9A445; --warn-soft:#2A2214;
   --risk:#E27F89; --risk-soft:#2E181C;
   --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 30px -18px rgba(0,0,0,.8);
+  --hl-kw:#C8A2F0; --hl-str:#8FD4A8; --hl-num:#E5B567; --hl-com:#8A93A3;
+  --hl-ttl:#8FB0F5; --hl-attr:#E0A67A; --hl-meta:#E8919A; --hl-type:#7FD0DC;
 }
 *{box-sizing:border-box}
 /* KHÔNG đặt height:100% cho html/body: nó ép documentElement.scrollHeight bằng viewport,
@@ -249,6 +258,30 @@ h2.sec:first-child{margin-top:0}
 .doc pre{background:var(--sunken);border:1px solid var(--line);border-radius:var(--r);
   padding:12px 14px;overflow-x:auto;font-size:12.5px;line-height:1.5;font-family:var(--f-mono)}
 .doc pre code{background:none;padding:0;font-size:inherit}
+/* code inline dài (đường dẫn file, tên test Java) xuống dòng trong đoạn văn, không đẩy popup cuộn ngang trên điện thoại;
+   break-word không đổi độ rộng tối thiểu, nên bảng vẫn giữ cột rộng và cuộn trong khung .tw như cũ */
+.doc :not(pre) > code{overflow-wrap:break-word}
+/* khối code: thanh trên cùng ghi ngôn ngữ + nút Copy (không đè lên chữ, không cuộn ngang theo code) */
+.doc .cpwrap{margin:1em 0;border:1px solid var(--line);border-radius:var(--r);background:var(--sunken);overflow:hidden}
+.doc .cpwrap > pre{margin:0;border:0;border-radius:0}
+.doc .cphead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 6px 3px 12px;
+  background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.doc .cplbl{min-width:0;overflow-wrap:anywhere}
+.doc .cplbl.file{color:var(--ink-2);font-weight:500}
+.doc .cpr{display:flex;align-items:center;gap:8px;flex:none}
+.doc .cpbtn{font-family:var(--f-ui);font-size:12px;line-height:1.5;padding:2px 10px;border-radius:6px;
+  border:1px solid var(--line);background:var(--ground);color:var(--ink-2)}
+.doc .cpbtn:hover{border-color:var(--accent);color:var(--accent)}
+.doc .cpbtn.ok{border-color:var(--ok);color:var(--ok)}
+.hljs-keyword,.hljs-selector-tag,.hljs-doctag,.hljs-tag,.hljs-name{color:var(--hl-kw)}
+.hljs-string,.hljs-regexp,.hljs-addition,.hljs-char.escape_{color:var(--hl-str)}
+.hljs-number,.hljs-literal,.hljs-symbol,.hljs-bullet{color:var(--hl-num)}
+.hljs-comment,.hljs-quote{color:var(--hl-com);font-style:italic}
+.hljs-title,.hljs-section,.hljs-title.function_{color:var(--hl-ttl)}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-template-variable,.hljs-property,.hljs-selector-attr{color:var(--hl-attr)}
+.hljs-meta,.hljs-deletion{color:var(--hl-meta)}
+.hljs-type,.hljs-built_in,.hljs-title.class_{color:var(--hl-type)}
+.hljs-emphasis{font-style:italic}.hljs-strong{font-weight:600}
 .doc blockquote{margin:1em 0;padding:.6em 1em;border-left:3px solid var(--accent);
   background:var(--accent-soft);border-radius:0 var(--r-sm) var(--r-sm) 0;max-width:68ch}
 .doc blockquote p:first-child{margin-top:0}.doc blockquote p:last-child{margin-bottom:0}
@@ -353,6 +386,11 @@ h2.sec:first-child{margin-top:0}
 .obstar{color:var(--warn)}
 .chip .st{font-family:var(--f-ui);font-size:12px;letter-spacing:-.04em;color:var(--warn)}
 
+/* ---------- tutorial (tab Tutorial): thẻ dùng lại .obcard, thêm hai dòng lý thuyết / thực hành ---------- */
+.tutcard .obtx small{margin-top:2px}
+.tutcard .obtx small i{font-style:normal;font-weight:600;color:var(--ink);margin-right:4px}
+.tutcard .obtx small.tutfile{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);margin:0 0 4px;overflow-wrap:anywhere}
+
 /* popup đọc bài: CÙNG class .doc và cùng renderMermaid với tab Tài liệu, nên bảng/biểu đồ/code hiển thị y hệt */
 dialog.mdpop{padding:0;border:1px solid var(--line);border-radius:var(--r);background:var(--ground);color:var(--ink);
   width:min(1100px,96vw);height:min(92dvh,1600px);max-width:none;max-height:none;box-shadow:var(--shadow);overflow:hidden}
@@ -381,6 +419,7 @@ body.modal-open{overflow:hidden}
     <button class="tab" data-act="tab" data-t="algo">Thuật toán<span class="n" id="nAlgo">38</span></button>
     <button class="tab" data-act="tab" data-t="sd">System design<span class="n" id="nSd">0/6</span></button>
     <button class="tab" data-act="tab" data-t="onbai">Ôn bài<span class="n" id="nOnbai">0</span></button>
+    <button class="tab" data-act="tab" data-t="tut">Tutorial<span class="n" id="nTut">0</span></button>
     <button class="tab" data-act="tab" data-t="docs">Tài liệu<span class="n" id="nDocs">0</span></button>
     <div class="foot">
       <button class="mini" data-act="theme" id="themeBtn">Giao diện: theo máy</button>
@@ -391,7 +430,7 @@ body.modal-open{overflow:hidden}
   <main class="view">
     <div class="head">
       <div><h1 id="ttl">Tổng quan</h1><div class="sub" id="sub"></div></div>
-      <span class="chip acc num" id="pct" title="Phần trăm đã hoàn thành: bài thuật toán + yêu cầu JD + mốc lộ trình System Design + bài ôn">0%</span>
+      <span class="chip acc num" id="pct" title="Phần trăm đã hoàn thành: bài thuật toán + yêu cầu JD + mốc lộ trình System Design + bài ôn + bài tutorial">0%</span>
     </div>
 
     <!-- ============ TỔNG QUAN ============ -->
@@ -405,6 +444,8 @@ body.modal-open{overflow:hidden}
           <div class="big" id="sMs">0/6</div><span>Mốc lộ trình System Design →</span></button>
         <button class="stat" data-act="tab" data-t="onbai">
           <div class="big" id="sOb">0/0</div><span>Bài ôn đã xong (lý thuyết + lab) →</span></button>
+        <button class="stat" data-act="tab" data-t="tut">
+          <div class="big" id="sTut">0/0</div><span>Bài tutorial .NET 8 + Rider đã học →</span></button>
         <button class="stat" data-act="tab" data-t="docs">
           <div class="big" id="sDocs">0</div><span>Tài liệu trong kho →</span></button>
       </div>
@@ -516,6 +557,11 @@ body.modal-open{overflow:hidden}
       </div>
     </section>
 
+    <!-- ============ TUTORIAL (hướng dẫn từng bước, đọc trong popup, code có nút Copy) ============ -->
+    <section class="pane" id="p-tut" hidden>
+      <div id="tutBody"></div>
+    </section>
+
     <!-- ============ TÀI LIỆU ============ -->
     <section class="pane" id="p-docs" hidden>
       <div class="docwrap">
@@ -543,7 +589,7 @@ body.modal-open{overflow:hidden}
   <div class="mdbar">
     <button class="fbtn" data-act="pback" id="pBack" hidden aria-label="Quay lại bài trước">←</button>
     <div class="mdttl"><b id="mdTitle"></b><span id="mdPath"></span></div>
-    <label id="mdSeenWrap" hidden><input type="checkbox" data-act="obseen" id="mdSeen"> Đã ôn</label>
+    <label id="mdSeenWrap" hidden><input type="checkbox" data-act="obseen" id="mdSeen"> <span id="mdSeenTxt">Đã ôn</span></label>
     <button class="fbtn full" data-act="pfull" title="Mở bài này ở tab Tài liệu">Mở toàn trang</button>
     <button class="fbtn" data-act="pclose" aria-label="Đóng (Esc)">✕</button>
   </div>
@@ -562,6 +608,7 @@ const DSA_DOC = "leetcode-38-bai-phong-van-vietnam.md";
 const MEDIA_BASE = /*__MEDIA_BASE__*/"";
 const JSDV = /*__JSDV__*/{};
 const ONBAI = /*__ONBAI__*/{};
+const TUT = /*__TUT__*/{};
 
 /* ---------- state ---------- */
 let S = {done:{}, req:{}, ms:{}};
@@ -569,6 +616,7 @@ try{ const r = localStorage.getItem(KEY); if(r) S = Object.assign(S, JSON.parse(
 S.ms = S.ms || {};
 S.vid = S.vid || {};
 S.onbai = S.onbai || {};
+S.tut = S.tut || {};
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 
 const el = id => document.getElementById(id);
@@ -605,10 +653,11 @@ function cycleTheme(){
 }
 
 /* ---------- tabs ---------- */
-const TABS = ["over","co","algo","sd","onbai","docs"];
+const TABS = ["over","co","algo","sd","onbai","tut","docs"];
 const TITLES = {over:["Tổng quan","Bạn đang ở đâu"], co:["Công ty","JD, các vòng, và gap thật"],
   algo:["Thuật toán","38 bài — gõ tay, tắt Copilot"], sd:["System design","Lộ trình 24 tuần · 2 track · 7 họ bài · 6 bài đầy đủ"],
   onbai:["Ôn bài","Lý thuyết → real case dựng từ đầu → lab chạy thật → drill code · kèm video bài giảng"],
+  tut:["Tutorial",".NET 8 + JetBrains Rider trên MacBook · từ cài đặt tới dự án thật · đọc trong popup, code có nút Copy"],
   docs:["Tài liệu","Toàn bộ kho, đọc ngay trong trang"]};
 function go(t){
   if(!TABS.includes(t)) return;
@@ -627,6 +676,8 @@ const msTotal = () => (SDR.ms || []).length;
 const msDone = () => (SDR.ms || []).filter((m, i) => S.ms[i]).length;
 const OB = (ONBAI.phases || []).flatMap(p => p.lessons);
 const obDone = () => OB.filter(l => S.onbai[l.doc]).length;
+const TL = (TUT.tracks || []).flatMap(t => t.parts.flatMap(p => p.lessons));
+const tutDone = () => TL.filter(l => S.tut[l.doc]).length;
 
 function renderOver(){
   const d = doneCount();
@@ -640,8 +691,9 @@ function renderOver(){
   el("covSegs").innerHTML = ALGOS.map(a =>
     `<span class="seg${S.done[a.i] ? " on" : ""}" title="${esc(a.i + ". " + a.n)}"></span>`).join("");
   el("sOb").textContent = obDone() + "/" + OB.length;
-  el("pct").textContent = Math.round(((d + reqDone() + msDone() + obDone()) /
-    (ALGOS.length + reqTotal() + msTotal() + OB.length)) * 100) + "%";
+  el("sTut").textContent = tutDone() + "/" + TL.length;
+  el("pct").textContent = Math.round(((d + reqDone() + msDone() + obDone() + tutDone()) /
+    (ALGOS.length + reqTotal() + msTotal() + OB.length + TL.length)) * 100) + "%";
 
   el("trackCards").innerHTML = Object.entries(CO).map(([k, c]) => `
     <button class="track" data-act="co" data-co="${esc(k)}">
@@ -842,7 +894,7 @@ function renderVid(){
     <a href="${vSrc(v.file)}" download>Tải file mp4</a></div></div>`;
   el("vPlayer").innerHTML = `<video id="vEl" controls preload="metadata" playsinline
       ${v.poster ? `poster="${vSrc(v.poster)}"` : ""} src="${vSrc(v.file)}"
-      onerror="this.outerHTML=this.dataset.miss" data-miss="${esc(miss)}"></video>`;
+      onerror="if(this.parentNode)this.outerHTML=this.dataset.miss" data-miss="${esc(miss)}"></video>`;
   const ve = el("vEl");
   if(ve){ ve.playbackRate = S.vrate || 1; ve.addEventListener("ratechange", () => { S.vrate = ve.playbackRate; save(); }); }
   const chaps = (v.chapters || []).map(c =>
@@ -928,6 +980,46 @@ function renderOnbai(){
   if(view === "vid") renderVid();
 }
 
+/* ---------- tutorial ----------
+   Danh sách bài lấy từ các bảng trong tutorial/<bộ>/README.md (build.py đọc), chia theo phần. Bấm một bài thì mở
+   popup đọc ngay; mọi khối code có nút Copy (prepareDoc). "Đã học" lưu trong S.tut theo đường dẫn file bài. */
+function renderTut(){
+  el("nTut").textContent = tutDone() + "/" + TL.length;
+  el("tutBody").innerHTML = (TUT.tracks || []).map(tr => {
+    const ls = tr.parts.flatMap(p => p.lessons);
+    const done = ls.filter(l => S.tut[l.doc]).length;
+    const mins = ls.reduce((n, l) => n + l.mins, 0), code = ls.reduce((n, l) => n + l.code, 0);
+    const next = ls.find(l => !S.tut[l.doc]);
+    return `
+    <div class="card rm-head">
+      <div><p class="eyebrow">Tutorial · ${esc(tr.title)} · ${done}/${ls.length} đã học</p>
+        <h3>${ls.length} bài · khoảng ${Math.round(mins / 60)} giờ · ${code} khối code có nút Copy</h3>
+        <p>${esc(tr.lead)}</p></div>
+      <div class="rm-actions">
+        ${next ? `<button class="fbtn" data-act="pop" data-doc="${esc(next.doc)}" aria-pressed="true">${done ? "Học tiếp" : "Bắt đầu"}: bài ${esc(next.n)} →</button>` : ""}
+        <button class="fbtn" data-act="pop" data-doc="${esc(tr.readme)}">Mục lục + thứ tự học →</button>
+        ${tr.lab ? `<button class="fbtn" data-act="pop" data-doc="${esc(tr.lab)}">Lab: cách chạy →</button>` : ""}
+      </div>
+    </div>` + tr.parts.map(p => `
+    <h2 class="sec">${esc(p.t)}</h2>
+    <div class="oblist">${p.lessons.map(l => `
+      <div class="obcard tutcard${S.tut[l.doc] ? " done" : ""}">
+        <button class="obmain" data-act="pop" data-doc="${esc(l.doc)}">
+          <span class="obn">${esc(l.n)}</span>
+          <span class="obtx"><b>${esc(l.t)}</b>
+            <small class="tutfile" title="${esc(l.doc)}">📄 ${esc(l.file)}</small>
+            <small><i>Lý thuyết</i>${inl(l.theory)}</small>
+            <small><i>Thực hành</i>${inl(l.practice)}</small></span>
+        </button>
+        <div class="obmeta">
+          ${l.mins ? `<span class="chip num" title="đọc + làm">${l.mins}′</span>` : ""}
+          ${l.code ? `<span class="chip num" title="khối code trong bài, mỗi khối có nút Copy">${l.code} code</span>` : ""}
+          <label><input type="checkbox" data-act="tutseen" data-doc="${esc(l.doc)}" ${S.tut[l.doc] ? "checked" : ""}> Đã học</label>
+        </div>
+      </div>`).join("")}</div>`).join("");
+  }).join("") || `<p class="empty">Chưa có bài tutorial nào.</p>`;
+}
+
 /* Popup đọc bài: <dialog> modal (Esc đóng, nền tối, khoá cuộn trang sau). Liên kết sang tài liệu khác mở NGAY
    trong popup và có nút ← quay lại; "Mở toàn trang" chuyển sang tab Tài liệu đúng bài đó. */
 let popCur = null;
@@ -947,9 +1039,12 @@ function openPop(k, anchor, push){
   el("pBack").hidden = popHist.length === 0;
   el("mdTitle").textContent = DOCS[key].t;
   el("mdPath").textContent = key;
-  el("mdSeenWrap").hidden = !OB.some(l => l.doc === key);
+  const isTut = TL.some(l => l.doc === key);
+  el("mdSeenWrap").hidden = !(isTut || OB.some(l => l.doc === key));
+  el("mdSeen").dataset.act = isTut ? "tutseen" : "obseen";
+  el("mdSeenTxt").textContent = isTut ? "Đã học" : "Đã ôn";
   el("mdSeen").dataset.doc = key;
-  el("mdSeen").checked = !!S.onbai[key];
+  el("mdSeen").checked = !!(isTut ? S.tut[key] : S.onbai[key]);
   const box = el("mdDoc");
   box.innerHTML = DOCS[key].h;
   prepareDoc(box, key);
@@ -977,6 +1072,7 @@ el("mdPop").addEventListener("click", e => { if(e.target === el("mdPop")) closeP
 const ORDER = Object.keys(DOCS);
 function groupOf(k){
   if(k.startsWith("on-bai/")) return "Ôn bài";
+  if(k.startsWith("tutorial/")) return "Tutorial";
   if(k.startsWith("java-system-design/")) return "Java System Design";
   if(k.startsWith("ai-agent-learning/")) return "AI Agent";
   if(k.startsWith("ai-learning/")) return "AI Learning";
@@ -1015,10 +1111,10 @@ function mediaBlock(a){
       <a href="${src(k)}" data-act="ext" target="_blank" rel="noopener">Mở file · ${v[k + "_mb"]} MB</a></figcaption></figure>`;
   return `<div class="media" data-media="${a.i}">
     ${v.mp4 ? fig(`<video controls preload="metadata" playsinline src="${src("mp4")}"
-        onerror="this.outerHTML=this.dataset.miss" data-miss="${esc(miss("video"))}"></video>`,
+        onerror="if(this.parentNode)this.outerHTML=this.dataset.miss" data-miss="${esc(miss("video"))}"></video>`,
         "Video đầy đủ — có giọng đọc, code Python + Java", "mp4") : ""}
     ${v.gif ? fig(`<img loading="lazy" alt="GIF minh hoạ bài ${a.i}: chạy từng bước" src="${src("gif")}"
-        onerror="this.outerHTML=this.dataset.miss" data-miss="${esc(miss("GIF"))}">`,
+        onerror="if(this.parentNode)this.outerHTML=this.dataset.miss" data-miss="${esc(miss("GIF"))}">`,
         "GIF — chạy từng bước, lặp lại", "gif") : ""}
   </div>`;
 }
@@ -1073,6 +1169,59 @@ function prepareDoc(box, key){
   });
   if(key === DSA_DOC) injectMedia(box);   // sau vòng xử lý link: link "Mở file" giữ nguyên data-act="ext"
   renderMermaid(box);
+  addCodeTools(box);                      // sau mermaid: khối mermaid đã thành biểu đồ, không cần nút Copy
+}
+
+/* Mỗi khối code: tô màu cú pháp nếu highlight.js tải được (không có mạng thì vẫn đọc được, chỉ không màu),
+   và một thanh nhỏ ghi tên file (hoặc ngôn ngữ) + nút Copy. Copy lấy textContent của <code>, tức đúng nguyên văn
+   trong file .md. Dòng "📄 lab/…" / "✂️ lab/…" ngay trên khối (quy ước của tutorial) được chuyển vào thanh đó. */
+const NOHL = new Set(["", "text", "plaintext", "txt", "mermaid"]);
+function addCodeTools(box){
+  box.querySelectorAll("pre > code").forEach(code => {
+    const pre = code.parentElement;
+    if(pre.parentElement.classList.contains("cpwrap")) return;
+    const lang = ([...code.classList].find(c => c.startsWith("language-")) || "").slice(9);
+    if(window.hljs && !NOHL.has(lang) && hljs.getLanguage(lang)){
+      try{ hljs.highlightElement(code); }catch(e){}
+    }
+    const prev = pre.previousElementSibling;
+    const mark = prev && prev.tagName === "P" && /^(📄|✂️)/u.test(prev.textContent.trim()) && prev.textContent.length < 300 ? prev : null;
+    const w = document.createElement("div");
+    w.className = "cpwrap";
+    w.innerHTML = `<div class="cphead">${mark
+        ? `<span class="cplbl file">${esc(mark.textContent.trim())}</span>`
+        : `<span class="cplbl">${esc(lang || "code")}</span>`}
+      <span class="cpr">${mark && lang ? `<span>${esc(lang)}</span>` : ""}
+      <button type="button" class="cpbtn" data-act="copy" aria-label="Chép khối code ${esc(lang)}">Copy</button></span></div>`;
+    pre.parentNode.insertBefore(w, pre);
+    w.appendChild(pre);
+    if(mark) mark.remove();
+  });
+}
+function copyCode(btn){
+  const code = btn.closest(".cpwrap").querySelector("pre");
+  const text = code.textContent.replace(/\n$/, "");   // bỏ dòng trống cuối: dán vào Terminal không tự chạy lệnh cuối
+  const done = ok => {
+    btn.textContent = ok ? "Đã chép ✓" : "Không chép được";
+    btn.classList.toggle("ok", ok);
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("ok"); }, 1600);
+  };
+  const fallback = () => {   // clipboard API bị chặn (iframe, http): chọn chữ trong textarea tạm rồi execCommand
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+    (btn.closest("dialog") || document.body).appendChild(ta);   // trong <dialog> modal, phần ngoài dialog bị khoá
+    ta.focus({preventScroll: true});
+    ta.select();
+    let ok = false;
+    try{ ok = document.execCommand("copy"); }catch(e){}
+    ta.remove();
+    done(ok);
+  };
+  if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => done(true), fallback);
+  else fallback();
 }
 
 function renderMermaid(container){
@@ -1141,8 +1290,12 @@ function handleAct(e){
   if(!t) return;
   const act = t.dataset.act;
 
-  if(act === "req" || act === "algo" || act === "ms" || act === "vseen" || act === "obseen"){  // checkbox: để trình duyệt tự toggle
-    if(act === "obseen"){
+  if(act === "req" || act === "algo" || act === "ms" || act === "vseen" || act === "obseen" || act === "tutseen"){  // checkbox: để trình duyệt tự toggle
+    if(act === "tutseen"){
+      S.tut[t.dataset.doc] = t.checked; save(); renderTut(); renderOver();
+      if(el("mdSeen").dataset.doc === t.dataset.doc) el("mdSeen").checked = t.checked;
+    }
+    else if(act === "obseen"){
       S.onbai[t.dataset.doc] = t.checked; save(); renderOnbai(); renderOver();
       if(el("mdSeen").dataset.doc === t.dataset.doc) el("mdSeen").checked = t.checked;
     }
@@ -1168,6 +1321,7 @@ function handleAct(e){
     case "pback":  if(popHist.length) openPop(popHist.pop(), undefined, false); break;
     case "pfull":  { const k = popCur; closePop(); if(k) openDoc(k); } break;
     case "pclose": closePop(); break;
+    case "copy":   copyCode(t); break;
     case "obview": S.obview = t.dataset.v; save(); renderOnbai(); break;
     case "vid":    vidCur = t.dataset.v; renderVid(); toTop(); break;
     case "vser":   S.vser = t.dataset.s; save(); vidCur = null; renderVid(); break;
@@ -1190,13 +1344,13 @@ function handleAct(e){
     case "theme": cycleTheme(); break;
     case "reset":
       if(confirm("Xoá toàn bộ tiến độ đã tick? Không khôi phục lại được.")){
-        S = {done:{}, req:{}, ms:{}, vid:{}, onbai:{}}; save(); renderAll();
+        S = {done:{}, req:{}, ms:{}, vid:{}, onbai:{}, tut:{}}; save(); renderAll();
       }
       break;
   }
 }
 document.addEventListener("click", handleAct);
-document.addEventListener("change", e => { if(e.target.matches('[data-act="req"],[data-act="algo"],[data-act="ms"],[data-act="vseen"],[data-act="obseen"]')) handleAct(e); });
+document.addEventListener("change", e => { if(e.target.matches('[data-act="req"],[data-act="algo"],[data-act="ms"],[data-act="vseen"],[data-act="obseen"],[data-act="tutseen"]')) handleAct(e); });
 // phần tử bấm được nhưng không phải <button> vẫn phải dùng được bằng bàn phím
 document.addEventListener("keydown", e => {
   if((e.key === "Enter" || e.key === " ") && e.target.matches('[data-act][role="button"]')){
@@ -1208,7 +1362,7 @@ document.addEventListener("keydown", e => {
 el("q").addEventListener("input", runSearch);
 
 /* ---------- boot ---------- */
-function renderAll(){ renderOver(); renderCo(); renderAlgo(); renderSd(); renderOnbai(); renderVid(); renderNav(); }
+function renderAll(){ renderOver(); renderCo(); renderAlgo(); renderSd(); renderOnbai(); renderTut(); renderVid(); renderNav(); }
 themeLabel();
 el("nDocs").textContent = Object.keys(DOCS).length;
 renderAll();

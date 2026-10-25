@@ -1,0 +1,12 @@
+1) waiting for the services
+  API ready after 3s
+  Service Bus emulator ready after 27s
+2) creating two orders
+  small order 7a3578d3-e4a4-41eb-b055-4ce5b0764092 (300,000)
+  big order   9f3c4616-019b-4716-b62a-63e33aeacdc8 (60,000,000, over the 50,000,000 limit)
+3) waiting for the Worker (outbox -> Service Bus -> handler)
+  processed after 2s
+4) final state
+  7a3578d3-e4a4-41eb-b055-4ce5b0764092  Confirmed  total=       300,000  reason=None
+  9f3c4616-019b-4716-b62a-63e33aeacdc8  Rejected   total=    60,000,000  reason=total 60,000,000 is over the auto-confirm limit 50,000,000
+OK

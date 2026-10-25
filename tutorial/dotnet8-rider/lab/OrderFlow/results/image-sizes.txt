@@ -1,0 +1,7 @@
+mcr.microsoft.com/azure-messaging/servicebus-emulator:latest  313MB
+mcr.microsoft.com/azure-sql-edge:latest  2.29GB
+mcr.microsoft.com/dotnet/aspnet:8.0  321MB
+mcr.microsoft.com/dotnet/runtime:8.0  285MB
+orderflow-api:dev  341MB
+orderflow-worker:dev  304MB
+postgres:16-alpine  420MB

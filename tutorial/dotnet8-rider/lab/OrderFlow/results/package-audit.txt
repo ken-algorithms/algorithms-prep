@@ -1,0 +1,39 @@
+Kiem tra goi co lo hong (21/10/2026, SDK 8.0.426). Dung o bai 11 §2 va bai 12 §1.
+
+== TRUOC: test project dung xunit 2.5.3 (ban ma 'dotnet new xunit' cua SDK 8 tao ra)
+$ dotnet list package --vulnerable --include-transitive
+The given project `OrderFlow.Core` has no vulnerable packages given the current sources.
+The given project `OrderFlow.Api` has no vulnerable packages given the current sources.
+The given project `OrderFlow.Worker` has no vulnerable packages given the current sources.
+Project `OrderFlow.UnitTests` has the following vulnerable packages
+   [net8.0]:
+   Transitive Package                    Resolved   Severity   Advisory URL
+   > System.Net.Http                     4.3.0      High       https://github.com/advisories/GHSA-7jgj-8wvc-jh57
+   > System.Text.RegularExpressions      4.3.0      High       https://github.com/advisories/GHSA-cmhx-cq75-c4mj
+
+Project `OrderFlow.IntegrationTests` has the following vulnerable packages
+   [net8.0]:
+   Transitive Package                    Resolved   Severity   Advisory URL
+   > System.Net.Http                     4.3.0      High       https://github.com/advisories/GHSA-7jgj-8wvc-jh57
+   > System.Text.RegularExpressions      4.3.0      High       https://github.com/advisories/GHSA-cmhx-cq75-c4mj
+
+
+$ dotnet nuget why tests/OrderFlow.UnitTests System.Net.Http   (rut gon)
+   └─ xunit (v2.5.3)
+      ├─ xunit.assert (v2.5.3)
+      │  └─ NETStandard.Library (v1.6.1)
+      │     └─ System.Net.Http (v4.3.0)
+      └─ xunit.core (v2.5.3) -> xunit.extensibility.core / .execution -> NETStandard.Library (v1.6.1) -> System.Net.Http (v4.3.0)
+
+== SUA: dotnet add tests/OrderFlow.UnitTests package xunit --version 2.9.3   (va IntegrationTests)
+   build 0 warning, 24/24 test pass
+
+== SAU
+$ dotnet list package --vulnerable --include-transitive
+The given project `OrderFlow.Core` has no vulnerable packages given the current sources.
+The given project `OrderFlow.Api` has no vulnerable packages given the current sources.
+The given project `OrderFlow.Worker` has no vulnerable packages given the current sources.
+The given project `OrderFlow.UnitTests` has no vulnerable packages given the current sources.
+The given project `OrderFlow.IntegrationTests` has no vulnerable packages given the current sources.
+$ dotnet nuget why tests/OrderFlow.UnitTests NETStandard.Library
+Project 'OrderFlow.UnitTests' does not have a dependency on 'NETStandard.Library'.

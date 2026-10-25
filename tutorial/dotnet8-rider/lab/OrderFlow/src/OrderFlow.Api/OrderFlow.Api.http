@@ -1,0 +1,40 @@
+### Rider: bam nut ▶ xanh o le trai canh moi request. Chay request 1 truoc de co bien orderId.
+@host = http://localhost:5080
+
+### 1. Tao don hang (luu id vao bien orderId cho request sau)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customerEmail": "an.nguyen@example.com",
+  "lines": [
+    { "sku": "BOOK-001", "quantity": 2, "unitPrice": 150000 },
+    { "sku": "PEN-002", "quantity": 5, "unitPrice": 12000 }
+  ]
+}
+
+> {% client.global.set("orderId", response.body.id); %}
+
+### 2. Xem don vua tao: luc dau Pending, Worker xu ly xong thi Confirmed
+GET {{host}}/api/orders/{{orderId}}
+
+### 3. Don vuot han muc 50.000.000 -> Worker se Rejected
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customerEmail": "big.buyer@example.com",
+  "lines": [ { "sku": "LAPTOP-PRO", "quantity": 2, "unitPrice": 30000000 } ]
+}
+
+### 4. Du lieu sai -> 400 ValidationProblemDetails
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{ "customerEmail": "not-an-email", "lines": [] }
+
+### 5. Danh sach don theo trang thai
+GET {{host}}/api/orders?status=Confirmed&take=10
+
+### 6. Health check (kiem tra ket noi PostgreSQL)
+GET {{host}}/health

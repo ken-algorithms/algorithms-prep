@@ -1,0 +1,49 @@
+# reportgenerator 5.5.11 -reports:"TestResults/*/coverage.cobertura.xml" -reporttypes:"Html;TextSummary" -classfilters:"-OrderFlow.Core.Data.Migrations.*"
+# gop 2 file cobertura: unit (10 test) + integration (14 test)
+Summary
+  Generated on: 10/21/2026 - 13:33:37
+  Coverage date: 10/21/2026 - 13:33:23 - 10/21/2026 - 13:33:36
+  Parser: MultiReport (2x Cobertura)
+  Assemblies: 2
+  Classes: 23
+  Files: 14
+  Line coverage: 83.2%
+  Covered lines: 279
+  Uncovered lines: 56
+  Coverable lines: 335
+  Total lines: 629
+  Branch coverage: 71.7% (33 of 46)
+  Covered branches: 33
+  Total branches: 46
+  Method coverage: 87.3% (69 of 79)
+  Full method coverage: 83.5% (66 of 79)
+  Covered methods: 69
+  Fully covered methods: 66
+  Total methods: 79
+
+OrderFlow.Api                                           83.9%
+  OrderFlow.Api.Contracts.CreateOrderLineRequest         100%
+  OrderFlow.Api.Contracts.CreateOrderRequest             100%
+  OrderFlow.Api.Contracts.OrderLineResponse              100%
+  OrderFlow.Api.Contracts.OrderResponse                  100%
+  OrderFlow.Api.Controllers.OrdersController              90%
+  OrderFlow.Api.Infrastructure.DomainExceptionHandler   94.1%
+  OrderFlow.Api.Services.OrderService                   69.6%
+  Program                                               76.9%
+
+OrderFlow.Core                                          82.9%
+  OrderFlow.Core.Data.OrderDbContext                     100%
+  OrderFlow.Core.Data.OutboxMessage                      100%
+  OrderFlow.Core.Data.ProcessedMessage                   100%
+  OrderFlow.Core.DataServiceCollectionExtensions         100%
+  OrderFlow.Core.Domain.DomainException                  100%
+  OrderFlow.Core.Domain.Order                           95.6%
+  OrderFlow.Core.Domain.OrderLine                       87.5%
+  OrderFlow.Core.Messaging.Json                          100%
+  OrderFlow.Core.Messaging.OrderCreated                  100%
+  OrderFlow.Core.Messaging.OrderCreatedHandler           100%
+  OrderFlow.Core.Messaging.ServiceBusMessagePublisher      0%
+  OrderFlow.Core.Messaging.ServiceBusOptions               0%
+  OrderFlow.Core.MessagingServiceCollectionExtensions      0%
+  OrderFlow.Core.Outbox.OutboxOptions                    100%
+  OrderFlow.Core.Outbox.OutboxProcessor                  100%
